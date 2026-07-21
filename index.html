@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#7b2334">
+  <meta name="description" content="Agenda cultural personal de Granada">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>Granada Cultura</title>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Agenda privada</p>
+      <h1>Granada Cultura</h1>
+    </div>
+    <div class="header-actions">
+      <button id="installBtn" class="secondary hidden" type="button">Instalar</button>
+      <button id="themeBtn" class="icon-btn" type="button" aria-label="Cambiar tema">◐</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="demoNotice" class="notice">
+      La aplicación incluye eventos ficticios de demostración. Puedes borrarlos y añadir los tuyos.
+      <button id="clearDemoBtn" type="button">Eliminar ejemplos</button>
+    </section>
+
+    <nav class="main-tabs" aria-label="Secciones">
+      <button class="tab active" data-tab="agenda" type="button">Agenda</button>
+      <button class="tab" data-tab="favorites" type="button">Favoritos</button>
+      <button class="tab" data-tab="form" type="button">Añadir</button>
+      <button class="tab" data-tab="settings" type="button">Datos</button>
+    </nav>
+
+    <section id="agendaSection" class="tab-panel active">
+      <div class="date-shortcuts" id="dateShortcuts">
+        <button class="chip active" data-range="today" type="button">Hoy</button>
+        <button class="chip" data-range="tomorrow" type="button">Mañana</button>
+        <button class="chip" data-range="week" type="button">Esta semana</button>
+        <button class="chip" data-range="weekend" type="button">Fin de semana</button>
+        <button class="chip" data-range="month" type="button">Este mes</button>
+        <button class="chip" data-range="all" type="button">Todos</button>
+      </div>
+
+      <div class="filters card">
+        <label class="search-field">
+          <span>Buscar</span>
+          <input id="searchInput" type="search" placeholder="Evento, sala, municipio…">
+        </label>
+
+        <div class="filter-grid">
+          <label>
+            <span>Categoría</span>
+            <select id="categoryFilter">
+              <option value="">Todas</option>
+            </select>
+          </label>
+          <label>
+            <span>Precio</span>
+            <select id="priceFilter">
+              <option value="">Todos</option>
+              <option value="free">Gratis</option>
+              <option value="paid">De pago</option>
+            </select>
+          </label>
+          <label>
+            <span>Municipio</span>
+            <select id="cityFilter">
+              <option value="">Todos</option>
+            </select>
+          </label>
+          <label>
+            <span>Estado</span>
+            <select id="statusFilter">
+              <option value="">Todos</option>
+              <option value="interested">Me interesa</option>
+              <option value="going">Voy a ir</option>
+              <option value="discarded">Descartado</option>
+              <option value="none">Sin marcar</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-heading">
+        <div>
+          <p id="rangeLabel" class="eyebrow">Hoy</p>
+          <h2 id="resultTitle">Eventos</h2>
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn active" data-view="list" type="button">Lista</button>
+          <button class="view-btn" data-view="calendar" type="button">Mes</button>
+        </div>
+      </div>
+
+      <div id="eventList" class="event-list"></div>
+      <div id="calendarView" class="calendar-wrap hidden"></div>
+      <p id="emptyState" class="empty hidden">No hay eventos que coincidan con los filtros.</p>
+    </section>
+
+    <section id="favoritesSection" class="tab-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Selección personal</p>
+          <h2>Favoritos</h2>
+        </div>
+      </div>
+      <div id="favoriteList" class="event-list"></div>
+      <p id="favoriteEmpty" class="empty hidden">Todavía no has guardado eventos.</p>
+    </section>
+
+    <section id="formSection" class="tab-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Gestión manual</p>
+          <h2 id="formTitle">Añadir evento</h2>
+        </div>
+      </div>
+
+      <form id="eventForm" class="card form-card">
+        <input id="eventId" type="hidden">
+
+        <div class="form-grid">
+          <label class="wide">
+            <span>Nombre *</span>
+            <input id="titleInput" required maxlength="120">
+          </label>
+
+          <label>
+            <span>Categoría *</span>
+            <select id="categoryInput" required></select>
+          </label>
+
+          <label>
+            <span>Municipio *</span>
+            <input id="cityInput" value="Granada" required>
+          </label>
+
+          <label>
+            <span>Fecha *</span>
+            <input id="dateInput" type="date" required>
+          </label>
+
+          <label>
+            <span>Hora</span>
+            <input id="timeInput" type="time">
+          </label>
+
+          <label>
+            <span>Fecha de finalización</span>
+            <input id="endDateInput" type="date">
+          </label>
+
+          <label>
+            <span>Hora de finalización</span>
+            <input id="endTimeInput" type="time">
+          </label>
+
+          <label>
+            <span>Sala o espacio</span>
+            <input id="venueInput" placeholder="Teatro, sala, plaza…">
+          </label>
+
+          <label>
+            <span>Dirección</span>
+            <input id="addressInput">
+          </label>
+
+          <label>
+            <span>Precio (€)</span>
+            <input id="priceInput" type="number" min="0" step="0.01" placeholder="0 para gratuito">
+          </label>
+
+          <label>
+            <span>Texto del precio</span>
+            <input id="priceTextInput" placeholder="Entrada libre, desde 12 €, reserva…">
+          </label>
+
+          <label class="wide">
+            <span>Descripción</span>
+            <textarea id="descriptionInput" rows="4"></textarea>
+          </label>
+
+          <label class="wide">
+            <span>Enlace oficial o de entradas</span>
+            <input id="urlInput" type="url" placeholder="https://…">
+          </label>
+
+          <label class="wide">
+            <span>Notas privadas</span>
+            <textarea id="notesInput" rows="3" placeholder="Aparcamiento, contacto, observaciones…"></textarea>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button class="primary" type="submit">Guardar evento</button>
+          <button id="cancelEditBtn" class="secondary hidden" type="button">Cancelar edición</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="settingsSection" class="tab-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Copia y traslado</p>
+          <h2>Datos de la agenda</h2>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+        <article class="card">
+          <h3>Exportar copia</h3>
+          <p>Descarga todos los eventos y preferencias en un archivo JSON.</p>
+          <button id="exportBtn" class="primary" type="button">Exportar datos</button>
+        </article>
+
+        <article class="card">
+          <h3>Importar copia</h3>
+          <p>Restaura un archivo exportado anteriormente.</p>
+          <label class="file-btn">
+            Seleccionar archivo
+            <input id="importInput" type="file" accept="application/json">
+          </label>
+        </article>
+
+        <article class="card">
+          <h3>Restablecer agenda</h3>
+          <p>Elimina todos los eventos guardados en este dispositivo.</p>
+          <button id="resetBtn" class="danger" type="button">Borrar todo</button>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="eventDialog">
+    <article class="dialog-card">
+      <button id="closeDialogBtn" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+      <p id="dialogCategory" class="eyebrow"></p>
+      <h2 id="dialogTitle"></h2>
+      <div id="dialogMeta" class="dialog-meta"></div>
+      <p id="dialogDescription"></p>
+      <div id="dialogNotesWrap" class="private-note hidden">
+        <strong>Nota privada</strong>
+        <p id="dialogNotes"></p>
+      </div>
+      <div class="dialog-actions">
+        <button id="dialogFavoriteBtn" class="secondary" type="button"></button>
+        <button id="dialogStatusBtn" class="secondary" type="button"></button>
+        <button id="dialogCalendarBtn" class="secondary" type="button">Añadir al calendario</button>
+        <a id="dialogMapsBtn" class="secondary link-btn" target="_blank" rel="noopener">Abrir mapa</a>
+        <a id="dialogUrlBtn" class="primary link-btn" target="_blank" rel="noopener">Información oficial</a>
+        <button id="dialogEditBtn" class="secondary" type="button">Editar</button>
+        <button id="dialogDeleteBtn" class="danger" type="button">Eliminar</button>
+      </div>
+    </article>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
