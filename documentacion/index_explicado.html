@@ -1,279 +1,183 @@
 <!doctype html>
 <html lang="es">
-<!--
-  DOCUMENTO Y METADATOS
-  Define el idioma, la adaptación responsive y los recursos de la PWA.
-  Las rutas corresponden al código real de app/index.html; esta copia sirve como guía.
--->
+<!-- EXPLICACION: Copia documental de app/index.html: no es una segunda aplicación. Las rutas se conservan relativas a app/. Metadatos y manifest identifican CULTURA; CSS y JavaScript siguen separados. -->
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#7b2334">
-  <meta name="description" content="Agenda cultural personal de Granada">
+  <meta name="theme-color" content="#64765e">
+  <meta name="description" content="CULTURA: descubre planes culturales cerca de ti. Prototipo con eventos ficticios.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/icons/icon-192.png">
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <link rel="stylesheet" href="styles.css">
-  <title>Granada Cultura</title>
+  <title>CULTURA</title>
+  <script src="app.js" defer></script>
 </head>
 <body>
-  <!-- CABECERA: presenta la identidad actual y agrupa instalación y cambio de tema. -->
-  <header class="topbar">
-    <div>
-      <p class="eyebrow">Agenda privada</p>
-      <h1>Granada Cultura</h1>
-    </div>
-    <div class="header-actions">
-      <button id="installBtn" class="secondary hidden" type="button">Instalar</button>
-      <button id="themeBtn" class="icon-btn" type="button" aria-label="Cambiar tema">◐</button>
-    </div>
-  </header>
+<!-- EXPLICACION: Biblioteca de iconos funcionales: símbolos SVG compartidos para navegación y controles. Se pueden sustituir los trazos manteniendo los identificadores. -->
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></symbol>
+      <symbol id="icon-explore" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m16 8-2 6-6 2 2-6Z"/></symbol>
+      <symbol id="icon-agenda" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4m8-4v4M4 11h16m-11 4h2m2 0h2m-6 3h2"/></symbol>
+      <symbol id="icon-favorites" viewBox="0 0 24 24"><path d="M20.5 4.6a5.5 5.5 0 0 0-8 0l-.5.6-.5-.6a5.5 5.5 0 0 0-8 7.5L12 21l8.5-8.9a5.5 5.5 0 0 0 0-7.5Z"/></symbol>
+      <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+      <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+      <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2"/></symbol>
+      <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    </defs>
+  </svg>
+  <a class="skip-link" href="#mainContent">Ir al contenido</a>
 
-  <main>
-    <!-- AVISO Y NAVEGACIÓN: informan sobre los datos ficticios y cambian de sección. -->
-    <section id="demoNotice" class="notice">
-      La aplicación incluye eventos ficticios de demostración. Puedes borrarlos y añadir los tuyos.
-      <button id="clearDemoBtn" type="button">Eliminar ejemplos</button>
-    </section>
+<!-- EXPLICACION: Splash: solo CULTURA sobre crema. CSS encadena fondo, entrada del nombre y desaparición conjunta; JavaScript lo oculta al acabar. -->
+  <div id="splash" class="splash" aria-hidden="true"><span>CULTURA</span></div>
 
-    <nav class="main-tabs" aria-label="Secciones">
-      <button class="tab active" data-tab="agenda" type="button">Agenda</button>
-      <button class="tab" data-tab="favorites" type="button">Favoritos</button>
-      <button class="tab" data-tab="form" type="button">Añadir</button>
-      <button class="tab" data-tab="settings" type="button">Datos</button>
+<!-- EXPLICACION: Navegación de escritorio: orden Inicio, Explorar, Agenda, Favoritos, Perfil. CSS reserva 158 px desde 1100 px; cada botón comparte data-section con su equivalente móvil. -->
+  <aside class="sidebar">
+    <div class="sidebar-mark" aria-hidden="true">C<span>·</span></div>
+    <nav aria-label="Navegación principal de escritorio">
+      <button type="button" class="nav-item active" data-section="home" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span>Inicio</span></button>
+      <button type="button" class="nav-item" data-section="explore"><svg class="icon" aria-hidden="true"><use href="#icon-explore"></use></svg><span>Explorar</span></button>
+      <button type="button" class="nav-item" data-section="agenda"><svg class="icon" aria-hidden="true"><use href="#icon-agenda"></use></svg><span>Agenda</span></button>
+      <button type="button" class="nav-item" data-section="favorites"><svg class="icon" aria-hidden="true"><use href="#icon-favorites"></use></svg><span>Favoritos</span></button>
+      <button type="button" class="nav-item" data-section="profile"><svg class="icon" aria-hidden="true"><use href="#icon-profile"></use></svg><span>Perfil</span></button>
     </nav>
+    <span class="version-label">CULTURA / v0.1.1</span>
+  </aside>
 
-    <!-- AGENDA: reúne atajos de fecha, filtros y vistas de lista o calendario. -->
-    <section id="agendaSection" class="tab-panel active">
-      <div class="date-shortcuts" id="dateShortcuts">
-        <button class="chip active" data-range="today" type="button">Hoy</button>
-        <button class="chip" data-range="tomorrow" type="button">Mañana</button>
-        <button class="chip" data-range="week" type="button">Esta semana</button>
-        <button class="chip" data-range="weekend" type="button">Fin de semana</button>
-        <button class="chip" data-range="month" type="button">Este mes</button>
-        <button class="chip" data-range="all" type="button">Todos</button>
+  <div class="app-shell">
+<!-- EXPLICACION: Header y buscador: una sola fila flexible. La marca ocupa inicialmente el espacio; la búsqueda lo gana de derecha a izquierda mientras desplaza la marca fuera del recorte. El botón alterna lupa/cierre y JavaScript gestiona el foco. -->
+    <header class="topbar">
+      <div id="headerTrack" class="header-track">
+        <a id="brand" class="wordmark" href="#inicio" aria-label="CULTURA, Inicio">CULTURA</a>
+        <form id="searchForm" class="search-area" role="search" aria-hidden="true">
+          <label class="sr-only" for="searchInput">Buscar artista, localidad o evento</label>
+          <input id="searchInput" type="search" placeholder="Buscar artista, localidad, evento..." autocomplete="off" disabled>
+        </form>
+        <button id="searchToggle" class="header-button" type="button" aria-label="Abrir búsqueda" aria-expanded="false" aria-controls="searchForm"><svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg></button>
       </div>
+    </header>
 
-      <div class="filters card">
-        <label class="search-field">
-          <span>Buscar</span>
-          <input id="searchInput" type="search" placeholder="Evento, sala, municipio…">
-        </label>
-
-        <div class="filter-grid">
-          <label>
-            <span>Categoría</span>
-            <select id="categoryFilter">
-              <option value="">Todas</option>
-            </select>
-          </label>
-          <label>
-            <span>Precio</span>
-            <select id="priceFilter">
-              <option value="">Todos</option>
-              <option value="free">Gratis</option>
-              <option value="paid">De pago</option>
-            </select>
-          </label>
-          <label>
-            <span>Municipio</span>
-            <select id="cityFilter">
-              <option value="">Todos</option>
-            </select>
-          </label>
-          <label>
-            <span>Estado</span>
-            <select id="statusFilter">
-              <option value="">Todos</option>
-              <option value="interested">Me interesa</option>
-              <option value="going">Voy a ir</option>
-              <option value="discarded">Descartado</option>
-              <option value="none">Sin marcar</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <div class="section-heading">
-        <div>
-          <p id="rangeLabel" class="eyebrow">Hoy</p>
-          <h2 id="resultTitle">Eventos</h2>
-        </div>
-        <div class="view-toggle">
-          <button class="view-btn active" data-view="list" type="button">Lista</button>
-          <button class="view-btn" data-view="calendar" type="button">Mes</button>
-        </div>
-      </div>
-
-      <div id="eventList" class="event-list"></div>
-      <div id="calendarView" class="calendar-wrap hidden"></div>
-      <p id="emptyState" class="empty hidden">No hay eventos que coincidan con los filtros.</p>
-    </section>
-
-    <!-- FAVORITOS: muestra únicamente los eventos guardados por la persona usuaria. -->
-    <section id="favoritesSection" class="tab-panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Selección personal</p>
-          <h2>Favoritos</h2>
-        </div>
-      </div>
-      <div id="favoriteList" class="event-list"></div>
-      <p id="favoriteEmpty" class="empty hidden">Todavía no has guardado eventos.</p>
-    </section>
-
-    <!-- FORMULARIO: permite crear y editar eventos conservados localmente. -->
-    <section id="formSection" class="tab-panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Gestión manual</p>
-          <h2 id="formTitle">Añadir evento</h2>
-        </div>
-      </div>
-
-      <form id="eventForm" class="card form-card">
-        <input id="eventId" type="hidden">
-
-        <div class="form-grid">
-          <label class="wide">
-            <span>Nombre *</span>
-            <input id="titleInput" required maxlength="120">
-          </label>
-
-          <label>
-            <span>Categoría *</span>
-            <select id="categoryInput" required></select>
-          </label>
-
-          <label>
-            <span>Municipio *</span>
-            <input id="cityInput" value="Granada" required>
-          </label>
-
-          <label>
-            <span>Fecha *</span>
-            <input id="dateInput" type="date" required>
-          </label>
-
-          <label>
-            <span>Hora</span>
-            <input id="timeInput" type="time">
-          </label>
-
-          <label>
-            <span>Fecha de finalización</span>
-            <input id="endDateInput" type="date">
-          </label>
-
-          <label>
-            <span>Hora de finalización</span>
-            <input id="endTimeInput" type="time">
-          </label>
-
-          <label>
-            <span>Sala o espacio</span>
-            <input id="venueInput" placeholder="Teatro, sala, plaza…">
-          </label>
-
-          <label>
-            <span>Dirección</span>
-            <input id="addressInput">
-          </label>
-
-          <label>
-            <span>Precio (€)</span>
-            <input id="priceInput" type="number" min="0" step="0.01" placeholder="0 para gratuito">
-          </label>
-
-          <label>
-            <span>Texto del precio</span>
-            <input id="priceTextInput" placeholder="Entrada libre, desde 12 €, reserva…">
-          </label>
-
-          <label class="wide">
-            <span>Descripción</span>
-            <textarea id="descriptionInput" rows="4"></textarea>
-          </label>
-
-          <label class="wide">
-            <span>Enlace oficial o de entradas</span>
-            <input id="urlInput" type="url" placeholder="https://…">
-          </label>
-
-          <label class="wide">
-            <span>Notas privadas</span>
-            <textarea id="notesInput" rows="3" placeholder="Aparcamiento, contacto, observaciones…"></textarea>
-          </label>
+<!-- EXPLICACION: Inicio concentra los planes; el territorio es contenido demo, no parte del nombre de marca. Mantener los identificadores permite conservar la conexión con JavaScript. -->
+    <main id="mainContent" tabindex="-1">
+      <section id="homeSection" aria-labelledby="homeTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">TU MOMENTO, TU CULTURA</p><h1 id="homeTitle">Inicio<span class="heading-dot">.</span></h1></div>
+          <span class="territory"><svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg> Granada y alrededores</span>
         </div>
 
-        <div class="form-actions">
-          <button class="primary" type="submit">Guardar evento</button>
-          <button id="cancelEditBtn" class="secondary hidden" type="button">Cancelar edición</button>
+<!-- EXPLICACION: Filtros: botón informal de interrogación y panel inicialmente oculto. Fechas libres y presets, rangos precisos y selección múltiple se combinan sobre datos locales; categorías y subcategorías provienen solo de data/categorias.json. El formulario no envía datos a servicios. -->
+        <div class="filter-widget">
+          <button id="filterToggle" class="filter-toggle" type="button" aria-expanded="false" aria-controls="filterPanel">
+            <span class="question-mark" aria-hidden="true">?</span>
+            <span class="filter-copy"><strong>¿Qué te apetece hoy?</strong><span>Filtra por categoría, fecha o lugar</span></span>
+            <svg class="icon filter-chevron" aria-hidden="true"><use href="#icon-chevron"></use></svg>
+          </button>
+          <div id="filterPanel" class="filter-panel" hidden>
+            <form id="filterForm">
+              <div class="filter-grid">
+                <details class="filter-group" open>
+                  <summary><span>Fecha</span><span id="dateSummary">Cualquier fecha</span></summary>
+                  <div class="filter-group-body">
+                    <label for="dateFilter">Cuándo</label>
+                    <select id="dateFilter" name="fecha">
+                      <option value="">Cualquier fecha</option><option value="today">Hoy</option><option value="tomorrow">Mañana</option><option value="week">Esta semana</option><option value="weekend">Este fin de semana</option><option value="month">Este mes</option><option value="custom">Fecha personalizada</option>
+                    </select>
+                    <!-- EXPLICACION: Fecha personalizada: selector de día único o intervalo y controles date nativos sin un máximo temporal artificial. JavaScript deshabilita campos ajenos al preset y explica rangos pendientes o invertidos. -->
+                    <div id="customDateControls" hidden>
+                      <label for="customDateMode">Tipo de selección</label>
+                      <select id="customDateMode"><option value="single">Fecha concreta</option><option value="range">Intervalo de fechas</option></select>
+                      <div class="custom-date-grid">
+                        <label><span id="dateStartLabel">Fecha concreta</span><input id="dateStart" type="date" aria-describedby="customDateMessage" disabled></label>
+                        <label id="dateEndControl" hidden>Fecha final<input id="dateEnd" type="date" aria-describedby="customDateMessage" disabled></label>
+                      </div>
+                      <p id="customDateMessage" class="filter-help" role="status"></p>
+                      <button id="clearCustomDate" type="button" class="text-button">Limpiar fecha personalizada</button>
+                    </div>
+                  </div>
+                </details>
+                <details class="filter-group">
+                  <!-- EXPLICACION: Rango de precio 0–1.000: dos inputs range accesibles comparten una única pista visual con tramo seleccionado. Los campos numéricos permiten precisión; los tiradores redondo/cuadrado se separan verticalmente al acercarse para evitar solapamientos. El resumen permanece visible incluso al plegar este grupo. -->
+                  <summary><span>Precio</span><span id="priceSummary" class="range-summary">0 € — 1.000 €</span></summary>
+                  <fieldset class="range-controls">
+                    <legend class="sr-only">Rango de precio</legend>
+                    <div class="range-values">
+                      <div class="range-value"><label for="priceMinNumber">Mínimo (€)</label><input id="priceMinNumber" type="number" min="0" max="1000" step="1" value="0" inputmode="numeric" aria-label="Precio mínimo en euros"></div>
+                      <div class="range-value"><label for="priceMaxNumber">Máximo (€)</label><input id="priceMaxNumber" type="number" min="0" max="1000" step="1" value="1000" inputmode="numeric" aria-label="Precio máximo en euros"></div>
+                    </div>
+                    <div id="priceRange" class="dual-range">
+                      <div class="range-track" aria-hidden="true"><div class="range-selected"></div></div>
+                      <input id="priceMin" class="range-min" type="range" min="0" max="1000" step="1" value="0" aria-label="Precio mínimo" aria-describedby="priceSummary priceHelp">
+                      <input id="priceMax" class="range-max" type="range" min="0" max="1000" step="1" value="1000" aria-label="Precio máximo" aria-describedby="priceSummary priceHelp">
+                    </div>
+                    <div class="range-limits" aria-hidden="true"><span>0 €</span><span>1.000 €</span></div>
+                    <p id="priceHelp" class="filter-help">Mínimo redondo; máximo cuadrado. Si están próximos, mínimo arriba y máximo abajo. También puedes escribir el valor.</p>
+                  </fieldset>
+                </details>
+                <details class="filter-group">
+                  <!-- EXPLICACION: Rango de distancia: mismo mecanismo preciso que el precio, en kilómetros ficticios desde Granada; no utiliza geolocalización. -->
+                  <summary><span>Distancia</span><span id="distanceSummary" class="range-summary">0 km — 1.000 km</span></summary>
+                  <fieldset class="range-controls">
+                    <legend class="sr-only">Rango de distancia</legend>
+                    <div class="range-values">
+                      <div class="range-value"><label for="distanceMinNumber">Mínimo (km)</label><input id="distanceMinNumber" type="number" min="0" max="1000" step="1" value="0" inputmode="numeric" aria-label="Distancia mínima en kilómetros"></div>
+                      <div class="range-value"><label for="distanceMaxNumber">Máximo (km)</label><input id="distanceMaxNumber" type="number" min="0" max="1000" step="1" value="1000" inputmode="numeric" aria-label="Distancia máxima en kilómetros"></div>
+                    </div>
+                    <div id="distanceRange" class="dual-range">
+                      <div class="range-track" aria-hidden="true"><div class="range-selected"></div></div>
+                      <input id="distanceMin" class="range-min" type="range" min="0" max="1000" step="1" value="0" aria-label="Distancia mínima" aria-describedby="distanceSummary distanceHelp">
+                      <input id="distanceMax" class="range-max" type="range" min="0" max="1000" step="1" value="1000" aria-label="Distancia máxima" aria-describedby="distanceSummary distanceHelp">
+                    </div>
+                    <div class="range-limits" aria-hidden="true"><span>0 km</span><span>1.000 km</span></div>
+                    <p id="distanceHelp" class="filter-help">Mínimo redondo; máximo cuadrado. Si están próximos, mínimo arriba y máximo abajo. También puedes escribir el valor.</p>
+                  </fieldset>
+                </details>
+                <!-- EXPLICACION: Selección múltiple: los checkboxes y subcategorías se generan desde el catálogo JSON. Desplegables y grupos acotados evitan alargar innecesariamente el panel móvil. -->
+                <details class="filter-group category-group">
+                  <summary><span>Categorías</span><span id="categorySummary">Todas</span></summary>
+                  <div class="filter-group-body">
+                    <fieldset class="category-options"><legend class="sr-only">Categorías principales</legend><div id="categoryOptions" class="choice-grid"></div></fieldset>
+                    <p class="filter-help">Sin subcategorías marcadas, se incluyen todas las de esa categoría.</p>
+                    <div id="subcategoryOptions"></div>
+                  </div>
+                </details>
+              </div>
+              <div class="filter-footer"><span>Distancias de ejemplo desde Granada. Sin geolocalización.</span><button id="clearFilters" type="button" class="text-button">Limpiar filtros</button></div>
+            </form>
+          </div>
         </div>
-      </form>
-    </section>
 
-    <!-- DATOS: contiene las acciones de exportación, importación y restablecimiento. -->
-    <section id="settingsSection" class="tab-panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Copia y traslado</p>
-          <h2>Datos de la agenda</h2>
+<!-- EXPLICACION: Tarjetas: eventList recibe nodos generados a partir de datos separados. Contador, carga, error y estado vacío explican el resultado sin bloquear navegación. -->
+        <div class="section-heading">
+          <div><p class="eyebrow">CERCA DE TI</p><h2>Próximos encuentros</h2></div>
+          <span id="resultCount" class="result-count" role="status" aria-live="polite"></span>
         </div>
-      </div>
+        <p id="loadingMessage" class="state-message" role="status">Preparando tus planes…</p>
+        <div id="eventList" class="event-list"></div>
+        <div id="emptyState" class="state-message" hidden><h3>No encontramos planes con esos filtros.</h3><p>Prueba otra fecha, amplía la distancia o cambia la búsqueda.</p><button id="resetSearch" type="button" class="text-button">Ver todos los eventos</button></div>
+        <div id="errorState" class="state-message" role="alert" hidden><h3>No se han podido cargar los eventos.</h3><p>Comprueba la conexión con el servidor local y vuelve a intentarlo.</p><button id="retryLoad" type="button" class="text-button">Reintentar</button></div>
+        <p class="demo-note">Una pequeña muestra de lo que está por venir. Todos los eventos son ficticios.</p>
+      </section>
 
-      <div class="settings-grid">
-        <article class="card">
-          <h3>Exportar copia</h3>
-          <p>Descarga todos los eventos y preferencias en un archivo JSON.</p>
-          <button id="exportBtn" class="primary" type="button">Exportar datos</button>
-        </article>
+<!-- EXPLICACION: Resto de secciones: placeholders autorizados para v0.1, sin cuentas ni funciones finales. El nombre cambia al navegar y el botón regresa a Inicio. -->
+      <section id="placeholderSection" class="placeholder-section" aria-labelledby="placeholderTitle" hidden>
+        <p class="eyebrow">CULTURA</p><h1 id="placeholderTitle"></h1>
+        <p>Este espacio está por llegar.</p><p class="placeholder-note">Mientras tanto, descubre los eventos de Inicio.</p>
+        <button id="backHome" class="primary-button" type="button">Volver a Inicio <svg class="icon" aria-hidden="true"><use href="#icon-arrow"></use></svg></button>
+      </section>
+    </main>
+  </div>
 
-        <article class="card">
-          <h3>Importar copia</h3>
-          <p>Restaura un archivo exportado anteriormente.</p>
-          <label class="file-btn">
-            Seleccionar archivo
-            <input id="importInput" type="file" accept="application/json">
-          </label>
-        </article>
-
-        <article class="card">
-          <h3>Restablecer agenda</h3>
-          <p>Elimina todos los eventos guardados en este dispositivo.</p>
-          <button id="resetBtn" class="danger" type="button">Borrar todo</button>
-        </article>
-      </div>
-    </section>
-  </main>
-
-  <!-- DETALLE: diálogo reutilizable para consultar y gestionar un evento. -->
-  <dialog id="eventDialog">
-    <article class="dialog-card">
-      <button id="closeDialogBtn" class="dialog-close" type="button" aria-label="Cerrar">×</button>
-      <p id="dialogCategory" class="eyebrow"></p>
-      <h2 id="dialogTitle"></h2>
-      <div id="dialogMeta" class="dialog-meta"></div>
-      <p id="dialogDescription"></p>
-      <div id="dialogNotesWrap" class="private-note hidden">
-        <strong>Nota privada</strong>
-        <p id="dialogNotes"></p>
-      </div>
-      <div class="dialog-actions">
-        <button id="dialogFavoriteBtn" class="secondary" type="button"></button>
-        <button id="dialogStatusBtn" class="secondary" type="button"></button>
-        <button id="dialogCalendarBtn" class="secondary" type="button">Añadir al calendario</button>
-        <a id="dialogMapsBtn" class="secondary link-btn" target="_blank" rel="noopener">Abrir mapa</a>
-        <a id="dialogUrlBtn" class="primary link-btn" target="_blank" rel="noopener">Información oficial</a>
-        <button id="dialogEditBtn" class="secondary" type="button">Editar</button>
-        <button id="dialogDeleteBtn" class="danger" type="button">Eliminar</button>
-      </div>
-    </article>
-  </dialog>
-
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <!-- LÓGICA: carga el JavaScript real que conecta todos los controles anteriores. -->
-  <script src="app.js"></script>
+<!-- EXPLICACION: Navegación móvil y tablet: orden exacto Explorar, Agenda, Inicio, Favoritos, Perfil. CSS respeta la zona segura y reserva espacio inferior; Inicio está en el centro. -->
+  <nav class="bottom-nav" aria-label="Navegación principal móvil">
+      <button type="button" class="nav-item" data-section="explore"><svg class="icon" aria-hidden="true"><use href="#icon-explore"></use></svg><span>Explorar</span></button>
+      <button type="button" class="nav-item" data-section="agenda"><svg class="icon" aria-hidden="true"><use href="#icon-agenda"></use></svg><span>Agenda</span></button>
+      <button type="button" class="nav-item active" data-section="home" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span>Inicio</span></button>
+      <button type="button" class="nav-item" data-section="favorites"><svg class="icon" aria-hidden="true"><use href="#icon-favorites"></use></svg><span>Favoritos</span></button>
+      <button type="button" class="nav-item" data-section="profile"><svg class="icon" aria-hidden="true"><use href="#icon-profile"></use></svg><span>Perfil</span></button>
+  </nav>
+  <noscript><p class="noscript-message">Activa JavaScript para explorar los eventos de CULTURA.</p></noscript>
 </body>
 </html>

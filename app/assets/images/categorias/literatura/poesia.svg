@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Ilustración provisional de categoría">
+  <rect width="200" height="200" rx="24" fill="#eee6d6"/>
+  <circle cx="100" cy="100" r="69" fill="#fffcf6" opacity=".6"/>
+  <g fill="none" stroke="#64765e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M100 69q-23-17-45-8v80q22-9 45 8 23-17 45-8V61q-22-9-45 8Zm0 0v80M66 79l22 5m-22 10 22 5m23-15 22-5m-22 20 22-5"/></g>
+</svg>

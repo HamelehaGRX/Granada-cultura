@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Ilustración provisional de categoría">
+  <rect width="200" height="200" rx="24" fill="#efe1da"/>
+  <circle cx="100" cy="100" r="69" fill="#fffcf6" opacity=".6"/>
+  <g fill="none" stroke="#aa715f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M88 124V70l58-12v54M88 80l58-12"/><ellipse cx="75" cy="128" rx="13" ry="9"/><ellipse cx="133" cy="117" rx="13" ry="9"/></g>
+</svg>

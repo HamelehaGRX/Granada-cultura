@@ -1,12 +1,12 @@
 {
-  "name": "Granada Cultura",
-  "short_name": "G. Cultura",
-  "description": "Agenda cultural personal de Granada",
+  "name": "CULTURA",
+  "short_name": "CULTURA",
+  "description": "Descubre planes culturales cerca de ti. Prototipo local.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f0ea",
-  "theme_color": "#7b2334",
+  "background_color": "#f4efe4",
+  "theme_color": "#64765e",
   "lang": "es",
   "icons": [
     {
