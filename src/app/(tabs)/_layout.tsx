@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { StyleSheet, Text, type ColorValue } from 'react-native';
 
-import { colors, typography } from '@/theme';
+import { colors, radii, spacing, typography } from '@/theme';
 
 type TabIconProps = {
   color: ColorValue;
@@ -19,8 +19,11 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.brandPrimary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveBackgroundColor: colors.surfaceElevated,
+        sceneStyle: styles.scene,
         tabBarStyle: styles.tabBar,
+        tabBarItemStyle: styles.tabBarItem,
         tabBarLabelStyle: styles.label,
       }}
     >
@@ -69,15 +72,21 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  scene: {
+    backgroundColor: colors.background,
+  },
   tabBar: {
     backgroundColor: colors.surface,
     borderTopColor: colors.border,
+  },
+  tabBarItem: {
+    borderRadius: radii.medium,
+    marginVertical: spacing.xs,
   },
   label: {
     ...typography.caption,
   },
   icon: {
-    fontSize: 22,
-    lineHeight: 24,
+    ...typography.heading,
   },
 });

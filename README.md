@@ -12,7 +12,7 @@ Prioridad de plataformas:
 2. iOS.
 3. Web como plataforma complementaria.
 
-Todavía no existe un proyecto Expo en este repositorio.
+Ya existe una base Expo mínima en `src/`, preparada para recibir de forma incremental la interfaz y las funcionalidades aprobadas. El prototipo de `app/` continúa intacto como referencia durante esa migración.
 
 ## Prototipo actual
 

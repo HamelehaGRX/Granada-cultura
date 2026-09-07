@@ -17,9 +17,9 @@ La base nueva todavía no contiene la interfaz, datos, filtros, tarjetas ni asse
 - `tsconfig.json`: TypeScript estricto y alias interno `@/`.
 - `app/`: prototipo web legado aprobado, sin frameworks ni dependencias externas.
 - `src/app/`: rutas y layouts de la nueva aplicación Expo.
-- `src/components/`: componentes reutilizables; por ahora contiene la pantalla provisional común.
+- `src/components/`: componentes reutilizables; contiene el shell, el contenedor de pantalla y la pantalla provisional común.
 - `src/config/`: configuración sustituible, incluida la identidad provisional de marca.
-- `src/theme/`: colores, espaciado y tipografía mínimos centralizados.
+- `src/theme/`: colores, tipografía, espaciado, radios, sombras, movimiento y breakpoints centralizados.
 - `assets/brand/`: ubicación reservada para futuros recursos definitivos de marca; no reutiliza los iconos PWA.
 - `app/data/`: catálogo de categorías y eventos demo en JSON.
 - `app/assets/icons/`: iconos de instalación existentes.
@@ -127,13 +127,15 @@ Consultar:
 - [Arquitectura objetivo](arquitectura/ARQUITECTURA_OBJETIVO.md).
 - [ADR-001: React Native + Expo](decisiones/ADR-001-react-native-expo.md).
 - [ADR-002: estructura inicial con Expo Router](decisiones/ADR-002-estructura-src-expo-router.md).
+- [ADR-003: theme centralizado y shell compartido](decisiones/ADR-003-theme-y-shell.md).
+- [ADR-004: navegación con tabs, stack y rutas enlazables](decisiones/ADR-004-estructura-navegacion.md).
 - [Plan de migración Expo](migracion/PLAN_MIGRACION_EXPO.md).
 
 ## Base Expo creada
 
 El código ejecutable nuevo vive en `src/` y utiliza el enrutamiento por archivos de Expo Router. `src/app/_layout.tsx` configura el proveedor de área segura y el layout raíz. `src/app/(tabs)/_layout.tsx` declara las cinco pestañas estables en el orden Explorar, Agenda, Inicio, Favoritos y Perfil, con Inicio como ruta inicial y posición central.
 
-Las cinco pantallas son placeholders deliberadamente pequeños y comparten `src/components/PlaceholderScreen.tsx`. El theme mínimo se concentra en `src/theme/` y la marca provisional en `src/config/brand.ts`. No se han migrado componentes visuales, filtros, tarjetas, JSON ni assets desde `app/`.
+Las cinco pantallas son placeholders deliberadamente pequeños y comparten `src/components/PlaceholderScreen.tsx`. El sistema visual se concentra en `src/theme/`, el shell reutilizable en `src/components/layout/` y la marca provisional en `src/config/brand.ts`. No se han migrado componentes visuales, filtros, tarjetas, JSON ni assets desde `app/`.
 
 Los comandos disponibles son:
 
@@ -144,6 +146,32 @@ Los comandos disponibles son:
 - `npm run typecheck`: valida TypeScript sin emitir archivos.
 
 La convivencia es intencionada: `app/` sigue siendo el prototipo legado y `src/` es la base del producto migrado. No deben mezclarse rutas, service workers, manifests, datos ni assets de ambas implementaciones.
+
+## Theme y shell compartido
+
+`src/theme/` ofrece tokens semánticos para que los componentes expresen la función de cada valor en lugar de repetir colores o medidas. Incluye colores de fondo, superficies, marca, texto, bordes y estados; estilos tipográficos con fuente del sistema; una escala de espaciado; radios; sombras suaves por plataforma; duraciones y curvas conceptuales de movimiento; y breakpoints de móvil, tablet y escritorio.
+
+`AppShell` establece el fondo general y aplica la safe area superior y lateral. `ScreenContainer` aporta padding responsive, ancho máximo centrado en web y una variante scrollable cuando una pantalla la necesite. La safe area inferior queda bajo la responsabilidad de la navegación por pestañas, evitando padding duplicado.
+
+Los placeholders actuales consumen ambos componentes y muestran una superficie elevada mínima para verificar colores, tipografía, radios, sombras y espaciados. No representan todavía la Home ni el diseño definitivo. La StatusBar mantiene contenido oscuro sobre el fondo crema claro.
+
+La identidad continúa siendo provisional. Nombre y referencias de logo, icono y mascota se concentran en `src/config/brand.ts`; la paleta y la tipografía pueden sustituirse desde el theme. Permanecen pendientes el splash, Home, buscador, filtros, tarjetas, datos, categorías, ilustraciones, sidebar y funcionalidades reales de las restantes pestañas.
+
+## Navegación base enlazable
+
+La navegación principal mantiene cinco tabs, en este orden: Explorar, Agenda, Inicio, Favoritos y Perfil. Inicio continúa como ruta inicial y ocupa la tercera posición. En esta fase web usa las mismas tabs que native; la navegación lateral de escritorio sigue pendiente.
+
+El stack raíz compone las tabs con rutas auxiliares delgadas:
+
+- `/eventos/[eventId]`: detalle provisional que muestra el identificador recibido;
+- `/buscar?q=...`: búsqueda provisional que muestra el término opcional;
+- `/organizadores/[organizerId]`: perfil provisional que muestra el identificador;
+- `/notificaciones`: futura lista de notificaciones y punto de entrada para enlaces a eventos;
+- `/filtros`: pantalla del grupo `(modals)`, presentada como modal mediante Expo Router.
+
+`PlaceholderScreen` proporciona título accesible, descripción, parámetro opcional y acción de vuelta. Si una URL se abre directamente y no existe historial, Volver lleva a Inicio. La pantalla Inicio incluye temporalmente «Abrir filtros» únicamente para verificar la navegación modal; no es la Home ni el widget de filtros real.
+
+La estructura de archivos ya permite rutas web directas y enlaces con el esquema `cultura://`, pero no se han configurado dominios universales, app links ni servicios de producción. Tampoco se cargan datos ni se ejecutan búsquedas, notificaciones o filtros reales.
 
 ## Documentación futura
 

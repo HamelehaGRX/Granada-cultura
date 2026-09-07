@@ -23,7 +23,7 @@ Estas tecnologías ya sostienen una base mínima instalada. La navegación y las
 
 ## Base actual y estructura de crecimiento
 
-La base creada utiliza actualmente `src/app/`, `src/components/`, `src/theme/` y `src/config/`. Conforme cada fase necesite nuevas responsabilidades, crecerá hacia esta estructura:
+La base creada utiliza actualmente `src/app/`, `src/components/`, `src/components/layout/`, `src/theme/` y `src/config/`. Conforme cada fase necesite nuevas responsabilidades, crecerá hacia esta estructura:
 
 ```text
 src/
@@ -60,13 +60,19 @@ En móvil se mantendrá el orden aprobado:
 4. Favoritos.
 5. Perfil.
 
-Inicio ocupará la posición central. El detalle de evento, la búsqueda, los filtros, los organizadores y las notificaciones utilizarán rutas adicionales.
+Inicio ocupa la posición central y es la ruta inicial. El stack raíz ya incluye rutas delgadas para detalle de evento, búsqueda, organizadores, notificaciones y el grupo de modales.
+
+Las rutas enlazables actuales son `/eventos/[eventId]`, `/buscar`, `/organizadores/[organizerId]` y `/notificaciones`. El modal provisional de filtros se organiza en `(modals)/filtros`. Los segmentos dinámicos y la query de búsqueda solo se muestran en placeholders; todavía no consultan datos ni servicios.
+
+El esquema `cultura` y la estructura de Expo Router dejan preparada la navegación mediante deep links. Los dominios universales de iOS y Android, la asociación con un dominio web y los destinos de notificaciones push se configurarán únicamente cuando exista una tarea específica y entornos de publicación definidos.
 
 En web amplia, la navegación podrá transformarse en una barra lateral compacta conservando las mismas rutas y el mismo contenido.
 
 ## Theme e identidad
 
-Los colores, tipografías, espacios, radios, sombras, movimiento y breakpoints se definirán en un theme central.
+Los colores, tipografías, espacios, radios, sombras, movimiento y breakpoints ya se definen mediante tokens semánticos en un theme central. Las sombras resuelven sus pequeñas diferencias desde el propio theme para Android, iOS y web.
+
+`AppShell` controla el fondo y la safe area superior y lateral. `ScreenContainer` controla el padding responsive, el ancho máximo y el contenido scrollable. La navegación por pestañas conserva la safe area inferior, de modo que cada pantalla no la aplique por duplicado.
 
 El nombre de trabajo es CULTURA y Granada es el territorio piloto. Nombre definitivo, logo, paleta, tipografía, mascota e ilustraciones seguirán siendo sustituibles sin tener que recorrer todos los componentes.
 
