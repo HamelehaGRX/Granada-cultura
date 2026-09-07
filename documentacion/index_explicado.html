@@ -68,7 +68,7 @@
           <span class="territory"><svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg> Granada y alrededores</span>
         </div>
 
-<!-- EXPLICACION: Filtros: botón informal de interrogación y panel inicialmente oculto. Fechas libres y presets, rangos precisos y selección múltiple se combinan sobre datos locales; categorías y subcategorías provienen solo de data/categorias.json. El formulario no envía datos a servicios. -->
+<!-- EXPLICACION: Filtros: botón informal de interrogación y panel inicialmente oculto. Cuatro selectores compactos con un panel común, fechas libres y presets, rangos precisos y selección múltiple se combinan sobre datos locales; categorías y subcategorías provienen solo de data/categorias.json. El formulario no envía datos a servicios. -->
         <div class="filter-widget">
           <button id="filterToggle" class="filter-toggle" type="button" aria-expanded="false" aria-controls="filterPanel">
             <span class="question-mark" aria-hidden="true">?</span>
@@ -77,72 +77,66 @@
           </button>
           <div id="filterPanel" class="filter-panel" hidden>
             <form id="filterForm">
-              <div class="filter-grid">
-                <details class="filter-group" open>
-                  <summary><span>Fecha</span><span id="dateSummary">Cualquier fecha</span></summary>
-                  <div class="filter-group-body">
-                    <label for="dateFilter">Cuándo</label>
-                    <select id="dateFilter" name="fecha">
-                      <option value="">Cualquier fecha</option><option value="today">Hoy</option><option value="tomorrow">Mañana</option><option value="week">Esta semana</option><option value="weekend">Este fin de semana</option><option value="month">Este mes</option><option value="custom">Fecha personalizada</option>
-                    </select>
+              <div class="filter-grid" role="group" aria-label="Tipos de filtro">
+                <button class="filter-tab" type="button" aria-expanded="true" aria-controls="dateControls"><span>Fecha</span><span id="dateSummary" hidden>Cualquier fecha</span><span class="filter-tab-indicator" aria-hidden="true"><span class="indicator-closed">+</span><span class="indicator-open">−</span></span></button>
+                <button class="filter-tab" type="button" aria-expanded="false" aria-controls="priceControls"><span>Precio</span><span id="priceSummary" class="range-summary" hidden>0 € — 1.000 €</span><span class="filter-tab-indicator" aria-hidden="true"><span class="indicator-closed">+</span><span class="indicator-open">−</span></span></button>
+                <button class="filter-tab" type="button" aria-expanded="false" aria-controls="distanceControls"><span>Distancia</span><span id="distanceSummary" class="range-summary" hidden>0 km — 1.000 km</span><span class="filter-tab-indicator" aria-hidden="true"><span class="indicator-closed">+</span><span class="indicator-open">−</span></span></button>
+                <button class="filter-tab" type="button" aria-expanded="false" aria-controls="categoryControls"><span>Categorías</span><span id="categorySummary" hidden>Todas</span><span class="filter-tab-indicator" aria-hidden="true"><span class="indicator-closed">+</span><span class="indicator-open">−</span></span></button>
+              </div>
+              <div class="filter-details">
                     <!-- EXPLICACION: Fecha personalizada: selector de día único o intervalo y controles date nativos sin un máximo temporal artificial. JavaScript deshabilita campos ajenos al preset y explica rangos pendientes o invertidos. -->
-                    <div id="customDateControls" hidden>
-                      <label for="customDateMode">Tipo de selección</label>
-                      <select id="customDateMode"><option value="single">Fecha concreta</option><option value="range">Intervalo de fechas</option></select>
-                      <div class="custom-date-grid">
-                        <label><span id="dateStartLabel">Fecha concreta</span><input id="dateStart" type="date" aria-describedby="customDateMessage" disabled></label>
-                        <label id="dateEndControl" hidden>Fecha final<input id="dateEnd" type="date" aria-describedby="customDateMessage" disabled></label>
-                      </div>
-                      <p id="customDateMessage" class="filter-help" role="status"></p>
-                      <button id="clearCustomDate" type="button" class="text-button">Limpiar fecha personalizada</button>
+                <section id="dateControls" class="filter-detail" aria-label="Filtro de fecha">
+                  <label for="dateFilter">Cuándo</label>
+                  <select id="dateFilter" name="fecha">
+                    <option value="">Cualquier fecha</option><option value="today">Hoy</option><option value="tomorrow">Mañana</option><option value="week">Esta semana</option><option value="weekend">Este fin de semana</option><option value="month">Este mes</option><option value="custom">Fecha personalizada</option>
+                  </select>
+                  <div id="customDateControls" hidden>
+                    <label for="customDateMode">Tipo de selección</label>
+                    <select id="customDateMode"><option value="single">Fecha concreta</option><option value="range">Intervalo de fechas</option></select>
+                    <div class="custom-date-grid">
+                      <label><span id="dateStartLabel">Fecha concreta</span><input id="dateStart" type="date" aria-describedby="customDateMessage" disabled></label>
+                      <label id="dateEndControl" hidden>Fecha final<input id="dateEnd" type="date" aria-describedby="customDateMessage" disabled></label>
                     </div>
+                    <p id="customDateMessage" class="filter-help" role="status"></p>
+                    <button id="clearCustomDate" type="button" class="text-button">Limpiar fecha personalizada</button>
                   </div>
-                </details>
-                <details class="filter-group">
+                </section>
                   <!-- EXPLICACION: Rango de precio 0–1.000: dos inputs range accesibles comparten una única pista visual con tramo seleccionado. Los campos numéricos permiten precisión; los tiradores redondo/cuadrado se separan verticalmente al acercarse para evitar solapamientos. El resumen permanece visible incluso al plegar este grupo. -->
-                  <summary><span>Precio</span><span id="priceSummary" class="range-summary">0 € — 1.000 €</span></summary>
-                  <fieldset class="range-controls">
-                    <legend class="sr-only">Rango de precio</legend>
-                    <div class="range-values">
-                      <div class="range-value"><label for="priceMinNumber">Mínimo (€)</label><input id="priceMinNumber" type="number" min="0" max="1000" step="1" value="0" inputmode="numeric" aria-label="Precio mínimo en euros"></div>
-                      <div class="range-value"><label for="priceMaxNumber">Máximo (€)</label><input id="priceMaxNumber" type="number" min="0" max="1000" step="1" value="1000" inputmode="numeric" aria-label="Precio máximo en euros"></div>
-                    </div>
-                    <div id="priceRange" class="dual-range">
-                      <div class="range-track" aria-hidden="true"><div class="range-selected"></div></div>
-                      <input id="priceMin" class="range-min" type="range" min="0" max="1000" step="1" value="0" aria-label="Precio mínimo" aria-describedby="priceSummary priceHelp">
-                      <input id="priceMax" class="range-max" type="range" min="0" max="1000" step="1" value="1000" aria-label="Precio máximo" aria-describedby="priceSummary priceHelp">
-                    </div>
-                    <div class="range-limits" aria-hidden="true"><span>0 €</span><span>1.000 €</span></div>
-                    <p id="priceHelp" class="filter-help">Mínimo redondo; máximo cuadrado. Si están próximos, mínimo arriba y máximo abajo. También puedes escribir el valor.</p>
-                  </fieldset>
-                </details>
-                <details class="filter-group">
-                  <!-- EXPLICACION: Rango de distancia: mismo mecanismo preciso que el precio, en kilómetros ficticios desde Granada; no utiliza geolocalización. -->
-                  <summary><span>Distancia</span><span id="distanceSummary" class="range-summary">0 km — 1.000 km</span></summary>
-                  <fieldset class="range-controls">
-                    <legend class="sr-only">Rango de distancia</legend>
-                    <div class="range-values">
-                      <div class="range-value"><label for="distanceMinNumber">Mínimo (km)</label><input id="distanceMinNumber" type="number" min="0" max="1000" step="1" value="0" inputmode="numeric" aria-label="Distancia mínima en kilómetros"></div>
-                      <div class="range-value"><label for="distanceMaxNumber">Máximo (km)</label><input id="distanceMaxNumber" type="number" min="0" max="1000" step="1" value="1000" inputmode="numeric" aria-label="Distancia máxima en kilómetros"></div>
-                    </div>
-                    <div id="distanceRange" class="dual-range">
-                      <div class="range-track" aria-hidden="true"><div class="range-selected"></div></div>
-                      <input id="distanceMin" class="range-min" type="range" min="0" max="1000" step="1" value="0" aria-label="Distancia mínima" aria-describedby="distanceSummary distanceHelp">
-                      <input id="distanceMax" class="range-max" type="range" min="0" max="1000" step="1" value="1000" aria-label="Distancia máxima" aria-describedby="distanceSummary distanceHelp">
-                    </div>
-                    <div class="range-limits" aria-hidden="true"><span>0 km</span><span>1.000 km</span></div>
-                    <p id="distanceHelp" class="filter-help">Mínimo redondo; máximo cuadrado. Si están próximos, mínimo arriba y máximo abajo. También puedes escribir el valor.</p>
-                  </fieldset>
-                </details>
-                <!-- EXPLICACION: Selección múltiple: los checkboxes y subcategorías se generan desde el catálogo JSON. Desplegables y grupos acotados evitan alargar innecesariamente el panel móvil. -->
-                <details class="filter-group category-group">
-                  <summary><span>Categorías</span><span id="categorySummary">Todas</span></summary>
-                  <div class="filter-group-body">
-                    <fieldset class="category-options"><legend class="sr-only">Categorías principales</legend><div id="categoryOptions" class="choice-grid"></div></fieldset>
-                    <p class="filter-help">Sin subcategorías marcadas, se incluyen todas las de esa categoría.</p>
-                    <div id="subcategoryOptions"></div>
+                <fieldset id="priceControls" class="filter-detail range-controls" hidden>
+                  <legend class="sr-only">Rango de precio</legend>
+                  <div class="range-values">
+                    <div class="range-value"><label for="priceMinNumber">Mínimo (€)</label><input id="priceMinNumber" type="number" min="0" max="1000" step="1" value="0" inputmode="numeric" aria-label="Precio mínimo en euros"></div>
+                    <div class="range-value"><label for="priceMaxNumber">Máximo (€)</label><input id="priceMaxNumber" type="number" min="0" max="1000" step="1" value="1000" inputmode="numeric" aria-label="Precio máximo en euros"></div>
                   </div>
-                </details>
+                  <div id="priceRange" class="dual-range">
+                    <div class="range-track" aria-hidden="true"><div class="range-selected"></div></div>
+                    <input id="priceMin" class="range-min" type="range" min="0" max="1000" step="1" value="0" aria-label="Precio mínimo" aria-describedby="priceSummary priceHelp">
+                    <input id="priceMax" class="range-max" type="range" min="0" max="1000" step="1" value="1000" aria-label="Precio máximo" aria-describedby="priceSummary priceHelp">
+                  </div>
+                  <div class="range-limits" aria-hidden="true"><span>0 €</span><span>1.000 €</span></div>
+                  <p id="priceHelp" class="filter-help">Mínimo redondo; máximo cuadrado. Si están próximos, mínimo arriba y máximo abajo. También puedes escribir el valor.</p>
+                </fieldset>
+                  <!-- EXPLICACION: Rango de distancia: mismo mecanismo preciso que el precio, en kilómetros ficticios desde Granada; no utiliza geolocalización. -->
+                <fieldset id="distanceControls" class="filter-detail range-controls" hidden>
+                  <legend class="sr-only">Rango de distancia</legend>
+                  <div class="range-values">
+                    <div class="range-value"><label for="distanceMinNumber">Mínimo (km)</label><input id="distanceMinNumber" type="number" min="0" max="1000" step="1" value="0" inputmode="numeric" aria-label="Distancia mínima en kilómetros"></div>
+                    <div class="range-value"><label for="distanceMaxNumber">Máximo (km)</label><input id="distanceMaxNumber" type="number" min="0" max="1000" step="1" value="1000" inputmode="numeric" aria-label="Distancia máxima en kilómetros"></div>
+                  </div>
+                  <div id="distanceRange" class="dual-range">
+                    <div class="range-track" aria-hidden="true"><div class="range-selected"></div></div>
+                    <input id="distanceMin" class="range-min" type="range" min="0" max="1000" step="1" value="0" aria-label="Distancia mínima" aria-describedby="distanceSummary distanceHelp">
+                    <input id="distanceMax" class="range-max" type="range" min="0" max="1000" step="1" value="1000" aria-label="Distancia máxima" aria-describedby="distanceSummary distanceHelp">
+                  </div>
+                  <div class="range-limits" aria-hidden="true"><span>0 km</span><span>1.000 km</span></div>
+                  <p id="distanceHelp" class="filter-help">Mínimo redondo; máximo cuadrado. Si están próximos, mínimo arriba y máximo abajo. También puedes escribir el valor.</p>
+                </fieldset>
+                <!-- EXPLICACION: Selección múltiple: los checkboxes y subcategorías se generan desde el catálogo JSON. Desplegables y grupos acotados evitan alargar innecesariamente el panel móvil. -->
+                <section id="categoryControls" class="filter-detail" aria-label="Filtro de categorías" hidden>
+                  <fieldset class="category-options"><legend class="sr-only">Categorías principales</legend><div id="categoryOptions" class="choice-grid"></div></fieldset>
+                  <p class="filter-help">Sin subcategorías marcadas, se incluyen todas las de esa categoría.</p>
+                  <div id="subcategoryOptions"></div>
+                </section>
               </div>
               <div class="filter-footer"><span>Distancias de ejemplo desde Granada. Sin geolocalización.</span><button id="clearFilters" type="button" class="text-button">Limpiar filtros</button></div>
             </form>

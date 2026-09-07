@@ -28,7 +28,7 @@ La v0.1 inicial incorporó los siguientes elementos (los filtros y tiempos se re
 - Navegación lateral desde 1100 px: Inicio, Explorar, Agenda, Favoritos, Perfil. Ancho de 158 px.
 - Una columna en móvil y dos desde 700 px. Los placeholders de las otras secciones no incorporan funciones finales.
 
-Las variables de `:root` concentran la paleta y las medidas principales. Los SVG son provisionales; su color forma parte de cada asset y se sustituirá junto con la ilustración definitiva.
+Las variables de `:root` concentran la paleta y las medidas principales. La paleta actual combina crema rosado, granate suave y rosa empolvado; los nombres de tokens describen ya esos colores. Los SVG son provisionales; su color forma parte de cada asset y se sustituirá junto con la ilustración definitiva.
 
 ## CULTURA v0.1.1
 
@@ -47,9 +47,17 @@ Revisión incremental sin rediseñar, añadir detalle de evento ni modificar el 
 - **Limpiar filtros:** restaura cualquier fecha, 0–1.000 € y km, ningún checkbox y búsqueda vacía, sin recargar.
 - **Responsive y accesibilidad:** grupos desplegables nativos, labels, fieldset/legend y valores hablados de sliders. Los controles se apilan en móvil; las subcategorías usan una zona de altura acotada para evitar un panel desmesurado.
 
-Las tarjetas, navegación, header, paleta, ilustraciones y resolución de imágenes conservan su funcionamiento. La versión de caché de `sw.js` pasa a v0.1.1. El servidor de revisión sigue en la URL local indicada más abajo.
+Las tarjetas, navegación, header, ilustraciones y resolución de imágenes conservan su funcionamiento. La versión de caché de `sw.js` pasa a v0.1.1. El servidor de revisión sigue en la URL local indicada más abajo.
 
 Los eventos demo solo cubren aproximadamente dos semanas: una búsqueda válida a tres meses, seis meses o un año puede devolver cero resultados. Esto no es un límite del calendario.
+
+## Revisión visual de filtros y paleta
+
+Los cuatro selectores —Fecha, Precio, Distancia y Categorías— comparten una rejilla y un único panel de contenido. En escritorio y tablet amplia aparecen en una sola fila; en móvil se organizan 2 × 2 para conservar legibilidad. Al abrir uno se cierra el anterior, pero los valores elegidos se mantienen y continúan combinándose.
+
+Cada selector es un botón real vinculado por `aria-controls` a su panel y comunica el estado mediante `aria-expanded`, por lo que funciona con ratón, tacto y teclado. El panel común no duplica controles ni cambia la lógica de filtrado. La interfaz adopta crema rosado, granate pastel y rosa empolvado mediante los tokens globales; por tanto, header, navegación, foco, filtros y tarjetas mantienen una identidad coherente sin añadir un cuarto color. El texto CULTURA del header incorpora un contorno de 0,35 px en granate profundo y una sombra mínima como respaldo compatible, sin cambiar tipografía ni animación del buscador.
+
+En estado neutral, cada botón muestra solamente Fecha, Precio, Distancia o Categorías, centrado. Un resumen aparece solo con un valor realmente aplicado: preset o fecha personalizada válida; rango distinto de 0–1.000; o alguna categoría/subcategoría. Una categoría incluye su nombre y primera subcategoría si procede; varias categorías se compactan como «Música +2». CSS reserva el indicador y aplica elipsis a textos largos para evitar saltos y desbordamiento.
 
 ## Datos locales
 

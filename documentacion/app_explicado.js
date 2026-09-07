@@ -219,6 +219,14 @@ function showSection(name) {
   $("#searchToggle").hidden = name !== "home";
 }
 
+/* EXPLICACION: Estado visual del botón: actualiza el resumen, lo oculta cuando el filtro es neutral y aplica has-value. La fecha exige preset o fecha válida; los rangos comparan con 0–1.000. */
+function setFilterTabSummary(id, text, active) {
+  const summary = $("#" + id);
+  summary.textContent = text;
+  summary.hidden = !active;
+  summary.closest(".filter-tab").classList.toggle("has-value", active);
+}
+
 /* EXPLICACION: Sincronización del calendario: muestra día único o inicio/fin, deshabilita campos inactivos, establece límites recíprocos, mensajes y aria-invalid. No limita la búsqueda a meses cercanos. */
 function syncDateControls() {
   const custom = state.date === "custom";
@@ -240,9 +248,10 @@ function syncDateControls() {
     ? "La fecha final debe ser igual o posterior a la inicial. No se aplica la fecha hasta corregirla."
     : "Elige " + (interval ? "ambas fechas" : "una fecha") + ". Mientras tanto, no se aplica filtro de fecha.";
   const format = value => new Intl.DateTimeFormat("es-ES", { dateStyle: "short" }).format(localDate(value));
-  $("#dateSummary").textContent = custom
+  const summary = custom
     ? bounds ? bounds.map(format).filter((value, i, values) => !i || value !== values[0]).join(" — ") : "Pendiente"
     : $("#dateFilter").selectedOptions[0].textContent;
+  setFilterTabSummary("dateSummary", summary, Boolean(state.date && (!custom || bounds)));
 }
 
 function clearCustomDate() {
@@ -285,7 +294,8 @@ function syncRangeControls(kind) {
   range.style.setProperty("--range-min", state[kind + "Min"] / 10 + "%");
   range.style.setProperty("--range-max", state[kind + "Max"] / 10 + "%");
   updateRangeLayout(kind);
-  $("#" + kind + "Summary").textContent = format(state[kind + "Min"]) + " " + unit + " — " + format(state[kind + "Max"]) + " " + unit;
+  const summary = format(state[kind + "Min"]) + " " + unit + " — " + format(state[kind + "Max"]) + " " + unit;
+  setFilterTabSummary(kind + "Summary", summary, state[kind + "Min"] !== 0 || state[kind + "Max"] !== 1000);
 }
 
 /* EXPLICACION: Generación sin duplicar catálogo: usa las 11 categorías y 59 subcategorías de categorias.json para crear checkboxes con labels; ids prefijados por categoría evitan colisiones como Flamenco. */
@@ -323,10 +333,19 @@ function renderSubcategoryOptions() {
   updateCategorySummary();
 }
 
+/* EXPLICACION: Resumen compacto: una categoría muestra su nombre y, si existen, la primera subcategoría y +N. Varias categorías muestran la primera y +N para no desbordar. */
 function updateCategorySummary() {
-  const count = state.selectedCategories.size;
-  const subcount = [...state.selectedSubcategories.values()].reduce((total, entries) => total + entries.size, 0);
-  $("#categorySummary").textContent = count ? count + (count === 1 ? " categoría" : " categorías") + (subcount ? " · " + subcount + " subcat." : "") : "Todas";
+  const categories = state.categories.filter(category => state.selectedCategories.has(category.id));
+  let summary = "";
+  if (categories.length > 1) summary = categories[0].nombre + " +" + (categories.length - 1);
+  if (categories.length === 1) {
+    summary = categories[0].nombre;
+    const selected = state.selectedSubcategories.get(categories[0].id);
+    const subcategories = categories[0].subcategorias.filter(subcategory => selected?.has(subcategory.id));
+    if (subcategories.length) summary += " · " + subcategories[0].nombre + (subcategories.length > 1 ? " +" + (subcategories.length - 1) : "");
+  }
+  const active = categories.length > 0 || [...state.selectedSubcategories.values()].some(entries => entries.size);
+  setFilterTabSummary("categorySummary", summary, active);
 }
 
 /* EXPLICACION: Al desmarcar una categoría se elimina también su conjunto de subcategorías; volver a marcarla no recupera filtros ocultos. */
@@ -361,6 +380,19 @@ $("#filterToggle").addEventListener("click", () => {
   $("#filterPanel").hidden = !expanded;
 });
 $("#filterForm").addEventListener("submit", event => event.preventDefault());
+/* EXPLICACION: Panel único: los cuatro botones actualizan aria-expanded y hidden para que solo un contenido esté visible. Cambiar de panel conserva los valores y recalcula el ancho útil de los sliders. */
+const filterTabs = $$(".filter-tab");
+for (const tab of filterTabs) {
+  tab.addEventListener("click", () => {
+    const shouldOpen = tab.getAttribute("aria-expanded") !== "true";
+    for (const other of filterTabs) {
+      const active = other === tab && shouldOpen;
+      other.setAttribute("aria-expanded", String(active));
+      $("#" + other.getAttribute("aria-controls")).hidden = !active;
+    }
+    for (const kind of ["price", "distance"]) updateRangeLayout(kind);
+  });
+}
 /* EXPLICACION: Eventos de controles: un cambio de preset limpia fechas personalizadas. Ranges y números comparten actualización; el campo numérico vacío se restaura al perder foco. Cambios de checkbox actualizan el estado, resumen y tarjetas. */
 $("#dateFilter").addEventListener("change", event => {
   state.date = event.target.value;

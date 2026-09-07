@@ -205,6 +205,13 @@ function showSection(name) {
   $("#searchToggle").hidden = name !== "home";
 }
 
+function setFilterTabSummary(id, text, active) {
+  const summary = $("#" + id);
+  summary.textContent = text;
+  summary.hidden = !active;
+  summary.closest(".filter-tab").classList.toggle("has-value", active);
+}
+
 function syncDateControls() {
   const custom = state.date === "custom";
   const interval = state.customMode === "range";
@@ -225,9 +232,10 @@ function syncDateControls() {
     ? "La fecha final debe ser igual o posterior a la inicial. No se aplica la fecha hasta corregirla."
     : "Elige " + (interval ? "ambas fechas" : "una fecha") + ". Mientras tanto, no se aplica filtro de fecha.";
   const format = value => new Intl.DateTimeFormat("es-ES", { dateStyle: "short" }).format(localDate(value));
-  $("#dateSummary").textContent = custom
+  const summary = custom
     ? bounds ? bounds.map(format).filter((value, i, values) => !i || value !== values[0]).join(" — ") : "Pendiente"
     : $("#dateFilter").selectedOptions[0].textContent;
+  setFilterTabSummary("dateSummary", summary, Boolean(state.date && (!custom || bounds)));
 }
 
 function clearCustomDate() {
@@ -267,7 +275,8 @@ function syncRangeControls(kind) {
   range.style.setProperty("--range-min", state[kind + "Min"] / 10 + "%");
   range.style.setProperty("--range-max", state[kind + "Max"] / 10 + "%");
   updateRangeLayout(kind);
-  $("#" + kind + "Summary").textContent = format(state[kind + "Min"]) + " " + unit + " — " + format(state[kind + "Max"]) + " " + unit;
+  const summary = format(state[kind + "Min"]) + " " + unit + " — " + format(state[kind + "Max"]) + " " + unit;
+  setFilterTabSummary(kind + "Summary", summary, state[kind + "Min"] !== 0 || state[kind + "Max"] !== 1000);
 }
 
 function makeChoice(id, name, checked, category, subcategory) {
@@ -304,9 +313,17 @@ function renderSubcategoryOptions() {
 }
 
 function updateCategorySummary() {
-  const count = state.selectedCategories.size;
-  const subcount = [...state.selectedSubcategories.values()].reduce((total, entries) => total + entries.size, 0);
-  $("#categorySummary").textContent = count ? count + (count === 1 ? " categoría" : " categorías") + (subcount ? " · " + subcount + " subcat." : "") : "Todas";
+  const categories = state.categories.filter(category => state.selectedCategories.has(category.id));
+  let summary = "";
+  if (categories.length > 1) summary = categories[0].nombre + " +" + (categories.length - 1);
+  if (categories.length === 1) {
+    summary = categories[0].nombre;
+    const selected = state.selectedSubcategories.get(categories[0].id);
+    const subcategories = categories[0].subcategorias.filter(subcategory => selected?.has(subcategory.id));
+    if (subcategories.length) summary += " · " + subcategories[0].nombre + (subcategories.length > 1 ? " +" + (subcategories.length - 1) : "");
+  }
+  const active = categories.length > 0 || [...state.selectedSubcategories.values()].some(entries => entries.size);
+  setFilterTabSummary("categorySummary", summary, active);
 }
 
 function setCategory(id, selected) {
@@ -338,6 +355,18 @@ $("#filterToggle").addEventListener("click", () => {
   $("#filterPanel").hidden = !expanded;
 });
 $("#filterForm").addEventListener("submit", event => event.preventDefault());
+const filterTabs = $$(".filter-tab");
+for (const tab of filterTabs) {
+  tab.addEventListener("click", () => {
+    const shouldOpen = tab.getAttribute("aria-expanded") !== "true";
+    for (const other of filterTabs) {
+      const active = other === tab && shouldOpen;
+      other.setAttribute("aria-expanded", String(active));
+      $("#" + other.getAttribute("aria-controls")).hidden = !active;
+    }
+    for (const kind of ["price", "distance"]) updateRangeLayout(kind);
+  });
+}
 $("#dateFilter").addEventListener("change", event => {
   state.date = event.target.value;
   state.dateStart = "";

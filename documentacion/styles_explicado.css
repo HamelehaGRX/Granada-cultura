@@ -1,21 +1,22 @@
-/* EXPLICACION: Paleta y medidas: crema, salvia y terracota se centralizan aquí junto a texto, superficies, bordes y tiempos. Cambiar estos tokens actualiza la interfaz; los SVG provisionales son assets independientes. */
+/* EXPLICACION: Paleta y medidas: crema, granate y rosa empolvado se centralizan aquí junto a texto, superficies, bordes y tiempos. Cambiar estos tokens actualiza la interfaz; los SVG provisionales son assets independientes. */
 :root {
   color-scheme: light;
-  --cream: #f4efe4;
-  --cream-accent: #ded2bb;
-  --sage: #64765e;
-  --sage-soft: #e6ebe2;
-  --sage-border: #cdd7c7;
-  --terracotta: #aa715f;
-  --terracotta-soft: #efe1da;
-  --terracotta-border: #e4cfc5;
-  --text: #31372f;
-  --muted: #6a7065;
+  --cream: #f7efec;
+  --cream-accent: #decac8;
+  --burgundy: #76505a;
+  --burgundy-deep: #533740;
+  --burgundy-soft: #eee2e5;
+  --burgundy-border: #d9c0c6;
+  --rose: #925e69;
+  --rose-soft: #f1e0e4;
+  --rose-border: #dfc1c8;
+  --text: #382f32;
+  --muted: #716468;
   --white: #ffffff;
-  --surface: #fffcf6;
-  --widget: #ffffff85;
-  --line: #dfdfd3;
-  --shadow: 0 6px 24px #31372f05;
+  --surface: #fffafa;
+  --widget: #fffafaad;
+  --line: #e2d5d3;
+  --shadow: 0 8px 28px #5c35400a;
   --radius: 18px;
   --sidebar-width: 158px;
   --header-height: 82px;
@@ -32,7 +33,7 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 button { color: inherit; }
-button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--terracotta); outline-offset: 4px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--rose); outline-offset: 4px; }
 [hidden] { display: none !important; }
 h1, h2, h3, p { margin: 0; }
 .icon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
@@ -49,9 +50,10 @@ h1, h2, h3, p { margin: 0; }
 
 /* EXPLICACION: Header y búsqueda: fila flexible recortada, sin posicionar el campo sobre los eventos. Flex-basis expande la búsqueda mientras el margen negativo desplaza físicamente la marca. Ajustar --motion cambia ambas transiciones juntas. */
 .sidebar { display: none; }
-.topbar { position: sticky; top: 0; z-index: 20; background: var(--sage); color: var(--white); padding: env(safe-area-inset-top) 24px 0; }
+.topbar { position: sticky; top: 0; z-index: 20; background: var(--burgundy); color: var(--white); padding: env(safe-area-inset-top) 24px 0; }
 .header-track { height: var(--header-height); width: 100%; display: flex; align-items: center; overflow: hidden; }
-.wordmark { flex: 0 0 calc(100% - 52px); font-size: 1.8rem; letter-spacing: .12em; font-weight: 650; transition: margin-left var(--motion) ease; white-space: nowrap; }
+/* EXPLICACION: Marca del header: un stroke de 0,35 px en granate profundo crea el contorno solicitado; text-shadow es el fallback discreto. No cambia fuente, tamaño, movimiento ni buscador. */
+.wordmark { flex: 0 0 calc(100% - 52px); font-size: 1.8rem; letter-spacing: .12em; font-weight: 650; transition: margin-left var(--motion) ease; white-space: nowrap; -webkit-text-stroke: .35px var(--burgundy-deep); text-shadow: 0 1px 1px #53374070; }
 .search-area { flex: 0 0 0%; min-width: 0; overflow: hidden; opacity: 0; transition: flex-basis var(--motion) ease, opacity 180ms ease; }
 .search-area input { display: block; border: 0; border-bottom: 1px solid #ffffff70; border-radius: 0; padding: 10px 4px; width: 100%; min-width: 0; background: transparent; color: var(--white); font-size: 1rem; outline-offset: -3px; }
 .search-area input::placeholder { color: #ffffffc9; font-size: .875rem; }
@@ -66,38 +68,44 @@ main { width: min(1180px, 100%); margin: 0 auto; padding: 30px 24px calc(var(--n
 .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 28px; }
 .eyebrow { font-size: .75rem; font-weight: 650; letter-spacing: .16em; color: var(--muted); margin-bottom: 4px; }
 h1 { font-family: Georgia, "Times New Roman", serif; font-size: 2.55rem; font-weight: 400; line-height: 1.2; letter-spacing: -.035em; }
-.heading-dot { color: var(--terracotta); }
+.heading-dot { color: var(--rose); }
 .territory { color: var(--muted); display: flex; align-items: center; gap: 6px; font-size: .875rem; }
 .territory .icon { width: 17px; height: 17px; }
 
 /* EXPLICACION: Widget translúcido y panel: interrogación suave, indicación de apertura y formulario responsive. Los radios, separaciones y rejillas pueden adaptarse sin cambiar la lógica de filtrado. */
 .filter-widget { background: var(--widget); border: 1px solid var(--white); border-radius: var(--radius); box-shadow: var(--shadow); }
 .filter-toggle { display: flex; align-items: center; width: 100%; padding: 18px 22px; border: 0; background: transparent; gap: 17px; text-align: left; border-radius: var(--radius); }
-.question-mark { display: grid; place-items: center; width: 47px; height: 47px; flex: 0 0 47px; background: var(--sage-soft); color: var(--sage); border-radius: 17px 20px 16px 23px; font: italic 2.1rem Georgia, serif; transform: rotate(-9deg); }
+.question-mark { display: grid; place-items: center; width: 47px; height: 47px; flex: 0 0 47px; background: var(--burgundy-soft); color: var(--burgundy); border-radius: 17px 20px 16px 23px; font: italic 2.1rem Georgia, serif; transform: rotate(-9deg); }
 .filter-copy { flex: 1; min-width: 0; }
 .filter-copy strong { display: block; font-size: 1.05rem; font-weight: 600; }
 .filter-copy > span { display: block; font-size: .875rem; color: var(--muted); margin-top: 2px; }
-.filter-chevron { color: var(--sage); width: 20px; transition: transform var(--motion) ease; }
+.filter-chevron { color: var(--burgundy); width: 20px; transition: transform var(--motion) ease; }
 .filter-toggle[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }
 .filter-panel { padding: 4px 22px 20px; }
-.filter-grid { border-top: 1px solid var(--line); padding-top: 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.filter-grid { border-top: 1px solid var(--line); padding-top: 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 10px; row-gap: 16px; }
 .filter-grid label { display: grid; gap: 7px; font-size: .875rem; font-weight: 600; }
 select { min-width: 0; width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); padding: 10px; font-size: .875rem; }
 .filter-footer { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 18px; color: var(--muted); font-size: .75rem; }
-.text-button { flex-shrink: 0; border: 0; background: transparent; color: var(--sage); font-weight: 600; padding: 10px 0; text-decoration: underline; text-underline-offset: 4px; font-size: .875rem; }
+.text-button { flex-shrink: 0; border: 0; background: transparent; color: var(--burgundy); font-weight: 600; padding: 10px 0; text-decoration: underline; text-underline-offset: 4px; font-size: .875rem; }
 
-/* EXPLICACION: Grupos nativos details/summary: conservan la estética y pueden abrirse con teclado. Fechas y rangos usan campos legibles; las subcategorías tienen altura acotada y scroll propio. En móvil los grupos se apilan; en escritorio fecha, precio y distancia comparten fila. */
-.filter-group { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); align-self: start; }
-.filter-group summary { min-height: 50px; padding: 13px 12px; cursor: pointer; font-size: .875rem; font-weight: 600; }
-.filter-group summary > span:first-child { margin-right: 8px; }
-.filter-group summary > span:last-child:not(:first-child) { font-weight: 400; color: var(--muted); overflow-wrap: anywhere; }
-.filter-group summary:focus-visible { outline: 3px solid var(--terracotta); outline-offset: 2px; border-radius: 12px; }
-.filter-group-body, .range-controls { padding: 0 12px 14px; }
-.filter-group-body > label, #customDateControls > label { display: block; margin: 8px 0 6px; font-size: .875rem; font-weight: 600; }
+/* EXPLICACION: Selector unificado: cuatro botones reales y sus paneles asociados conservan teclado y estados aria-expanded. La rejilla muestra una fila en escritorio y 2 × 2 en móvil; solo el panel activo ocupa todo el ancho bajo las opciones. */
+/* EXPLICACION: Estado vacío/activo: flex centra únicamente el nombre cuando falta has-value. Al activarse, el resumen usa el espacio restante y elipsis; el indicador mantiene su posición y evita saltos. */
+.filter-tab { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 58px; padding: 16px 34px 16px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--text); text-align: left; font-size: .875rem; font-weight: 600; transition: border-color var(--motion) ease, background var(--motion) ease; }
+.filter-tab-indicator { position: absolute; top: 50%; right: 13px; color: var(--burgundy); font-size: 1.15rem; font-weight: 400; line-height: 1; transform: translateY(-50%); }
+.filter-tab[aria-expanded="true"] { border-color: var(--burgundy-border); background: var(--burgundy-soft); }
+.filter-tab .indicator-open, .filter-tab[aria-expanded="true"] .indicator-closed { display: none; }
+.filter-tab[aria-expanded="true"] .indicator-open { display: inline; }
+.filter-tab > span:first-child { flex: 0 0 auto; }
+.filter-tab > span:nth-child(2):not(.filter-tab-indicator) { min-width: 0; overflow: hidden; color: var(--muted); font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.filter-tab:not(.has-value) { justify-content: center; padding-left: 34px; }
+.filter-tab:focus-visible { outline: 3px solid var(--rose); outline-offset: 2px; }
+.filter-details { margin-top: 16px; }
+.filter-detail { min-width: 0; padding: 18px; border: 1px solid var(--burgundy-border); border-radius: 14px; background: var(--surface); box-shadow: inset 4px 0 0 var(--burgundy-soft); }
+.filter-detail > label, #customDateControls > label { display: block; margin: 8px 0 6px; font-size: .875rem; font-weight: 600; }
 .custom-date-grid { display: grid; gap: 12px; margin-top: 14px; }
 .custom-date-grid label { min-width: 0; }
 input[type="date"], input[type="number"] { min-width: 0; width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 9px; padding: 9px; background: var(--surface); color: var(--text); font-size: 1rem; }
-input[aria-invalid="true"] { border-style: dashed; border-color: var(--terracotta); }
+input[aria-invalid="true"] { border-style: dashed; border-color: var(--rose); }
 .range-controls, .category-options, .subcategory-group { border: 0; margin: 0; min-width: 0; }
 /* EXPLICACION: Rango dual: una pista neutra y un tramo activo entre --range-min y --range-max. Las pistas nativas son transparentes; sus tiradores de 44 px mantienen teclado y foco. La forma distingue mínimo/máximo sin depender del color. is-close separa verticalmente los tiradores sin cambiar su posición horizontal ni crear otra barra. */
 .range-values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -106,13 +114,13 @@ input[aria-invalid="true"] { border-style: dashed; border-color: var(--terracott
 .range-value label { display: block; }
 .dual-range { --range-min: 0%; --range-max: 100%; position: relative; height: 92px; margin-top: 8px; }
 .range-track { position: absolute; top: 43px; left: 22px; right: 22px; height: 6px; border-radius: 3px; background: var(--line); }
-.range-selected { position: absolute; left: var(--range-min); right: calc(100% - var(--range-max)); height: 100%; border-radius: inherit; background: var(--sage); }
+.range-selected { position: absolute; left: var(--range-min); right: calc(100% - var(--range-max)); height: 100%; border-radius: inherit; background: var(--burgundy); }
 .dual-range input[type="range"] { appearance: none; -webkit-appearance: none; position: absolute; inset: 24px 0 auto; width: 100%; min-width: 0; height: 44px; margin: 0; padding: 0; border: 0; background: transparent; pointer-events: none; }
 .dual-range input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: transparent; border: 0; }
 .dual-range input[type="range"]::-moz-range-track { height: 6px; background: transparent; border: 0; }
 .dual-range input[type="range"]::-moz-range-progress { background: transparent; }
-.dual-range input[type="range"]::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; box-sizing: border-box; width: 44px; height: 44px; margin-top: -19px; border: 2px solid var(--sage); border-radius: 50%; background: var(--surface); cursor: ew-resize; pointer-events: auto; touch-action: pan-y; }
-.dual-range input[type="range"]::-moz-range-thumb { box-sizing: border-box; width: 44px; height: 44px; border: 2px solid var(--sage); border-radius: 50%; background: var(--surface); cursor: ew-resize; pointer-events: auto; touch-action: pan-y; }
+.dual-range input[type="range"]::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; box-sizing: border-box; width: 44px; height: 44px; margin-top: -19px; border: 2px solid var(--burgundy); border-radius: 50%; background: var(--surface); cursor: ew-resize; pointer-events: auto; touch-action: pan-y; }
+.dual-range input[type="range"]::-moz-range-thumb { box-sizing: border-box; width: 44px; height: 44px; border: 2px solid var(--burgundy); border-radius: 50%; background: var(--surface); cursor: ew-resize; pointer-events: auto; touch-action: pan-y; }
 .dual-range input.range-max::-webkit-slider-thumb { border-radius: 8px; }
 .dual-range input.range-max::-moz-range-thumb { border-radius: 8px; }
 .dual-range.is-close .range-min { top: 1px; }
@@ -122,35 +130,34 @@ input[aria-invalid="true"] { border-style: dashed; border-color: var(--terracott
 .dual-range input[type="range"]:focus-visible::-moz-range-thumb { outline: 3px solid var(--text); outline-offset: 2px; }
 .range-limits { display: flex; justify-content: space-between; gap: 8px; font-size: .875rem; color: var(--muted); }
 .filter-help { font-size: .8125rem; color: var(--muted); margin-top: 12px; line-height: 1.45; }
-.category-group { grid-column: 1 / -1; }
 .category-options { padding: 0; }
 .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 .filter-grid .choice-label { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 40px; padding: 8px; border: 1px solid var(--line); border-radius: 9px; font-size: .875rem; font-weight: 400; cursor: pointer; }
-.choice-label:has(input:checked) { background: var(--sage-soft); border-color: var(--sage-border); }
-.choice-label input { flex: 0 0 17px; width: 17px; height: 17px; margin: 0; accent-color: var(--sage); }
+.choice-label:has(input:checked) { background: var(--burgundy-soft); border-color: var(--burgundy-border); }
+.choice-label input { flex: 0 0 17px; width: 17px; height: 17px; margin: 0; accent-color: var(--burgundy); }
 .choice-label span { overflow-wrap: anywhere; }
 .subcategory-group { padding: 16px 0 0; }
 .subcategory-group legend { padding-top: 18px; font-weight: 600; font-size: .875rem; }
 #subcategoryOptions { max-height: 360px; overflow-y: auto; padding: 2px 4px; scrollbar-gutter: stable; }
 
-/* EXPLICACION: Tarjetas compactas: imagen reutilizable, contenido flexible y precio. nth-child alterna crema, salvia y terracota; el texto puede envolver sin truncar información importante. */
+/* EXPLICACION: Tarjetas compactas: imagen reutilizable, contenido flexible y precio. nth-child alterna crema, granate y rosa empolvado; el texto puede envolver sin truncar información importante. */
 .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin: 32px 0 18px; }
 h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; font-weight: 400; letter-spacing: -.02em; line-height: 1.2; }
 .result-count { font-size: .8125rem; color: var(--muted); white-space: nowrap; padding-bottom: 2px; }
 .event-list { display: grid; gap: 12px; }
 .event-card { display: flex; align-items: center; gap: 18px; min-width: 0; padding: 14px; background: var(--surface); border: 1px solid var(--cream-accent); border-radius: var(--radius); box-shadow: var(--shadow); }
-.event-card:nth-child(3n + 2) { border-color: var(--sage-border); }
-.event-card:nth-child(3n) { border-color: var(--terracotta-border); }
+.event-card:nth-child(3n + 2) { border-color: var(--burgundy-border); }
+.event-card:nth-child(3n) { border-color: var(--rose-border); }
 .event-art { width: 106px; height: 106px; flex: 0 0 106px; border-radius: 12px; object-fit: cover; background: var(--cream); }
 .event-info { flex: 1; min-width: 0; }
-.event-category { display: block; color: var(--sage); font-size: .75rem; font-weight: 650; letter-spacing: .035em; margin-bottom: 4px; }
+.event-category { display: block; color: var(--burgundy); font-size: .75rem; font-weight: 650; letter-spacing: .035em; margin-bottom: 4px; }
 .event-title { font-size: 1.0625rem; line-height: 1.3; font-weight: 600; overflow-wrap: anywhere; margin-bottom: 8px; }
 .event-time { font-size: .875rem; color: var(--text); }
 .event-place { font-size: .8125rem; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
 .event-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 8px; }
 .event-distance { color: var(--muted); font-size: .75rem; }
-.event-price { color: var(--terracotta); font-weight: 650; font-size: .8125rem; white-space: nowrap; }
-.event-price.free { color: var(--sage); }
+.event-price { color: var(--rose); font-weight: 650; font-size: .8125rem; white-space: nowrap; }
+.event-price.free { color: var(--burgundy); }
 .demo-note { font-size: .75rem; line-height: 1.6; color: var(--muted); text-align: center; margin: 26px 8px 0; }
 .state-message { padding: 35px 20px; text-align: center; border: 1px dashed var(--cream-accent); border-radius: var(--radius); color: var(--muted); }
 .state-message h3 { color: var(--text); font-size: 1.1rem; margin-bottom: 10px; }
@@ -159,14 +166,14 @@ h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; font-wei
 .bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; min-height: var(--nav-height); padding: 7px 8px calc(7px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line); }
 .nav-item { border: 0; background: transparent; display: flex; align-items: center; justify-content: center; color: var(--muted); gap: 5px; min-height: 58px; border-radius: 14px; }
 .bottom-nav .nav-item { flex-direction: column; font-size: .75rem; padding: 4px 2px; }
-.nav-item.active { color: var(--sage); }
-.bottom-nav .nav-item.active .icon { background: var(--sage-soft); box-sizing: content-box; padding: 5px 17px; margin: -5px -17px 0; border-radius: 14px; }
+.nav-item.active { color: var(--burgundy); }
+.bottom-nav .nav-item.active .icon { background: var(--burgundy-soft); box-sizing: content-box; padding: 5px 17px; margin: -5px -17px 0; border-radius: 14px; }
 .nav-item.active span { font-weight: 650; }
-.nav-item:hover { background: var(--sage-soft); }
+.nav-item:hover { background: var(--burgundy-soft); }
 .placeholder-section { padding: 75px 0; text-align: center; }
 .placeholder-section h1 { margin: 12px 0 24px; }
 .placeholder-note { color: var(--muted); margin-top: 8px; }
-.primary-button { display: inline-flex; align-items: center; gap: 14px; border: 0; border-radius: 12px; background: var(--sage); color: var(--white); padding: 13px 20px; margin-top: 24px; }
+.primary-button { display: inline-flex; align-items: center; gap: 14px; border: 0; border-radius: 12px; background: var(--burgundy); color: var(--white); padding: 13px 20px; margin-top: 24px; }
 .noscript-message { position: fixed; inset: auto 20px 100px; padding: 20px; background: var(--surface); z-index: 50; }
 
 /* EXPLICACION: Tablet: dos columnas de eventos desde 700 px y miniaturas más pequeñas para conservar espacio de lectura. */
@@ -179,11 +186,11 @@ h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; font-wei
 /* EXPLICACION: Escritorio: lateral compacto de 158 px; desaparece la barra inferior y se amplía el contenido. Los filtros se agrupan en tres columnas; categorías ocupa todo el ancho. */
 @media (min-width: 1100px) {
   .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 40; width: var(--sidebar-width); display: flex; flex-direction: column; background: var(--surface); border-right: 1px solid var(--line); padding: 25px 14px; }
-  .sidebar-mark { font: 2.7rem Georgia, serif; color: var(--sage); padding: 0 14px 35px; line-height: 1; }
-  .sidebar-mark span { color: var(--terracotta); }
+  .sidebar-mark { font: 2.7rem Georgia, serif; color: var(--burgundy); padding: 0 14px 35px; line-height: 1; }
+  .sidebar-mark span { color: var(--rose); }
   .sidebar nav { display: grid; gap: 8px; }
   .sidebar .nav-item { justify-content: start; padding: 0 14px; gap: 12px; font-size: .875rem; min-height: 48px; }
-  .sidebar .nav-item.active { background: var(--sage-soft); }
+  .sidebar .nav-item.active { background: var(--burgundy-soft); }
   .sidebar .icon { width: 21px; height: 21px; }
   .version-label { margin-top: auto; padding: 20px 14px 0; color: var(--muted); font-size: .6875rem; letter-spacing: .06em; }
   .app-shell { margin-left: var(--sidebar-width); }
@@ -192,7 +199,6 @@ h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; font-wei
   .header-track { max-width: 1096px; margin-inline: auto; }
   main { padding: 38px 42px 40px; }
   .page-heading { margin-bottom: 32px; }
-  .filter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .event-card { padding: 16px; gap: 20px; }
   .event-art { width: 110px; height: 110px; flex-basis: 110px; }
 }
@@ -211,7 +217,8 @@ h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; font-wei
   .filter-copy strong { font-size: 1rem; }
   .filter-copy > span { font-size: .75rem; }
   .filter-panel { padding-inline: 14px; }
-  .filter-grid { grid-template-columns: 1fr; gap: 12px; }
+  .filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .filter-detail { padding: 15px; }
   .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .filter-footer { flex-wrap: wrap; gap: 2px; }
   h2 { font-size: 1.5rem; }
