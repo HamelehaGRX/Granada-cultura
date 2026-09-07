@@ -119,7 +119,7 @@ El catálogo está en `app/data/categorias.json`. Cada subcategoría contiene `i
 - Estilo visual coherente entre todas las categorías.
 - Pensadas para reutilizarse en numerosos eventos.
 
-La paleta de referencia es crema pastel, verde salvia mate y terracota/rosa apagado. No debe comprometerse la legibilidad del dibujo a pequeño tamaño.
+La paleta actual de referencia del prototipo es crema rosado, granate suave y rosa empolvado. No es una identidad definitiva y no debe comprometerse la legibilidad del dibujo a pequeño tamaño. La futura aplicación Expo centralizará estos valores en su theme para que puedan sustituirse sin rehacer el sistema de ilustraciones.
 
 ## Convención de nombres y entrega
 
@@ -139,7 +139,9 @@ Para integrar el arte definitivo:
 
 1. Añadir el archivo a la carpeta correspondiente dentro de `app/assets/images/categorias/`.
 2. Indicar su nombre y extensión en el campo `archivo` del catálogo.
-3. Actualizar el precache ASSETS de `app/sw.js` y su versión para el modo offline.
+3. Mientras el prototipo siga activo, actualizar el precache ASSETS de `app/sw.js` y su versión para el modo offline.
 4. Verificar carga, miniatura y fallback, y reflejar cualquier cambio de código en su copia explicada.
 
 No es necesario modificar la lógica de resolución ni los eventos para pasar de SVG a PNG, JPG o WEBP.
+
+Durante la migración a Expo se conservará esta relación categoría/subcategoría → asset y el fallback genérico. La implementación futura deberá usar un mapa de assets estáticos compatible con el empaquetador, sin crear una imagen diferente para cada evento.

@@ -1,20 +1,35 @@
 # Guía del proyecto CULTURA
 
+## Estado de transición
+
+CULTURA inicia una migración incremental hacia React Native, Expo, TypeScript estricto y Expo Router. Android e iOS serán las plataformas prioritarias; web continuará como plataforma complementaria.
+
+Todavía no existe código Expo. La carpeta `app/` conserva el prototipo web aprobado y no se eliminará, moverá ni ampliará con funcionalidades grandes salvo petición explícita. Seguirá sirviendo como referencia hasta que la futura aplicación alcance suficiente paridad y el usuario autorice qué hacer con el legado.
+
+La siguiente fase prevista, que requiere una tarea independiente, será crear una base Expo mínima sin migrar aún la interfaz.
+
 ## Estructura general
 
 - `AGENTS.md`: reglas del proyecto; se mantiene en la raíz.
 - `README.md`: presentación y publicación; no se ha desplegado esta versión.
-- `app/`: código real de la aplicación, sin frameworks ni dependencias externas.
+- `app/`: prototipo web legado aprobado, sin frameworks ni dependencias externas.
 - `app/data/`: catálogo de categorías y eventos demo en JSON.
 - `app/assets/icons/`: iconos de instalación existentes.
 - `app/assets/images/categorias/`: ilustraciones genéricas por categoría/subcategoría y fallback.
-- `documentacion/`: guías y copias del código con comentarios por bloques.
+- `documentacion/`: guías del prototipo, copias explicadas, arquitectura objetivo, decisiones y plan de migración.
+- `documentacion/arquitectura/`: descripción comprensible de la arquitectura futura.
+- `documentacion/decisiones/`: ADR de decisiones arquitectónicas aprobadas.
+- `documentacion/migracion/`: fases y criterios de la migración a Expo.
 
-## Código real y documentación explicada
+## Prototipo y documentación explicada
 
 El navegador carga `app/index.html`, `app/styles.css` y `app/app.js`. Sus copias paralelas son `index_explicado.html`, `styles_explicado.css` y `app_explicado.js` en esta carpeta.
 
-Las copias conservan exactamente el código real y añaden comentarios marcados `EXPLICACION`. No son una aplicación alternativa ni deben abrirse para probarla: sus rutas se documentan en el contexto de `app/`. Cada cambio de código debe reflejarse en ambas versiones.
+Las copias conservan exactamente el código del prototipo y añaden comentarios marcados `EXPLICACION`. No son una aplicación alternativa ni deben abrirse para probarla: sus rutas se documentan en el contexto de `app/`. Si una petición modifica expresamente el prototipo, el cambio debe reflejarse también en su copia explicada.
+
+El futuro código React Native no tendrá una copia literal comentada de cada archivo TypeScript. Se mantendrá limpio y se explicará por funcionalidades, interfaces, hooks, servicios y decisiones. Los cambios arquitectónicos importantes se registrarán mediante ADR.
+
+Las secciones v0.1 y v0.1.1 siguientes documentan el historial del prototipo, no la arquitectura definitiva.
 
 ## CULTURA v0.1
 
@@ -79,18 +94,34 @@ Un error al cargar un asset también activa el fallback. Para cambiar el formato
 
 El manifest identifica la PWA como CULTURA. El service worker precachea HTML, CSS, JavaScript, JSON, iconos y SVG; consulta la red primero y usa su caché cuando no está disponible. La caché está separada por alcance. Los errores de assets no se sustituyen por HTML.
 
-Al añadir o sustituir ilustraciones, mantener también la lista ASSETS de `app/sw.js` y cambiar su versión si se modifica el conjunto offline. Esta tarea actualiza rutas y caché, pero no publica nada.
+Mientras el prototipo siga utilizándose, al añadir o sustituir ilustraciones se mantendrá también la lista ASSETS de `app/sw.js` y se cambiará su versión si se modifica el conjunto offline.
+
+El manifest y el service worker pertenecen al prototipo legado. No se trasladarán literalmente a Android o iOS; la futura aplicación Expo utilizará su propia configuración de aplicación, assets, builds y estrategia de actualizaciones. Las referencias cromáticas antiguas del manifest quedan registradas como parte del legado y no se corrigen en esta fase documental.
 
 ## Prueba local
 
-Servir `app/` como raíz con un servidor HTTP ya disponible, no abrir el HTML con `file://`: la carga JSON y la PWA necesitan HTTP. Para esta revisión se ha dejado activo:
+Para revisar el prototipo, servir `app/` como raíz con un servidor HTTP ya disponible y no abrir el HTML con `file://`: la carga JSON y la PWA necesitan HTTP.
 
-[http://127.0.0.1:8767/](http://127.0.0.1:8767/)
+El servidor y el puerto son temporales. Deben iniciarse y confirmarse en cada sesión; esta guía no presupone que exista un servidor activo. No es necesario instalar dependencias para servir el prototipo.
 
-No se instalaron dependencias. El puerto es temporal; debe confirmarse al iniciar una nueva sesión.
+## Arquitectura objetivo
 
-## Arquitectura para crecer
+La arquitectura definitiva será mobile-first con React Native, Expo, TypeScript estricto y Expo Router. Las rutas estarán en `src/app/`; componentes, funcionalidades, servicios, hooks, utilidades, tipos, theme, configuración y fixtures tendrán responsabilidades separadas.
 
-La separación de HTML, CSS, lógica, catálogo, eventos y assets permite incorporar fuentes reales y módulos en fases futuras. Usuarios, perfiles, notificaciones, publicadores, moderación, backend, base de datos y expansión territorial siguen fuera de esta versión y requerirán aprobación de arquitectura antes de implementarse.
+El frontend dependerá de interfaces y adaptadores para poder sustituir datos locales por una API sin acoplar la UI a un proveedor. Se empezará con hooks y `useReducer`; no se añadirá estado global sin una necesidad demostrada.
 
-La marca principal es CULTURA; Granada solo aparece como territorio piloto y contenido ficticio. No hay autenticación, cuentas, recopiladores, agentes ni servicios de producción.
+El sistema visual se centralizará en un theme. Nombre definitivo, logo, paleta, tipografía, mascota e ilustraciones podrán cambiar sin quedar repetidos por toda la aplicación.
+
+Usuarios, perfiles, favoritos reales, agenda real, notificaciones, organizadores, moderación, backend, base de datos y expansión territorial siguen fuera de esta fase. La ubicación comenzará en foreground, la cercanía contará con apoyo del backend y no se mantendrá una geofence por evento.
+
+Consultar:
+
+- [Arquitectura objetivo](arquitectura/ARQUITECTURA_OBJETIVO.md).
+- [ADR-001: React Native + Expo](decisiones/ADR-001-react-native-expo.md).
+- [Plan de migración Expo](migracion/PLAN_MIGRACION_EXPO.md).
+
+## Documentación futura
+
+La documentación de cada funcionalidad React Native explicará su propósito, componentes, estado, flujo de datos, rutas, servicios, accesibilidad, puntos configurables y pruebas. Los ADR conservarán el contexto de las decisiones duraderas sin duplicar literalmente el código.
+
+La marca de trabajo sigue siendo CULTURA; Granada solo aparece como territorio piloto y contenido ficticio. No hay todavía proyecto Expo, autenticación, cuentas, recopiladores, agentes ni servicios de producción.

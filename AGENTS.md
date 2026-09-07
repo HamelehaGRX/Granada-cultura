@@ -1,197 +1,284 @@
 # PROYECTO CULTURA
 
-## 1. Rama de trabajo
+## 1. Rama de trabajo y Git
 
 - Trabajar siempre en la rama `desarrollo`.
 - Nunca modificar directamente `main`.
 - No hacer merge a `main` sin aprobación explícita del usuario.
 - No hacer commits ni pushes automáticos salvo que el usuario lo solicite expresamente.
+- Antes de cerrar cualquier tarea, revisar `git status` y `git diff`.
+- Informar de todos los archivos creados, modificados, movidos o eliminados.
 
-## 2. Objetivo actual
+## 2. Etapa y arquitectura principal
 
-- La prioridad actual es construir y pulir por completo la aplicación visual y funcional.
-- Usar por ahora datos ficticios o locales.
-- No implementar todavía backend, cuentas reales, recopiladores automáticos, base de datos remota, notificaciones reales ni agentes de producción.
-- La arquitectura debe quedar preparada para integrar esas funciones en el futuro.
+CULTURA está migrando de forma incremental desde un prototipo web hacia su arquitectura definitiva:
 
-## 3. Código real y documentación explicada
+- React Native;
+- Expo;
+- TypeScript estricto;
+- Expo Router;
+- diseño mobile-first.
 
-Cada cambio debe mantenerse siempre en dos versiones paralelas:
+Prioridad de plataformas:
 
-1. Código real usado por la aplicación.
-2. Copia explicada por bloques para documentación y aprendizaje.
+1. Android.
+2. iOS.
+3. Web.
 
-Reglas:
+La web debe seguir siendo funcional, accesible y cuidada, pero no es la plataforma principal.
 
-- Todo cambio realizado en el código real debe actualizar también su equivalente explicado.
-- No es necesario comentar cada línea.
-- La documentación debe explicar por bloques:
-  - qué hace cada sección;
-  - por qué existe;
-  - qué elementos controla;
-  - qué partes se pueden modificar fácilmente.
-- El código real debe permanecer limpio y legible.
+Hasta que exista una base Expo aprobada, no crear `package.json`, `src/`, rutas, componentes ni dependencias sin una petición explícita.
 
-## 4. Separación de responsabilidades
+## 3. Prototipo web legado
+
+La carpeta `/app` contiene temporalmente el prototipo aprobado en HTML, CSS y JavaScript nativo.
+
+- No eliminar, mover ni sustituir el prototipo sin aprobación explícita.
+- No reescribirlo innecesariamente.
+- No ampliarlo con funcionalidades grandes durante la migración.
+- Utilizarlo como referencia visual y funcional para la nueva aplicación.
+- Modificarlo únicamente cuando el usuario solicite expresamente una corrección del prototipo.
+- Mantener operativos sus datos, assets, manifest y service worker mientras siga utilizándose.
+
+Cuando la versión Expo alcance una paridad suficiente, el usuario decidirá expresamente si el prototipo se mueve a una zona de documentación o legado.
+
+## 4. Estructura objetivo
+
+La nueva aplicación se organizará, cuando se autorice su creación, mediante:
+
+- `src/app/`: rutas y layouts de Expo Router.
+- `src/components/`: componentes reutilizables de interfaz y layout.
+- `src/features/`: funcionalidades y dominio agrupados por área.
+- `src/services/`: integraciones, repositorios y adaptadores externos.
+- `src/hooks/`: hooks compartidos.
+- `src/utils/`: funciones puras y utilidades compartidas.
+- `src/types/`: tipos compartidos entre funcionalidades.
+- `src/theme/`: tokens y sistema visual centralizado.
+- `src/config/`: configuración de aplicación, entornos y marca.
+- `src/data/fixtures/`: datos locales de demostración.
+
+Esta estructura es una previsión arquitectónica. No crear carpetas vacías ni capas sin una necesidad real.
+
+## 5. Reglas de React Native y Expo
+
+- Usar TypeScript estricto.
+- Evitar JavaScript nuevo salvo que exista una necesidad justificada.
+- Utilizar componentes funcionales.
+- Mantener las rutas de Expo Router delgadas: deben coordinar navegación y componer pantallas, no contener lógica de negocio.
+- Preferir composición frente a componentes gigantes o jerarquías innecesarias.
+- Separar la UI, el estado y las reglas de negocio.
+- Mantener las funciones de filtrado, transformación y validación como lógica pura cuando sea razonable.
+- Empezar con estado local, hooks y `useReducer`.
+- No introducir una librería de estado global sin una necesidad demostrada y documentada mediante ADR.
+- No utilizar APIs del DOM en código universal.
+- Usar variantes específicas de plataforma solo cuando el comportamiento native y web realmente difiera.
+- Evitar dependencias innecesarias y comprobar su mantenimiento, compatibilidad con Expo y efecto sobre las plataformas antes de añadirlas.
+
+## 6. Separación de responsabilidades
 
 Mantener separadas, siempre que sea razonable:
 
-- estructura HTML;
-- estilos CSS;
-- lógica JavaScript;
-- datos;
+- rutas y navegación;
+- estructura y componentes de UI;
+- estilos y theme;
+- estado;
+- lógica de dominio;
+- datos y fixtures;
+- servicios e integraciones;
 - assets;
 - documentación.
 
-Evitar mezclar datos, diseño y lógica innecesariamente.
+No mezclar datos, diseño, navegación y acceso a servicios dentro de un mismo componente.
 
-## 5. Diseño responsive
+## 7. Frontend y backend
 
-Todo cambio visual debe comprobarse en:
+- El frontend debe depender de interfaces, repositorios o servicios propios, no de un proveedor concreto.
+- Los datos externos deben transformarse mediante adaptadores antes de llegar a los componentes.
+- No elegir un proveedor obligatorio de backend hasta que exista una decisión aprobada.
+- No repartir URLs, credenciales ni detalles de transporte por los componentes.
+- La arquitectura debe permitir sustituir fixtures locales por una API sin reescribir la interfaz.
 
-- móvil;
-- tablet;
-- escritorio.
+## 8. Theme e identidad
 
-La interfaz debe adaptarse a cada formato sin perder funcionalidad.
+Centralizar en `src/theme/`, cuando exista:
 
-## 6. Filosofía de cambios
+- colores;
+- tipografía;
+- espaciado;
+- radios;
+- sombras;
+- movimiento;
+- tamaños;
+- breakpoints y adaptaciones web.
+
+El nombre de trabajo es `CULTURA`, y Granada continúa como territorio piloto sin formar parte obligatoria de la marca principal.
+
+El nombre definitivo, logo, paleta, tipografía, mascota e ilustraciones todavía pueden cambiar. No repetir estos valores de forma rígida por toda la aplicación; concentrarlos en theme, configuración y assets sustituibles.
+
+## 9. Documentación del prototipo
+
+Las copias explicadas actuales se conservan como documentación del prototipo legado:
+
+- `documentacion/index_explicado.html`;
+- `documentacion/styles_explicado.css`;
+- `documentacion/app_explicado.js`.
+
+No eliminarlas. Cuando una petición modifique expresamente el prototipo, actualizar también su copia explicada correspondiente por bloques.
+
+## 10. Documentación del nuevo código
+
+Para React Native y Expo no se crearán automáticamente copias literales comentadas de cada archivo `.ts` o `.tsx`.
+
+- Mantener el código real limpio y legible.
+- Añadir comentarios locales solo cuando expliquen una decisión o restricción no evidente.
+- Documentar interfaces públicas, hooks, servicios y puntos de extensión cuando aporten contexto.
+- Crear documentación por funcionalidad en lugar de duplicar cientos de archivos.
+
+La documentación de cada funcionalidad relevante debe cubrir, según corresponda:
+
+- propósito;
+- componentes;
+- estado;
+- flujo de datos;
+- rutas;
+- servicios;
+- accesibilidad;
+- puntos configurables;
+- pruebas;
+- decisiones importantes.
+
+Toda modificación funcional o arquitectónica debe actualizar la documentación afectada en la misma tarea.
+
+## 11. Architecture Decision Records
+
+Registrar mediante ADR las decisiones arquitectónicas relevantes, entre ellas:
+
+- React Native y Expo;
+- Expo Router;
+- TypeScript;
+- navegación;
+- estrategia de assets;
+- almacenamiento;
+- backend;
+- mapas;
+- incorporación futura de estado global.
+
+Cada ADR debe indicar al menos contexto, decisión, consecuencias y condiciones para revisarla. No usar un ADR para decisiones pequeñas o puramente visuales.
+
+## 12. Diseño responsive y plataformas
+
+- Diseñar primero para móvil.
+- Comprobar después tablet y web/escritorio.
+- La interfaz debe adaptarse sin perder funcionalidad, legibilidad, foco ni tamaños táctiles.
+- Mantener navegación inferior en móvil y navegación compacta adaptada en escritorio.
+- Compartir lógica y componentes entre plataformas; introducir variantes pequeñas cuando sean necesarias.
+- Comprobar escalado de texto, orientación y ausencia de desbordamientos.
+
+## 13. Navegación del producto
+
+La navegación móvil debe mantener este orden:
+
+1. Explorar.
+2. Agenda.
+3. Inicio.
+4. Favoritos.
+5. Perfil.
+
+`Inicio` debe estar situado en el centro. Cada elemento tendrá icono y texto.
+
+En escritorio, la navegación será lateral, compacta y dejará más espacio al contenido. Las rutas futuras deberán admitir detalle de evento, búsqueda, filtros, organizadores, notificaciones y deep links.
+
+## 14. Referencia visual aprobada
+
+Mientras se migra, el prototipo de `/app` define la referencia actual para:
+
+- splash inicial;
+- header de Inicio y buscador integrado;
+- widget de filtros;
+- tarjetas compactas de eventos;
+- navegación móvil y de escritorio;
+- paleta suave;
+- estados vacíos y de error;
+- comportamiento responsive.
+
+No es obligatorio reproducir técnicas propias del navegador. Se debe conservar el comportamiento y la intención visual mediante componentes nativos adecuados.
+
+Mientras no se apruebe un cambio visual distinto:
+
+- El splash mostrará únicamente `CULTURA`, con fondo crema pastel, texto blanco y una secuencia breve de aparición del fondo, aparición del nombre y desaparición conjunta.
+- El header de Inicio mostrará `CULTURA` y una lupa. El buscador se abrirá dentro de la misma barra, se expandirá de derecha a izquierda, desplazará físicamente la marca y no tapará los eventos.
+- El widget de filtros permanecerá dentro de Inicio, con aspecto claro o translúcido, diseño suave y el símbolo de interrogación amigable aprobado.
+- Las tarjetas serán compactas y mostrarán categoría, nombre, fecha, hora, lugar y precio o `Gratis`.
+- Los bordes de tarjetas serán sutiles y alternarán entre los tres colores principales sin resultar llamativos.
+- La pantalla Inicio priorizará eventos próximos y cercanos; las recomendaciones personales llegarán en una fase posterior.
+- La paleta mantendrá como referencia una base crema con un máximo de dos colores adicionales coordinados, suaves y no saturados.
+
+## 15. Ilustraciones y assets
+
+- Mantener como principio obligatorio una ilustración reutilizable por categoría o subcategoría.
+- No crear una imagen específica por evento como sistema base.
+- Mantener un fallback genérico.
+- Mantener los assets separados del código y de los datos.
+- Preparar el sistema para sustituir los placeholders por ilustraciones definitivas realizadas por un dibujante externo.
+- Evitar rutas dinámicas que el empaquetador no pueda resolver; la futura estrategia Expo deberá usar un mapa de assets estáticos o una solución equivalente documentada.
+
+## 16. Notificaciones y geolocalización futuras
+
+No implementar estas capacidades hasta que exista una tarea específica.
+
+- Las notificaciones push deberán abrir rutas mediante deep links, especialmente detalles de eventos.
+- La ubicación foreground será el punto de partida.
+- Debe existir una ubicación habitual configurable y una alternativa manual si el usuario no concede permiso.
+- La cercanía se resolverá con coordenadas y apoyo del backend.
+- No diseñar el sistema alrededor de mantener una geofence por evento.
+- Solicitar permisos de forma contextual, mínima y explicada.
+
+## 17. Testing y validación
+
+Cuando exista la aplicación Expo, revisar según el alcance:
+
+- typecheck;
+- Expo Doctor;
+- pruebas unitarias de lógica;
+- navegación;
+- Android;
+- web;
+- iOS cuando corresponda;
+- accesibilidad;
+- responsive;
+- estados de carga, vacío y error;
+- regresión frente al prototipo aprobado.
+
+No considerar una tarea terminada únicamente porque compile.
+
+## 18. Filosofía de cambios
 
 - Hacer cambios pequeños, localizados e incrementales.
 - No rehacer partes no relacionadas con la tarea actual.
 - No eliminar funciones ya aprobadas sin autorización.
 - Mantener compatibilidad con lo que ya funciona salvo que se acuerde expresamente cambiarlo.
+- No borrar archivos sin explicar previamente el motivo.
 - Si una modificación implica una decisión importante de arquitectura, detenerse y pedir aprobación antes de continuar.
+- No avanzar automáticamente a la siguiente fase de migración.
 
-## 7. Git y revisión
+## 19. Seguridad
+
+- No guardar contraseñas, tokens, claves API ni credenciales en el repositorio.
+- No guardar tokens de autenticación en almacenamiento no seguro.
+- No instalar dependencias innecesarias.
+- No ejecutar comandos destructivos sin aprobación.
+- No modificar configuración sensible del sistema fuera del proyecto.
+- No acoplar secretos ni credenciales a la aplicación cliente.
+
+## 20. Cierre de tareas
 
 Antes de dar una tarea por terminada:
 
 - revisar `git status`;
-- revisar `git diff`;
-- informar de todos los archivos modificados;
-- explicar qué se ha cambiado;
-- indicar si existen riesgos, errores o tareas pendientes;
-- no crear commits salvo indicación expresa del usuario.
-
-## 8. Seguridad
-
-- No guardar contraseñas, tokens, claves API ni credenciales en el repositorio.
-- No instalar dependencias innecesarias.
-- No borrar archivos sin explicar previamente el motivo.
-- No ejecutar comandos destructivos sin aprobación.
-- No modificar configuración sensible del sistema fuera del proyecto.
-
-## 9. Identidad del producto
-
-- El nombre visible de la aplicación es `CULTURA`.
-- Granada es el territorio piloto, pero la aplicación debe diseñarse para ampliarse a otras ciudades, provincias y territorios.
-- Evitar ligar visualmente la marca principal a Granada.
-
-## 10. Navegación móvil
-
-La barra inferior debe contener, en este orden:
-
-- Explorar
-- Agenda
-- Inicio
-- Favoritos
-- Perfil
-
-Reglas:
-
-- `Inicio` debe estar situado en el centro.
-- Cada elemento debe tener icono y texto.
-- La barra debe ser clara, legible y cómoda de usar.
-
-## 11. Navegación en escritorio
-
-- La navegación será lateral.
-- Debe ser compacta y ocupar poco ancho.
-- `Inicio` aparecerá arriba.
-- Debe incluir icono y texto.
-- El contenido debe tener más espacio que la navegación.
-
-## 12. Splash inicial
-
-- El splash debe mostrar únicamente `CULTURA`.
-- Fondo crema pastel.
-- Texto `CULTURA` en blanco.
-- Animación breve y perceptible:
-  1. aparece primero el fondo;
-  2. aparece después `CULTURA`;
-  3. fondo y nombre desaparecen juntos.
-- En escritorio debe funcionar igual, adaptado a mayor tamaño.
-
-## 13. Paleta visual
-
-- Color base: crema pastel agradable a la vista.
-- Utilizar como máximo dos colores extra coordinados con el crema.
-- Evitar colores agresivos o saturados.
-- La estética debe ser suave, clara y agradable.
-
-## 14. Header de Inicio
-
-- Mostrar `CULTURA`.
-- Incluir botón de búsqueda con lupa.
-- El buscador debe abrirse dentro de la misma barra superior.
-- Al pulsar la lupa:
-  - el campo de búsqueda se expande de derecha a izquierda;
-  - desplaza físicamente la palabra `CULTURA` hacia fuera de la barra;
-  - no debe abrirse en una fila adicional;
-  - no debe tapar los eventos.
-
-## 15. Widget de filtros
-
-- Debe estar dentro de la pantalla Inicio.
-- Aspecto gris/blanco translúcido.
-- Diseño suave y discreto.
-- Utilizar inicialmente un símbolo de interrogación amigable y poco formal.
-- Al pulsarlo, desplegará los filtros correspondientes.
-
-## 16. Tarjetas de eventos
-
-- Deben ser compactas.
-- Mostrar información esencial de forma rápida:
-  - tipo o categoría;
-  - nombre;
-  - fecha;
-  - hora;
-  - lugar;
-  - precio o `Gratis`.
-- Cada tarjeta tendrá un borde muy suave y sutil.
-- Los bordes alternarán entre los tres colores principales del diseño.
-- La alternancia debe ayudar a diferenciar eventos sin resultar llamativa.
-
-## 17. Prioridad de la pantalla Inicio
-
-La pantalla Inicio estará orientada a mostrar:
-
-- eventos próximos;
-- eventos cercanos;
-- más adelante, eventos recomendados según intereses del usuario.
-
-## 18. Arquitectura futura
-
-Aunque todavía no se implemente, la estructura debe facilitar incorporar posteriormente:
-
-- eventos reales;
-- usuarios;
-- perfiles de intereses;
-- notificaciones;
-- publicadores verificados;
-- backend;
-- base de datos;
-- moderación;
-- agentes de ChatGPT;
-- expansión territorial.
-
-## 19. Forma de trabajo
-
-- No asumir cambios importantes no solicitados.
-- Antes de ejecutar una modificación grande, explicar brevemente qué se va a tocar.
-- Tras cada tarea, resumir:
-  - archivos modificados;
-  - funcionalidad añadida;
-  - comportamiento esperado;
-  - posibles puntos a revisar.
+- revisar `git diff` y `git diff --check`;
+- comprobar la rama actual;
+- enumerar archivos modificados y nuevos;
+- explicar el comportamiento esperado;
+- indicar riesgos, errores o tareas pendientes;
+- confirmar si se instalaron dependencias;
+- confirmar expresamente que no se hizo commit, push ni merge, salvo petición contraria del usuario.
