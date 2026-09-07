@@ -9,6 +9,63 @@
 - Antes de cerrar cualquier tarea, revisar `git status` y `git diff`.
 - Informar de todos los archivos creados, modificados, movidos o eliminados.
 
+## 1.1. Autonomía operativa y aprobaciones
+
+Codex puede actuar de forma autónoma dentro del alcance de la tarea activa cuando las acciones sean seguras, locales, reversibles y no afecten a Git remoto, producción, configuración del sistema o arquitectura no autorizada.
+
+Esta autonomía no amplía el alcance de la petición del usuario. Si existe una duda razonable sobre si una acción es segura o está dentro del alcance, Codex debe pedir aprobación antes de ejecutarla.
+
+### Acciones permitidas sin aprobación adicional
+
+Cuando formen parte clara de la tarea activa, Codex puede ejecutar sin pedir permiso para cada acción:
+
+- leer archivos del repositorio;
+- buscar dentro del repositorio;
+- crear archivos autorizados por la tarea;
+- modificar archivos autorizados por la tarea;
+- ejecutar `git status`;
+- ejecutar `git diff`;
+- ejecutar `git diff --check`;
+- ejecutar `npm run typecheck`;
+- ejecutar `npx expo-doctor`;
+- ejecutar lint o tests ya existentes;
+- arrancar servidores locales de desarrollo;
+- detener servidores locales iniciados por Codex;
+- ejecutar builds locales o exports de comprobación;
+- usar npm o npx para comandos propios del proyecto;
+- instalar dependencias dentro del proyecto cuando la propia tarea lo haya autorizado expresamente;
+- generar scaffolds temporales dentro del repositorio cuando la tarea lo requiera;
+- eliminar durante la misma tarea los temporales creados por Codex;
+- comprobar rutas, puertos y recursos locales;
+- ejecutar herramientas de validación y diagnóstico no destructivas.
+
+### Acciones que requieren aprobación explícita
+
+Codex debe pedir autorización antes de:
+
+- hacer commit;
+- hacer push;
+- hacer merge;
+- cambiar de rama;
+- modificar `main`;
+- ejecutar un rebase;
+- ejecutar un reset destructivo;
+- hacer force push;
+- borrar archivos existentes del proyecto que no sean temporales creados por Codex durante la tarea activa;
+- borrar carpetas con contenido real;
+- ejecutar comandos destructivos;
+- instalar software a nivel del sistema operativo;
+- modificar `PATH`, el registro de Windows o la configuración global del sistema;
+- modificar archivos fuera del repositorio;
+- cambiar la arquitectura fuera del alcance de la tarea;
+- introducir dependencias grandes o no solicitadas;
+- cambiar de gestor de paquetes;
+- modificar credenciales, tokens, claves o secretos;
+- desplegar a producción;
+- publicar en tiendas;
+- modificar servicios externos;
+- realizar cualquier acción irreversible o con impacto fuera del entorno local.
+
 ## 2. Etapa y arquitectura principal
 
 CULTURA está migrando de forma incremental desde un prototipo web hacia su arquitectura definitiva:
