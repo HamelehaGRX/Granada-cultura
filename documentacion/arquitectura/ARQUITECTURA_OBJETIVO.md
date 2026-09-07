@@ -19,11 +19,11 @@ El prototipo de `app/` continúa siendo la referencia visual y funcional durante
 - **TypeScript estricto:** ayuda a detectar datos incorrectos y contratos incompletos antes de ejecutar la aplicación.
 - **Expo Router:** organiza la navegación mediante archivos y prepara las pantallas para enlaces profundos.
 
-Estas tecnologías aún no están instaladas. Este documento describe el destino, no una implementación existente.
+Estas tecnologías ya sostienen una base mínima instalada. La navegación y las pantallas provisionales existen, pero la interfaz y las funcionalidades del prototipo todavía no se han migrado.
 
-## Estructura futura
+## Base actual y estructura de crecimiento
 
-Cuando se autorice la creación del proyecto Expo, se prevé esta estructura:
+La base creada utiliza actualmente `src/app/`, `src/components/`, `src/theme/` y `src/config/`. Conforme cada fase necesite nuevas responsabilidades, crecerá hacia esta estructura:
 
 ```text
 src/
@@ -40,7 +40,7 @@ src/
     └── fixtures/        datos ficticios locales
 ```
 
-No se crearán carpetas vacías por anticipado. Cada parte aparecerá cuando una fase de migración la necesite.
+No se crean carpetas vacías por anticipado. Cada parte aparece cuando una fase de migración la necesita.
 
 ## Cómo se separarán las responsabilidades
 
@@ -109,7 +109,7 @@ Estas funciones pertenecen a fases futuras.
 
 Cada funcionalidad visual deberá comprobarse en móvil, tablet y web. También se revisarán escalado de texto, orientación, teclado web, tamaños táctiles, foco y lectores de pantalla.
 
-Cuando exista Expo, la validación incluirá typecheck, Expo Doctor, navegación, Android, web, iOS cuando corresponda y pruebas del comportamiento. Compilar será necesario, pero no suficiente.
+La validación incluye typecheck, Expo Doctor, navegación, Android, web, iOS cuando corresponda y pruebas del comportamiento. Compilar es necesario, pero no suficiente.
 
 ## Documentación
 

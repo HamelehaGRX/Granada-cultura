@@ -2,17 +2,25 @@
 
 ## Estado de transición
 
-CULTURA inicia una migración incremental hacia React Native, Expo, TypeScript estricto y Expo Router. Android e iOS serán las plataformas prioritarias; web continuará como plataforma complementaria.
+CULTURA ha iniciado una migración incremental hacia React Native, Expo, TypeScript estricto y Expo Router. Android e iOS son las plataformas prioritarias; web continúa como plataforma complementaria.
 
-Todavía no existe código Expo. La carpeta `app/` conserva el prototipo web aprobado y no se eliminará, moverá ni ampliará con funcionalidades grandes salvo petición explícita. Seguirá sirviendo como referencia hasta que la futura aplicación alcance suficiente paridad y el usuario autorice qué hacer con el legado.
+Ya existe una base Expo mínima en `src/`. La carpeta `app/` conserva intacto el prototipo web aprobado y no se eliminará, moverá ni ampliará con funcionalidades grandes salvo petición explícita. Seguirá sirviendo como referencia hasta que la nueva aplicación alcance suficiente paridad y el usuario autorice qué hacer con el legado.
 
-La siguiente fase prevista, que requiere una tarea independiente, será crear una base Expo mínima sin migrar aún la interfaz.
+La base nueva todavía no contiene la interfaz, datos, filtros, tarjetas ni assets del prototipo. Cada una de esas migraciones corresponde a una fase posterior y requiere una tarea independiente.
 
 ## Estructura general
 
 - `AGENTS.md`: reglas del proyecto; se mantiene en la raíz.
 - `README.md`: presentación y publicación; no se ha desplegado esta versión.
+- `package.json` y `package-lock.json`: scripts y versiones reproducibles de la base Expo.
+- `app.json`: configuración universal mínima de Expo y Expo Router.
+- `tsconfig.json`: TypeScript estricto y alias interno `@/`.
 - `app/`: prototipo web legado aprobado, sin frameworks ni dependencias externas.
+- `src/app/`: rutas y layouts de la nueva aplicación Expo.
+- `src/components/`: componentes reutilizables; por ahora contiene la pantalla provisional común.
+- `src/config/`: configuración sustituible, incluida la identidad provisional de marca.
+- `src/theme/`: colores, espaciado y tipografía mínimos centralizados.
+- `assets/brand/`: ubicación reservada para futuros recursos definitivos de marca; no reutiliza los iconos PWA.
 - `app/data/`: catálogo de categorías y eventos demo en JSON.
 - `app/assets/icons/`: iconos de instalación existentes.
 - `app/assets/images/categorias/`: ilustraciones genéricas por categoría/subcategoría y fallback.
@@ -27,7 +35,7 @@ El navegador carga `app/index.html`, `app/styles.css` y `app/app.js`. Sus copias
 
 Las copias conservan exactamente el código del prototipo y añaden comentarios marcados `EXPLICACION`. No son una aplicación alternativa ni deben abrirse para probarla: sus rutas se documentan en el contexto de `app/`. Si una petición modifica expresamente el prototipo, el cambio debe reflejarse también en su copia explicada.
 
-El futuro código React Native no tendrá una copia literal comentada de cada archivo TypeScript. Se mantendrá limpio y se explicará por funcionalidades, interfaces, hooks, servicios y decisiones. Los cambios arquitectónicos importantes se registrarán mediante ADR.
+El código React Native no tendrá una copia literal comentada de cada archivo TypeScript. Se mantendrá limpio y se explicará por funcionalidades, interfaces, hooks, servicios y decisiones. Los cambios arquitectónicos importantes se registrarán mediante ADR.
 
 Las secciones v0.1 y v0.1.1 siguientes documentan el historial del prototipo, no la arquitectura definitiva.
 
@@ -106,7 +114,7 @@ El servidor y el puerto son temporales. Deben iniciarse y confirmarse en cada se
 
 ## Arquitectura objetivo
 
-La arquitectura definitiva será mobile-first con React Native, Expo, TypeScript estricto y Expo Router. Las rutas estarán en `src/app/`; componentes, funcionalidades, servicios, hooks, utilidades, tipos, theme, configuración y fixtures tendrán responsabilidades separadas.
+La arquitectura es mobile-first con React Native, Expo, TypeScript estricto y Expo Router. Las rutas actuales están en `src/app/`; componentes, funcionalidades, servicios, hooks, utilidades, tipos, theme, configuración y fixtures tendrán responsabilidades separadas conforme sean necesarios.
 
 El frontend dependerá de interfaces y adaptadores para poder sustituir datos locales por una API sin acoplar la UI a un proveedor. Se empezará con hooks y `useReducer`; no se añadirá estado global sin una necesidad demostrada.
 
@@ -118,10 +126,27 @@ Consultar:
 
 - [Arquitectura objetivo](arquitectura/ARQUITECTURA_OBJETIVO.md).
 - [ADR-001: React Native + Expo](decisiones/ADR-001-react-native-expo.md).
+- [ADR-002: estructura inicial con Expo Router](decisiones/ADR-002-estructura-src-expo-router.md).
 - [Plan de migración Expo](migracion/PLAN_MIGRACION_EXPO.md).
+
+## Base Expo creada
+
+El código ejecutable nuevo vive en `src/` y utiliza el enrutamiento por archivos de Expo Router. `src/app/_layout.tsx` configura el proveedor de área segura y el layout raíz. `src/app/(tabs)/_layout.tsx` declara las cinco pestañas estables en el orden Explorar, Agenda, Inicio, Favoritos y Perfil, con Inicio como ruta inicial y posición central.
+
+Las cinco pantallas son placeholders deliberadamente pequeños y comparten `src/components/PlaceholderScreen.tsx`. El theme mínimo se concentra en `src/theme/` y la marca provisional en `src/config/brand.ts`. No se han migrado componentes visuales, filtros, tarjetas, JSON ni assets desde `app/`.
+
+Los comandos disponibles son:
+
+- `npm start`: inicia Expo para elegir plataforma.
+- `npm run android`: abre la aplicación para Android cuando exista un emulador o dispositivo disponible.
+- `npm run ios`: prepara el inicio para iOS; la ejecución local completa requiere macOS o un dispositivo/servicio compatible.
+- `npm run web`: inicia la versión web.
+- `npm run typecheck`: valida TypeScript sin emitir archivos.
+
+La convivencia es intencionada: `app/` sigue siendo el prototipo legado y `src/` es la base del producto migrado. No deben mezclarse rutas, service workers, manifests, datos ni assets de ambas implementaciones.
 
 ## Documentación futura
 
 La documentación de cada funcionalidad React Native explicará su propósito, componentes, estado, flujo de datos, rutas, servicios, accesibilidad, puntos configurables y pruebas. Los ADR conservarán el contexto de las decisiones duraderas sin duplicar literalmente el código.
 
-La marca de trabajo sigue siendo CULTURA; Granada solo aparece como territorio piloto y contenido ficticio. No hay todavía proyecto Expo, autenticación, cuentas, recopiladores, agentes ni servicios de producción.
+La marca de trabajo sigue siendo CULTURA; Granada solo aparece como territorio piloto y contenido ficticio. Existe la base Expo, pero todavía no hay interfaz migrada, autenticación, cuentas, recopiladores, agentes ni servicios de producción.
