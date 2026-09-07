@@ -6,7 +6,7 @@ CULTURA ha iniciado una migración incremental hacia React Native, Expo, TypeScr
 
 Ya existe una base Expo mínima en `src/`. La carpeta `app/` conserva intacto el prototipo web aprobado y no se eliminará, moverá ni ampliará con funcionalidades grandes salvo petición explícita. Seguirá sirviendo como referencia hasta que la nueva aplicación alcance suficiente paridad y el usuario autorice qué hacer con el legado.
 
-La base nueva todavía no contiene la interfaz, datos, filtros, tarjetas ni assets del prototipo. Cada una de esas migraciones corresponde a una fase posterior y requiere una tarea independiente.
+La base nueva dispone de dominio tipado y repositorios demo. Todavía no contiene la interfaz, filtros, tarjetas ni assets del prototipo, y los datos no se muestran en las pantallas. Cada migración visual o funcional posterior requiere una tarea independiente.
 
 ## Estructura general
 
@@ -20,6 +20,10 @@ La base nueva todavía no contiene la interfaz, datos, filtros, tarjetas ni asse
 - `src/components/`: componentes reutilizables; contiene el shell, el contenedor de pantalla y la pantalla provisional común.
 - `src/config/`: configuración sustituible, incluida la identidad provisional de marca.
 - `src/theme/`: colores, tipografía, espaciado, radios, sombras, movimiento y breakpoints centralizados.
+- `src/features/events/` y `src/features/categories/`: modelos de dominio, adaptación y repositorios de eventos y categorías.
+- `src/types/common.ts`: coordenadas, instantes ISO y zona horaria compartidos.
+- `src/data/fixtures/`: frontera temporal que importa los JSON existentes sin modificarlos ni duplicarlos.
+- `scripts/validate-data.ts`: comprobaciones de datos sin framework adicional; se ejecuta fuera de la aplicación.
 - `assets/brand/`: ubicación reservada para futuros recursos definitivos de marca; no reutiliza los iconos PWA.
 - `app/data/`: catálogo de categorías y eventos demo en JSON.
 - `app/assets/icons/`: iconos de instalación existentes.
@@ -129,13 +133,14 @@ Consultar:
 - [ADR-002: estructura inicial con Expo Router](decisiones/ADR-002-estructura-src-expo-router.md).
 - [ADR-003: theme centralizado y shell compartido](decisiones/ADR-003-theme-y-shell.md).
 - [ADR-004: navegación con tabs, stack y rutas enlazables](decisiones/ADR-004-estructura-navegacion.md).
+- [ADR-005: modelo de dominio y repositorios desacoplados](decisiones/ADR-005-modelo-datos-y-repositorios.md).
 - [Plan de migración Expo](migracion/PLAN_MIGRACION_EXPO.md).
 
 ## Base Expo creada
 
 El código ejecutable nuevo vive en `src/` y utiliza el enrutamiento por archivos de Expo Router. `src/app/_layout.tsx` configura el proveedor de área segura y el layout raíz. `src/app/(tabs)/_layout.tsx` declara las cinco pestañas estables en el orden Explorar, Agenda, Inicio, Favoritos y Perfil, con Inicio como ruta inicial y posición central.
 
-Las cinco pantallas son placeholders deliberadamente pequeños y comparten `src/components/PlaceholderScreen.tsx`. El sistema visual se concentra en `src/theme/`, el shell reutilizable en `src/components/layout/` y la marca provisional en `src/config/brand.ts`. No se han migrado componentes visuales, filtros, tarjetas, JSON ni assets desde `app/`.
+Las cinco pantallas son placeholders deliberadamente pequeños y comparten `src/components/PlaceholderScreen.tsx`. El sistema visual se concentra en `src/theme/`, el shell reutilizable en `src/components/layout/` y la marca provisional en `src/config/brand.ts`. Los repositorios reutilizan los JSON mediante adaptadores, pero las pantallas aún no los consumen. No se han migrado componentes visuales, filtros, tarjetas ni assets desde `app/`.
 
 Los comandos disponibles son:
 
@@ -155,7 +160,7 @@ La convivencia es intencionada: `app/` sigue siendo el prototipo legado y `src/`
 
 Los placeholders actuales consumen ambos componentes y muestran una superficie elevada mínima para verificar colores, tipografía, radios, sombras y espaciados. No representan todavía la Home ni el diseño definitivo. La StatusBar mantiene contenido oscuro sobre el fondo crema claro.
 
-La identidad continúa siendo provisional. Nombre y referencias de logo, icono y mascota se concentran en `src/config/brand.ts`; la paleta y la tipografía pueden sustituirse desde el theme. Permanecen pendientes el splash, Home, buscador, filtros, tarjetas, datos, categorías, ilustraciones, sidebar y funcionalidades reales de las restantes pestañas.
+La identidad continúa siendo provisional. Nombre y referencias de logo, icono y mascota se concentran en `src/config/brand.ts`; la paleta y la tipografía pueden sustituirse desde el theme. Permanecen pendientes el splash, Home, buscador, filtros, tarjetas, presentación de datos y categorías, ilustraciones, sidebar y funcionalidades reales de las restantes pestañas.
 
 ## Navegación base enlazable
 
@@ -172,6 +177,53 @@ El stack raíz compone las tabs con rutas auxiliares delgadas:
 `PlaceholderScreen` proporciona título accesible, descripción, parámetro opcional y acción de vuelta. Si una URL se abre directamente y no existe historial, Volver lleva a Inicio. La pantalla Inicio incluye temporalmente «Abrir filtros» únicamente para verificar la navegación modal; no es la Home ni el widget de filtros real.
 
 La estructura de archivos ya permite rutas web directas y enlaces con el esquema `cultura://`, pero no se han configurado dominios universales, app links ni servicios de producción. Tampoco se cargan datos ni se ejecutan búsquedas, notificaciones o filtros reales.
+
+## Modelo de datos Expo
+
+El Paso 5 incorpora datos de demostración tipados sin conectarlos aún a la UI. El flujo es: JSON legado → fixtures → mapper y repositorios → dominio. Solo `src/data/fixtures/legacyEvents.ts` y `legacyCategories.ts` importan los JSON de `app/data/`. TypeScript admite esos imports mediante `resolveJsonModule`, heredado de Expo. No se copian manualmente los 16 registros ni el catálogo 11/59.
+
+### Modelo de dominio
+
+- `Event` contiene identidad, título, descripción y artista opcionales, categoría/subcategoría, inicio y fin opcional, localización, precio y estado. Admite organizador, fuente, entradas, clave de ilustración, media y accesibilidad opcionales para crecer sin inventar datos en los fixtures.
+- `EventStatus` permite `scheduled`, `postponed`, `cancelled` y `soldOut`; el mapper actual usa `scheduled`.
+- `EventLocation` incluye lugar, localidad, zona IANA y dirección/coordenadas opcionales. Los datos actuales no incluyen coordenadas ni dirección postal.
+- `EventPrice` es una unión discriminada: `free` con moneda EUR; `fixed` con `amountCents`; o `range` con `minAmountCents` y `maxAmountCents`. Los importes son enteros seguros en céntimos. Cero se normaliza a `free`, un rango debe tener mínimo menor que máximo y no se mantienen campos paralelos `gratis`/`precio`.
+- `EventResult` contiene `event` y `distanceMeters` opcional. La distancia depende del usuario o consulta, por eso no forma parte del evento canónico. La demo transforma `distanciaKm` a metros ficticios; no calcula ubicación real.
+- `Category` contiene id, nombre y subcategorías. `Subcategory` tiene id, `categoryId`, nombre y clave de ilustración opcional. Se conservan los IDs. Algunos se repiten entre categorías: una subcategoría se identifica por el par `categoryId`/`id`.
+
+Los alias `ISODateTime` y `TimeZone` expresan contratos, no validan strings por sí solos. Las comprobaciones en el límite de datos verifican calendario, offset y zona. Los campos de accesibilidad ausentes significan información desconocida.
+
+### Fixtures y mapper
+
+`LegacyEventFixture` refleja exactamente los campos actuales en español. El JSON no contiene `gratis`, rangos, fin, organizadores ni coordenadas. `mapLegacyEventToEvent` es una función pura: recibe un registro legado y categorías de dominio, convierte nombres, omite textos opcionales vacíos, traduce euros a céntimos y valida la relación categoría/subcategoría. No altera la entrada ni lee el reloj.
+
+Las claves de ilustración son semánticas, por ejemplo `musica/rock`; `generica` es el fallback cuando no existe ilustración asignada. No son rutas de archivos. Dos eventos de la misma subcategoría comparten la clave. No se importan SVG ni se crea todavía un mapa de assets Expo; esa integración corresponde a su fase futura.
+
+`fechaBase` se utiliza exclusivamente dentro del fixture de eventos. Sus diferencias de días se trasladan a un día de referencia, por defecto el día actual en `Europe/Madrid`. El repositorio captura ese día al construirse para que `list` y `getById` sean coherentes aunque cruce medianoche. Para renovar la demo se crea otra instancia; para pruebas se inyecta `referenceDate: 'YYYY-MM-DD'`. El desplazamiento opera sobre días civiles y conserva la hora local incluso al atravesar un cambio de horario.
+
+El mapper combina fecha/hora con `Europe/Madrid` y emite un instante ISO UTC terminado en `Z`, conservando la zona en `location.timeZone`. Se utilizan `Intl.DateTimeFormat` y `Date` estándar, sin DOM ni librerías de fechas. No se presupone la zona del dispositivo. Las horas inexistentes o ambiguas del cambio de horario se rechazan: el legado no aporta un offset para resolverlas. Los fixtures actuales no usan esas horas.
+
+### Repositorios y sustitución futura
+
+`EventRepository` expone `list(): Promise<EventResult[]>` y `getById(id): Promise<Event | null>`. `FixtureEventRepository` carga y mapea los registros; `includeDemoDistance: false` permite omitir la distancia ficticia. `CategoryRepository` y `FixtureCategoryRepository` ofrecen los mismos métodos para `Category`. Un id desconocido devuelve `null`; una carga inválida rechaza la promesa y no devuelve resultados parciales.
+
+Las implementaciones devuelven objetos independientes en cada llamada para que las modificaciones del consumidor no corrompan los fixtures. No hay estado React, caché global, red ni consultas complejas. La futura UI dependerá de las interfaces. Un backend podrá sustituir los repositorios y su adaptador sin exponer su transporte ni su formato a los componentes. Todavía no se ha elegido proveedor ni añadido lógica de filtros del Paso 6.
+
+### Validación reproducible
+
+Las comprobaciones son simples y se ejecutan también al cargar el repositorio: IDs no vacíos ni duplicados, relaciones de catálogo, céntimos seguros no negativos, instantes válidos, zona horaria y coordenadas dentro de rango si existen. Los registros incorrectos provocan errores explícitos; no se reparan silenciosamente.
+
+No existe framework de testing. `scripts/validate-data.ts` usa las aserciones estándar de Node y los tipos de Node ya disponibles a través de las dependencias existentes. Se compila con el TypeScript local a una carpeta temporal; no modifica `package.json` ni necesita instalar nada. Desde la raíz, estos comandos se ejecutan secuencialmente, deteniéndose si falla alguno:
+
+```powershell
+node node_modules/typescript/bin/tsc --ignoreConfig --module node16 --moduleResolution node16 --target es2022 --esModuleInterop --resolveJsonModule --strict --skipLibCheck --rootDir . --outDir .tmp-paso5-check scripts/validate-data.ts
+node .tmp-paso5-check/scripts/validate-data.js
+npm run typecheck
+npx expo-doctor
+git diff --check
+```
+
+Usar `.tmp-paso5-check` solo si no existe previamente y retirar después únicamente esa carpeta de comprobación, verificando que su ruta absoluta queda dentro del repositorio. El script cubre 16 eventos, 11 categorías, 59 subcategorías, los 4 gratuitos y 12 de precio fijo, búsquedas por id/null, aislamiento de resultados, mapper puro, distancia fuera de Event, céntimos y entradas inválidas. También comprueba años bisiestos, cruce de año, verano/invierno y horas ambiguas/inexistentes de Madrid. Compilar y probar en Node no sustituye la futura validación de estas APIs en dispositivos Android/iOS.
 
 ## Documentación futura
 

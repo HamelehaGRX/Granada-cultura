@@ -23,7 +23,7 @@ Estas tecnologías ya sostienen una base mínima instalada. La navegación y las
 
 ## Base actual y estructura de crecimiento
 
-La base creada utiliza actualmente `src/app/`, `src/components/`, `src/components/layout/`, `src/theme/` y `src/config/`. Conforme cada fase necesite nuevas responsabilidades, crecerá hacia esta estructura:
+La base creada utiliza actualmente `src/app/`, `src/components/`, `src/components/layout/`, `src/theme/`, `src/config/`, `src/features/events/`, `src/features/categories/`, `src/types/` y `src/data/fixtures/`. Conforme cada fase necesite nuevas responsabilidades, crecerá hacia esta estructura:
 
 ```text
 src/
@@ -78,11 +78,17 @@ El nombre de trabajo es CULTURA y Granada es el territorio piloto. Nombre defini
 
 ## Datos y filtros
 
-Los JSON actuales se conservarán inicialmente como fixtures. Un adaptador los convertirá a tipos TypeScript claros para evitar que la interfaz dependa del formato temporal del prototipo.
+Los JSON actuales se reutilizan mediante imports estáticos aislados en `src/data/fixtures/`, sin copiar datos ni modificar el prototipo. `LegacyEventFixture` describe el formato heredado y `mapLegacyEventToEvent` lo transforma al dominio. Las rutas y componentes todavía no consumen esta capa.
+
+`EventRepository` y `CategoryRepository` exponen `list` y `getById` asíncronos. Sus implementaciones `FixtureEventRepository` y `FixtureCategoryRepository` devuelven objetos independientes de dominio y rechazan datos inválidos. Las categorías conservan los IDs existentes y cada subcategoría pertenece a una categoría; sus IDs no se consideran globalmente únicos.
+
+`Event` usa `EventPrice` discriminado (gratis, fijo o rango en céntimos enteros), instantes ISO con offset y zona IANA explícita en la localización. El mapper emite UTC y utiliza `Europe/Madrid`, sin depender de la zona del dispositivo. Los datos ausentes permanecen opcionales. La adaptación temporal de fechas se limita a los fixtures y captura un día de referencia por instancia del repositorio. Las horas ambiguas o inexistentes de Madrid se rechazan.
+
+Las claves de ilustración son semánticas y tienen fallback `generica`; no se importan assets todavía. Las validaciones y las funciones de conversión son puras y no utilizan el DOM. Consultar [ADR-005](../decisiones/ADR-005-modelo-datos-y-repositorios.md) y la sección Modelo de datos Expo de la guía para contratos y pruebas.
 
 La lógica conceptual de búsqueda, fecha, precio, distancia, categorías y subcategorías se reescribirá como funciones puras. Un hook o reducer mantendrá el estado de los controles. No se añadirá una store global mientras el alcance no la justifique.
 
-La distancia futura se calculará a partir de coordenadas. El valor `distanciaKm` actual seguirá considerándose un dato ficticio del prototipo.
+La distancia futura se calculará a partir de coordenadas. El repositorio demo convierte `distanciaKm` en `EventResult.distanceMeters`, que puede omitirse. No forma parte de `Event`: cambiar de usuario o consulta cambia la distancia, no la identidad ni los datos canónicos del evento.
 
 ## Assets e ilustraciones
 
