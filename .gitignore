@@ -21,5 +21,8 @@ yarn-error.*
 .DS_Store
 *.tsbuildinfo
 
+# Temporales de validación por pasos
+/.tmp-paso*-*/
+
 /ios
 /android
