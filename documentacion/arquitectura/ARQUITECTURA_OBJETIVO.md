@@ -19,7 +19,7 @@ El prototipo de `app/` continúa siendo la referencia visual y funcional durante
 - **TypeScript estricto:** ayuda a detectar datos incorrectos y contratos incompletos antes de ejecutar la aplicación.
 - **Expo Router:** organiza la navegación mediante archivos y prepara las pantallas para enlaces profundos.
 
-Estas tecnologías ya sostienen una base mínima instalada. La navegación y las pantallas provisionales existen, pero la interfaz y las funcionalidades del prototipo todavía no se han migrado.
+Estas tecnologías sostienen la navegación, las pantallas provisionales y la primera Home real con eventos demo. El resto de la interfaz y las funcionalidades del prototipo continúa pendiente de migración.
 
 ## Base actual y estructura de crecimiento
 
@@ -60,7 +60,7 @@ En móvil se mantendrá el orden aprobado:
 4. Favoritos.
 5. Perfil.
 
-Inicio ocupa la posición central y es la ruta inicial. El stack raíz ya incluye rutas delgadas para detalle de evento, búsqueda, organizadores, notificaciones y el grupo de modales.
+Inicio ocupa la posición central y es la ruta inicial. Esa ruta compone `HomeScreen`, mientras las restantes tabs continúan provisionales. El stack raíz incluye rutas delgadas para detalle de evento, búsqueda, organizadores, notificaciones y el grupo de modales.
 
 Las rutas enlazables actuales son `/eventos/[eventId]`, `/buscar`, `/organizadores/[organizerId]` y `/notificaciones`. El modal provisional de filtros se organiza en `(modals)/filtros`. Los segmentos dinámicos y la query de búsqueda solo se muestran en placeholders; todavía no consultan datos ni servicios.
 
@@ -74,11 +74,15 @@ Los colores, tipografías, espacios, radios, sombras, movimiento y breakpoints y
 
 `AppShell` controla el fondo y la safe area superior y lateral. `ScreenContainer` controla el padding responsive, el ancho máximo y el contenido scrollable. La navegación por pestañas conserva la safe area inferior, de modo que cada pantalla no la aplique por duplicado.
 
+Home separa composición, estado y presentación dentro de `src/features/events/`. `HomeScreen` une shell, header y lista; `useHomeEvents` carga interfaces de repositorio y protege frente a respuestas obsoletas; `EventList` virtualiza con `FlatList`; y `EventCard` consume únicamente datos de dominio y funciones de presentación. La composición por defecto instancia los repositorios de fixtures una vez por montaje y puede sustituirse sin modificar los componentes.
+
+En móvil la lista usa una columna; desde tablet usa dos si el escalado de texto lo permite. Los estados loading, empty y error son componentes explícitos. El espacio de ilustración es decorativo y no resuelve assets todavía. Consultar [ADR-006](../decisiones/ADR-006-home-y-listado-eventos.md).
+
 El nombre de trabajo es CULTURA y Granada es el territorio piloto. Nombre definitivo, logo, paleta, tipografía, mascota e ilustraciones seguirán siendo sustituibles sin tener que recorrer todos los componentes.
 
 ## Datos y filtros
 
-Los JSON actuales se reutilizan mediante imports estáticos aislados en `src/data/fixtures/`, sin copiar datos ni modificar el prototipo. `LegacyEventFixture` describe el formato heredado y `mapLegacyEventToEvent` lo transforma al dominio. Las rutas y componentes todavía no consumen esta capa.
+Los JSON actuales se reutilizan mediante imports estáticos aislados en `src/data/fixtures/`, sin copiar datos ni modificar el prototipo. `LegacyEventFixture` describe el formato heredado y `mapLegacyEventToEvent` lo transforma al dominio. Home consume los repositorios; las rutas y componentes no importan el formato legado.
 
 `EventRepository` y `CategoryRepository` exponen `list` y `getById` asíncronos. Sus implementaciones `FixtureEventRepository` y `FixtureCategoryRepository` devuelven objetos independientes de dominio y rechazan datos inválidos. Las categorías conservan los IDs existentes y cada subcategoría pertenece a una categoría; sus IDs no se consideran globalmente únicos.
 

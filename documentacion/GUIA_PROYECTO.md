@@ -134,13 +134,14 @@ Consultar:
 - [ADR-003: theme centralizado y shell compartido](decisiones/ADR-003-theme-y-shell.md).
 - [ADR-004: navegación con tabs, stack y rutas enlazables](decisiones/ADR-004-estructura-navegacion.md).
 - [ADR-005: modelo de dominio y repositorios desacoplados](decisiones/ADR-005-modelo-datos-y-repositorios.md).
+- [ADR-006: Home basada en repositorio y lista virtualizada](decisiones/ADR-006-home-y-listado-eventos.md).
 - [Plan de migración Expo](migracion/PLAN_MIGRACION_EXPO.md).
 
 ## Base Expo creada
 
 El código ejecutable nuevo vive en `src/` y utiliza el enrutamiento por archivos de Expo Router. `src/app/_layout.tsx` configura el proveedor de área segura y el layout raíz. `src/app/(tabs)/_layout.tsx` declara las cinco pestañas estables en el orden Explorar, Agenda, Inicio, Favoritos y Perfil, con Inicio como ruta inicial y posición central.
 
-Las cinco pantallas son placeholders deliberadamente pequeños y comparten `src/components/PlaceholderScreen.tsx`. El sistema visual se concentra en `src/theme/`, el shell reutilizable en `src/components/layout/` y la marca provisional en `src/config/brand.ts`. Los repositorios reutilizan los JSON mediante adaptadores, pero las pantallas aún no los consumen. No se han migrado componentes visuales, filtros, tarjetas ni assets desde `app/`.
+Inicio ya renderiza la primera pantalla real mediante `HomeScreen`; las otras cuatro tabs y las rutas auxiliares siguen usando placeholders pequeños compartidos. El sistema visual se concentra en `src/theme/`, el shell reutilizable en `src/components/layout/` y la marca provisional en `src/config/brand.ts`. Home consume los repositorios de fixtures sin importar JSON directamente. Los filtros, la búsqueda y los assets de ilustración continúan pendientes.
 
 Los comandos disponibles son:
 
@@ -158,9 +159,9 @@ La convivencia es intencionada: `app/` sigue siendo el prototipo legado y `src/`
 
 `AppShell` establece el fondo general y aplica la safe area superior y lateral. `ScreenContainer` aporta padding responsive, ancho máximo centrado en web y una variante scrollable cuando una pantalla la necesite. La safe area inferior queda bajo la responsabilidad de la navegación por pestañas, evitando padding duplicado.
 
-Los placeholders actuales consumen ambos componentes y muestran una superficie elevada mínima para verificar colores, tipografía, radios, sombras y espaciados. No representan todavía la Home ni el diseño definitivo. La StatusBar mantiene contenido oscuro sobre el fondo crema claro.
+Home y los placeholders restantes consumen el shell y el contenedor compartidos. Home añade un header granate y tarjetas suaves; las demás pantallas conservan una superficie elevada mínima. La StatusBar mantiene contenido oscuro sobre el fondo crema claro.
 
-La identidad continúa siendo provisional. Nombre y referencias de logo, icono y mascota se concentran en `src/config/brand.ts`; la paleta y la tipografía pueden sustituirse desde el theme. Permanecen pendientes el splash, Home, buscador, filtros, tarjetas, presentación de datos y categorías, ilustraciones, sidebar y funcionalidades reales de las restantes pestañas.
+La identidad continúa siendo provisional. Nombre y referencias de logo, icono y mascota se concentran en `src/config/brand.ts`; la paleta y la tipografía pueden sustituirse desde el theme. Permanecen pendientes el splash, buscador, filtros, ilustraciones reales, sidebar y funcionalidades de las restantes pestañas.
 
 ## Navegación base enlazable
 
@@ -174,13 +175,33 @@ El stack raíz compone las tabs con rutas auxiliares delgadas:
 - `/notificaciones`: futura lista de notificaciones y punto de entrada para enlaces a eventos;
 - `/filtros`: pantalla del grupo `(modals)`, presentada como modal mediante Expo Router.
 
-`PlaceholderScreen` proporciona título accesible, descripción, parámetro opcional y acción de vuelta. Si una URL se abre directamente y no existe historial, Volver lleva a Inicio. La pantalla Inicio incluye temporalmente «Abrir filtros» únicamente para verificar la navegación modal; no es la Home ni el widget de filtros real.
+`PlaceholderScreen` proporciona título accesible, descripción, parámetro opcional y acción de vuelta a las rutas que siguen provisionales. Si una URL se abre directamente y no existe historial, Volver lleva a Inicio. El modal de filtros continúa disponible como infraestructura de navegación, pero la Home no muestra todavía un acceso ni implementa filtros reales.
 
-La estructura de archivos ya permite rutas web directas y enlaces con el esquema `cultura://`, pero no se han configurado dominios universales, app links ni servicios de producción. Tampoco se cargan datos ni se ejecutan búsquedas, notificaciones o filtros reales.
+La estructura de archivos ya permite rutas web directas y enlaces con el esquema `cultura://`, pero no se han configurado dominios universales, app links ni servicios de producción. Home carga datos demo; no se ejecutan búsquedas, notificaciones o filtros reales.
+
+## Home Expo
+
+La ruta `src/app/(tabs)/index.tsx` se mantiene delgada y compone `HomeScreen`. La pantalla usa `AppShell` para la safe area y el fondo, coloca `HomeHeader` fuera de la lista y delega el contenido en `EventList`. `HomeHeader` obtiene `CULTURA` desde `src/config/brand.ts` y consume únicamente tokens del theme. No contiene buscador ni acciones provisionales.
+
+`HomeScreen` crea una sola pareja de repositorios por montaje mediante `createHomeRepositories`: `FixtureEventRepository` aporta `EventResult` y `FixtureCategoryRepository` resuelve nombres de categoría y subcategoría. La prop opcional `repositories` permite sustituirlos en pruebas o por implementaciones remotas sin introducir un framework de inyección ni acoplar la UI al JSON.
+
+`useHomeEvents` inicia la carga, expone `loading`, `error`, `data`, categorías y `retry`, y ordena los resultados con una función pura. Cada efecto conserva una marca de actividad; al cambiar de repositorio, reintentar o desmontar, una respuesta anterior deja de poder actualizar el estado. Los errores del repositorio se convierten en un mensaje estable para la interfaz.
+
+`EventList` usa `FlatList`, claves de evento estables y renderizado inicial limitado. Muestra una columna en móvil y dos desde el breakpoint de tablet mientras el escalado de texto no supere el límite previsto; cuando aumenta, vuelve a una columna. La lista se remonta al cambiar el número de columnas, según requiere React Native. El encabezado presenta Inicio, Granada, el recuento de planes y el aviso de que eventos y distancias son ficticios.
+
+`EventCard` es una pieza visual no interactiva en este paso. Presenta categoría y subcategoría, título, fecha/hora en la zona del evento, lugar/localidad, distancia demo y precio. Los bordes alternan tres tokens suaves. Reserva un espacio decorativo sin descripción para la futura ilustración y acepta un asset ya resuelto, pero no convierte claves en rutas ni importa SVG. Las tarjetas no navegan aún al detalle.
+
+Las funciones de `presentation.ts` ordenan por instante de inicio y, en empate, por distancia disponible; los resultados sin distancia quedan después de los que sí la tienen. El orden no muta la entrada. La fecha se formatea con `Intl` y la zona IANA del evento. El precio consume `EventPrice`: `Gratis`, importe fijo o intervalo, conservando céntimos cuando existen. La distancia se etiqueta explícitamente como demo.
+
+Los estados viven en componentes separados. Loading expone una región viva y `aria-busy`; empty comunica que todavía no hay encuentros; error usa rol de alerta y ofrece un botón Reintentar de 44 px con foco visible. La solución usa props aceptadas por React Native y React Native Web, sin APIs del DOM en el código universal.
+
+La validación web cubre 390×844, 800×1280, 1440×900 y cambio de orientación: una/dos columnas, etiquetas completas en la navegación, jerarquía de encabezados, ausencia de overflow y tarjetas sin elementos interactivos. También fuerza loading, empty, error, retry, desmontaje y respuestas obsoletas mediante una ruta temporal que no forma parte del resultado final. `scripts/validate-home.ts` comprueba orden, offsets, estabilidad, precios, etiquetas y formato en Madrid sin framework adicional.
+
+Quedan fuera de este paso el splash, búsqueda y filtros funcionales, navegación desde tarjetas, favoritos, agenda, assets reales, sidebar de escritorio, ubicación, persistencia y backend.
 
 ## Modelo de datos Expo
 
-El Paso 5 incorpora datos de demostración tipados sin conectarlos aún a la UI. El flujo es: JSON legado → fixtures → mapper y repositorios → dominio. Solo `src/data/fixtures/legacyEvents.ts` y `legacyCategories.ts` importan los JSON de `app/data/`. TypeScript admite esos imports mediante `resolveJsonModule`, heredado de Expo. No se copian manualmente los 16 registros ni el catálogo 11/59.
+El Paso 5 incorporó los datos de demostración tipados y el Paso 6 conecta sus repositorios únicamente a Home. El flujo es: JSON legado → fixtures → mapper y repositorios → dominio → hook de Home. Solo `src/data/fixtures/legacyEvents.ts` y `legacyCategories.ts` importan los JSON de `app/data/`. TypeScript admite esos imports mediante `resolveJsonModule`, heredado de Expo. No se copian manualmente los 16 registros ni el catálogo 11/59.
 
 ### Modelo de dominio
 
@@ -207,7 +228,7 @@ El mapper combina fecha/hora con `Europe/Madrid` y emite un instante ISO UTC ter
 
 `EventRepository` expone `list(): Promise<EventResult[]>` y `getById(id): Promise<Event | null>`. `FixtureEventRepository` carga y mapea los registros; `includeDemoDistance: false` permite omitir la distancia ficticia. `CategoryRepository` y `FixtureCategoryRepository` ofrecen los mismos métodos para `Category`. Un id desconocido devuelve `null`; una carga inválida rechaza la promesa y no devuelve resultados parciales.
 
-Las implementaciones devuelven objetos independientes en cada llamada para que las modificaciones del consumidor no corrompan los fixtures. No hay estado React, caché global, red ni consultas complejas. La futura UI dependerá de las interfaces. Un backend podrá sustituir los repositorios y su adaptador sin exponer su transporte ni su formato a los componentes. Todavía no se ha elegido proveedor ni añadido lógica de filtros del Paso 6.
+Las implementaciones devuelven objetos independientes en cada llamada para que las modificaciones del consumidor no corrompan los fixtures. No hay caché global, red ni consultas complejas. Home depende de sus interfaces, por lo que un backend podrá sustituir los repositorios y su adaptador sin exponer transporte ni formato a los componentes. Todavía no se ha elegido proveedor ni añadido lógica de filtros.
 
 ### Validación reproducible
 
@@ -229,4 +250,4 @@ Usar `.tmp-paso5-check` solo si no existe previamente y retirar después únicam
 
 La documentación de cada funcionalidad React Native explicará su propósito, componentes, estado, flujo de datos, rutas, servicios, accesibilidad, puntos configurables y pruebas. Los ADR conservarán el contexto de las decisiones duraderas sin duplicar literalmente el código.
 
-La marca de trabajo sigue siendo CULTURA; Granada solo aparece como territorio piloto y contenido ficticio. Existe la base Expo, pero todavía no hay interfaz migrada, autenticación, cuentas, recopiladores, agentes ni servicios de producción.
+La marca de trabajo sigue siendo CULTURA; Granada solo aparece como territorio piloto y contenido ficticio. Home es la primera interfaz migrada. Todavía no hay autenticación, cuentas, recopiladores, agentes ni servicios de producción.

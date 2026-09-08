@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { StyleSheet, Text, type ColorValue } from 'react-native';
 
-import { colors, radii, spacing, typography } from '@/theme';
+import { colors, radii, sizes, spacing, typography } from '@/theme';
 
 type TabIconProps = {
   color: ColorValue;
@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   tabBar: {
+    minHeight: sizes.tabBarMinHeight,
     backgroundColor: colors.surface,
     borderTopColor: colors.border,
   },

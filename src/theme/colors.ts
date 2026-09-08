@@ -10,6 +10,8 @@ export const colors = {
   textInverse: '#ffffff',
   border: '#e2d5d3',
   borderStrong: '#d9c0c6',
+  cardBorderCream: '#decac8',
+  cardBorderRose: '#dfc1c8',
   success: '#55735f',
   warning: '#8a6a43',
   error: '#92505e',
