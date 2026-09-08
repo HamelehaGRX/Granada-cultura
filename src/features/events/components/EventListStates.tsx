@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { FilterChoice } from '../../filters/components/FilterChoice';
 
 export function EventListLoading() {
   return (
@@ -12,12 +13,15 @@ export function EventListLoading() {
   );
 }
 
-export function EventListEmpty() {
+export function EventListEmpty({ filtered, onClear }: { filtered?: boolean; onClear?: () => void }) {
   return (
-    <View accessibilityLiveRegion="polite" testID="events-empty" style={styles.panel}>
+    <View accessibilityLiveRegion="polite" aria-live="polite" testID="events-empty" style={styles.panel}>
       <View accessible={false} style={styles.illustrationSpace} />
-      <Text accessibilityRole="header" aria-level={3} style={styles.title}>Todavía no hay encuentros</Text>
-      <Text style={styles.body}>Cuando haya eventos disponibles, los encontrarás aquí.</Text>
+      <Text accessibilityRole="header" aria-level={3} style={styles.title}>
+        {filtered ? 'No encontramos eventos con estos filtros.' : 'Todavía no hay encuentros'}
+      </Text>
+      <Text style={styles.body}>{filtered ? 'Prueba otra combinación para descubrir más planes.' : 'Cuando haya eventos disponibles, los encontrarás aquí.'}</Text>
+      {filtered && onClear ? <FilterChoice label="Limpiar filtros" onPress={onClear} /> : null}
     </View>
   );
 }

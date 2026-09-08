@@ -1,17 +1,6 @@
-import { useLocalSearchParams } from 'expo-router';
-
-import { PlaceholderScreen } from '@/components/PlaceholderScreen';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
 export default function SearchScreen() {
-  const { q } = useLocalSearchParams<{ q?: string }>();
-  const visibleQuery = q?.trim() || 'Sin término';
-
-  return (
-    <PlaceholderScreen
-      title="Buscar"
-      description="Ruta preparada para recibir un término sin ejecutar todavía una búsqueda real."
-      parameter={{ label: 'Término recibido', value: visibleQuery }}
-      showBackAction
-    />
-  );
+  const { q } = useLocalSearchParams<{ q?: string | string[] }>();
+  return <Redirect href={{ pathname: '/', params: { q: (Array.isArray(q) ? q[0] : q) ?? '' } }} />;
 }

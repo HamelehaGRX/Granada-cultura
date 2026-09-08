@@ -62,7 +62,7 @@ En móvil se mantendrá el orden aprobado:
 
 Inicio ocupa la posición central y es la ruta inicial. Esa ruta compone `HomeScreen`, mientras las restantes tabs continúan provisionales. El stack raíz incluye rutas delgadas para detalle de evento, búsqueda, organizadores, notificaciones y el grupo de modales.
 
-Las rutas enlazables actuales son `/eventos/[eventId]`, `/buscar`, `/organizadores/[organizerId]` y `/notificaciones`. El modal provisional de filtros se organiza en `(modals)/filtros`. Los segmentos dinámicos y la query de búsqueda solo se muestran en placeholders; todavía no consultan datos ni servicios.
+Las rutas de evento, organizador y notificaciones continúan provisionales. `/buscar?q=…` entrega la consulta a Home y `/filtros`, en el grupo `(modals)`, abre su panel inline. Ambas entradas redirigen al mismo estado local y consumen sus parámetros. No hay una segunda UI de filtros dentro del modal ni acceso a servicios.
 
 El esquema `cultura` y la estructura de Expo Router dejan preparada la navegación mediante deep links. Los dominios universales de iOS y Android, la asociación con un dominio web y los destinos de notificaciones push se configurarán únicamente cuando exista una tarea específica y entornos de publicación definidos.
 
@@ -90,7 +90,9 @@ Los JSON actuales se reutilizan mediante imports estáticos aislados en `src/dat
 
 Las claves de ilustración son semánticas y tienen fallback `generica`; no se importan assets todavía. Las validaciones y las funciones de conversión son puras y no utilizan el DOM. Consultar [ADR-005](../decisiones/ADR-005-modelo-datos-y-repositorios.md) y la sección Modelo de datos Expo de la guía para contratos y pruebas.
 
-La lógica conceptual de búsqueda, fecha, precio, distancia, categorías y subcategorías se reescribirá como funciones puras. Un hook o reducer mantendrá el estado de los controles. No se añadirá una store global mientras el alcance no la justifique.
+El Paso 7 implementa `features/filters/` y `features/search/`: tipos/reducer, lógica pura y componentes separados. Home conserva una instancia local de useEventFilters; filterEvents recibe los datos de repositorio, catálogo, estado e instante de referencia. Combina AND entre tipos de filtro y OR entre categorías/subcategorías. Las fechas respetan la zona del evento; precios se comparan en céntimos y distancia en metros. No hay store global ni persistencia.
+
+Los paneles comparten el scroll de FlatList, con triggers 2×2 móvil/una fila tablet. SearchField sustituye visualmente la marca en el mismo header. Dos campos coordinados con ajustes accesibles cubren temporalmente precio/distancia; native usa entrada de fecha ISO y web su control date. No se añaden dependencias. Una futura consulta remota adaptará FilterState sin acoplar la UI al transporte; ver [ADR-007](../decisiones/ADR-007-busqueda-y-filtros.md).
 
 La distancia futura se calculará a partir de coordenadas. El repositorio demo convierte `distanciaKm` en `EventResult.distanceMeters`, que puede omitirse. No forma parte de `Event`: cambiar de usuario o consulta cambia la distancia, no la identidad ni los datos canónicos del evento.
 

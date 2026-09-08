@@ -1,0 +1,365 @@
+{
+    "categorias": [
+        {
+            "id": "musica",
+            "nombre": "Música",
+            "subcategorias": [
+                {
+                    "id": "rock",
+                    "nombre": "Rock",
+                    "archivo": "rock.svg"
+                },
+                {
+                    "id": "pop",
+                    "nombre": "Pop",
+                    "archivo": null
+                },
+                {
+                    "id": "metal",
+                    "nombre": "Metal",
+                    "archivo": null
+                },
+                {
+                    "id": "jazz",
+                    "nombre": "Jazz",
+                    "archivo": "jazz.svg"
+                },
+                {
+                    "id": "flamenco",
+                    "nombre": "Flamenco",
+                    "archivo": "flamenco.svg"
+                },
+                {
+                    "id": "clasica",
+                    "nombre": "Clásica",
+                    "archivo": null
+                },
+                {
+                    "id": "electronica",
+                    "nombre": "Electrónica",
+                    "archivo": null
+                },
+                {
+                    "id": "hip-hop",
+                    "nombre": "Hip hop",
+                    "archivo": null
+                },
+                {
+                    "id": "indie",
+                    "nombre": "Indie",
+                    "archivo": null
+                },
+                {
+                    "id": "folk",
+                    "nombre": "Folk",
+                    "archivo": null
+                },
+                {
+                    "id": "tributos",
+                    "nombre": "Tributos",
+                    "archivo": null
+                },
+                {
+                    "id": "cantautores",
+                    "nombre": "Cantautores",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "teatro",
+            "nombre": "Teatro",
+            "subcategorias": [
+                {
+                    "id": "drama",
+                    "nombre": "Drama",
+                    "archivo": "drama.svg"
+                },
+                {
+                    "id": "comedia",
+                    "nombre": "Comedia",
+                    "archivo": null
+                },
+                {
+                    "id": "musical",
+                    "nombre": "Musical",
+                    "archivo": null
+                },
+                {
+                    "id": "teatro-clasico",
+                    "nombre": "Teatro clásico",
+                    "archivo": null
+                },
+                {
+                    "id": "teatro-contemporaneo",
+                    "nombre": "Teatro contemporáneo",
+                    "archivo": null
+                },
+                {
+                    "id": "teatro-infantil",
+                    "nombre": "Teatro infantil",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "comedia",
+            "nombre": "Comedia",
+            "subcategorias": [
+                {
+                    "id": "monologos",
+                    "nombre": "Monólogos",
+                    "archivo": "monologos.svg"
+                },
+                {
+                    "id": "improvisacion",
+                    "nombre": "Improvisación",
+                    "archivo": null
+                },
+                {
+                    "id": "stand-up",
+                    "nombre": "Stand-up",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "exposiciones",
+            "nombre": "Exposiciones",
+            "subcategorias": [
+                {
+                    "id": "pintura",
+                    "nombre": "Pintura",
+                    "archivo": "pintura.svg"
+                },
+                {
+                    "id": "fotografia",
+                    "nombre": "Fotografía",
+                    "archivo": "fotografia.svg"
+                },
+                {
+                    "id": "escultura",
+                    "nombre": "Escultura",
+                    "archivo": null
+                },
+                {
+                    "id": "arte-contemporaneo",
+                    "nombre": "Arte contemporáneo",
+                    "archivo": null
+                },
+                {
+                    "id": "ilustracion",
+                    "nombre": "Ilustración",
+                    "archivo": null
+                },
+                {
+                    "id": "historia-patrimonio",
+                    "nombre": "Historia / patrimonio",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "literatura",
+            "nombre": "Literatura",
+            "subcategorias": [
+                {
+                    "id": "feria-del-libro",
+                    "nombre": "Feria del libro",
+                    "archivo": null
+                },
+                {
+                    "id": "presentaciones",
+                    "nombre": "Presentaciones",
+                    "archivo": null
+                },
+                {
+                    "id": "encuentros-con-autores",
+                    "nombre": "Encuentros con autores",
+                    "archivo": null
+                },
+                {
+                    "id": "poesia",
+                    "nombre": "Poesía",
+                    "archivo": "poesia.svg"
+                },
+                {
+                    "id": "clubes-de-lectura",
+                    "nombre": "Clubes de lectura",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "gastronomia",
+            "nombre": "Gastronomía cultural",
+            "subcategorias": [
+                {
+                    "id": "jornadas-gastronomicas",
+                    "nombre": "Jornadas gastronómicas",
+                    "archivo": null
+                },
+                {
+                    "id": "ferias-de-producto-local",
+                    "nombre": "Ferias de producto local",
+                    "archivo": null
+                },
+                {
+                    "id": "catas",
+                    "nombre": "Catas",
+                    "archivo": "catas.svg"
+                },
+                {
+                    "id": "tradicion-culinaria",
+                    "nombre": "Tradición culinaria",
+                    "archivo": null
+                },
+                {
+                    "id": "talleres-de-cocina",
+                    "nombre": "Talleres de cocina",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "cine",
+            "nombre": "Cine",
+            "subcategorias": [
+                {
+                    "id": "cine-clasico",
+                    "nombre": "Cine clásico",
+                    "archivo": null
+                },
+                {
+                    "id": "cine-independiente",
+                    "nombre": "Cine independiente",
+                    "archivo": "cine-independiente.svg"
+                },
+                {
+                    "id": "documentales",
+                    "nombre": "Documentales",
+                    "archivo": null
+                },
+                {
+                    "id": "cine-de-verano",
+                    "nombre": "Cine de verano",
+                    "archivo": null
+                },
+                {
+                    "id": "festivales",
+                    "nombre": "Festivales",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "danza",
+            "nombre": "Danza",
+            "subcategorias": [
+                {
+                    "id": "flamenco",
+                    "nombre": "Flamenco",
+                    "archivo": null
+                },
+                {
+                    "id": "contemporanea",
+                    "nombre": "Contemporánea",
+                    "archivo": "contemporanea.svg"
+                },
+                {
+                    "id": "clasica",
+                    "nombre": "Clásica",
+                    "archivo": null
+                },
+                {
+                    "id": "folclore",
+                    "nombre": "Folclore",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "patrimonio",
+            "nombre": "Patrimonio",
+            "subcategorias": [
+                {
+                    "id": "visitas-guiadas",
+                    "nombre": "Visitas guiadas",
+                    "archivo": "visitas-guiadas.svg"
+                },
+                {
+                    "id": "rutas-historicas",
+                    "nombre": "Rutas históricas",
+                    "archivo": null
+                },
+                {
+                    "id": "monumentos",
+                    "nombre": "Monumentos",
+                    "archivo": null
+                },
+                {
+                    "id": "arqueologia",
+                    "nombre": "Arqueología",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "ferias",
+            "nombre": "Ferias y fiestas",
+            "subcategorias": [
+                {
+                    "id": "feria-local",
+                    "nombre": "Feria local",
+                    "archivo": null
+                },
+                {
+                    "id": "fiesta-popular",
+                    "nombre": "Fiesta popular",
+                    "archivo": null
+                },
+                {
+                    "id": "mercado-medieval",
+                    "nombre": "Mercado medieval",
+                    "archivo": "mercado-medieval.svg"
+                },
+                {
+                    "id": "tradicion",
+                    "nombre": "Tradición",
+                    "archivo": null
+                }
+            ]
+        },
+        {
+            "id": "infantil",
+            "nombre": "Infantil y familiar",
+            "subcategorias": [
+                {
+                    "id": "teatro-infantil",
+                    "nombre": "Teatro infantil",
+                    "archivo": null
+                },
+                {
+                    "id": "cuentacuentos",
+                    "nombre": "Cuentacuentos",
+                    "archivo": null
+                },
+                {
+                    "id": "talleres",
+                    "nombre": "Talleres",
+                    "archivo": null
+                },
+                {
+                    "id": "magia",
+                    "nombre": "Magia",
+                    "archivo": "magia.svg"
+                },
+                {
+                    "id": "actividades-familiares",
+                    "nombre": "Actividades familiares",
+                    "archivo": null
+                }
+            ]
+        }
+    ]
+}

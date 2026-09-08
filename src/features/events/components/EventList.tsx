@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { breakpoints, colors, sizes, spacing, typography } from '@/theme';
@@ -13,13 +14,16 @@ type EventListProps = {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  filters?: ReactNode;
+  filtered?: boolean;
+  onClear?: () => void;
 };
 
-export function EventList({ data, categories, loading, error, onRetry }: EventListProps) {
+export function EventList({ data, categories, loading, error, onRetry, filters, filtered, onClear }: EventListProps) {
   const { width, fontScale } = useWindowDimensions();
   const columns = width >= breakpoints.tablet && fontScale <= sizes.twoColumnMaxFontScale ? 2 : 1;
   const empty = loading ? <EventListLoading /> : error
-    ? <EventListError message={error} onRetry={onRetry} /> : <EventListEmpty />;
+    ? <EventListError message={error} onRetry={onRetry} /> : <EventListEmpty filtered={filtered} onClear={onClear} />;
 
   return (
     <FlatList
@@ -33,15 +37,17 @@ export function EventList({ data, categories, loading, error, onRetry }: EventLi
       contentContainerStyle={styles.content}
       style={styles.list}
       initialNumToRender={8}
+      keyboardShouldPersistTaps="handled"
       ListHeaderComponent={
         <View style={styles.intro}>
           <Text style={styles.eyebrow}>TU MOMENTO, TU CULTURA</Text>
           <Text accessibilityRole="header" aria-level={1} style={styles.heading}>Inicio.</Text>
           <Text style={styles.territory}>Granada y alrededores</Text>
+          {filters}
           <View style={styles.section}>
             <Text accessibilityRole="header" aria-level={2} style={styles.sectionTitle}>Próximos encuentros</Text>
-            {!loading && !error ? <Text accessibilityLiveRegion="polite" style={styles.count}>
-              {data.length} {data.length === 1 ? 'plan' : 'planes'}
+            {!loading && !error ? <Text accessibilityLiveRegion="polite" aria-live="polite" testID="event-count" style={styles.count}>
+              {data.length} {data.length === 1 ? 'evento' : 'eventos'}
             </Text> : null}
           </View>
           <Text style={styles.note}>Eventos ficticios · Distancias de ejemplo, sin geolocalización.</Text>

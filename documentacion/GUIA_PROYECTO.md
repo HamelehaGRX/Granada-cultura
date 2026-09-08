@@ -6,7 +6,7 @@ CULTURA ha iniciado una migración incremental hacia React Native, Expo, TypeScr
 
 Ya existe una base Expo mínima en `src/`. La carpeta `app/` conserva intacto el prototipo web aprobado y no se eliminará, moverá ni ampliará con funcionalidades grandes salvo petición explícita. Seguirá sirviendo como referencia hasta que la nueva aplicación alcance suficiente paridad y el usuario autorice qué hacer con el legado.
 
-La base nueva dispone de dominio tipado y repositorios demo. Todavía no contiene la interfaz, filtros, tarjetas ni assets del prototipo, y los datos no se muestran en las pantallas. Cada migración visual o funcional posterior requiere una tarea independiente.
+La base nueva dispone de dominio tipado, repositorios demo y Home con tarjetas, búsqueda y filtros. Las ilustraciones y las funcionalidades de las otras pestañas siguen pendientes de tareas independientes.
 
 ## Estructura general
 
@@ -135,13 +135,14 @@ Consultar:
 - [ADR-004: navegación con tabs, stack y rutas enlazables](decisiones/ADR-004-estructura-navegacion.md).
 - [ADR-005: modelo de dominio y repositorios desacoplados](decisiones/ADR-005-modelo-datos-y-repositorios.md).
 - [ADR-006: Home basada en repositorio y lista virtualizada](decisiones/ADR-006-home-y-listado-eventos.md).
+- [ADR-007: búsqueda y filtros como lógica pura con estado local](decisiones/ADR-007-busqueda-y-filtros.md).
 - [Plan de migración Expo](migracion/PLAN_MIGRACION_EXPO.md).
 
 ## Base Expo creada
 
 El código ejecutable nuevo vive en `src/` y utiliza el enrutamiento por archivos de Expo Router. `src/app/_layout.tsx` configura el proveedor de área segura y el layout raíz. `src/app/(tabs)/_layout.tsx` declara las cinco pestañas estables en el orden Explorar, Agenda, Inicio, Favoritos y Perfil, con Inicio como ruta inicial y posición central.
 
-Inicio ya renderiza la primera pantalla real mediante `HomeScreen`; las otras cuatro tabs y las rutas auxiliares siguen usando placeholders pequeños compartidos. El sistema visual se concentra en `src/theme/`, el shell reutilizable en `src/components/layout/` y la marca provisional en `src/config/brand.ts`. Home consume los repositorios de fixtures sin importar JSON directamente. Los filtros, la búsqueda y los assets de ilustración continúan pendientes.
+Inicio renderiza `HomeScreen` con búsqueda y filtros; las otras cuatro tabs, eventos, organizadores y notificaciones siguen usando placeholders. Buscar y Filtros son entradas enlazables a Home. El sistema visual se concentra en `src/theme/`, el shell en `src/components/layout/` y la marca en `src/config/brand.ts`. Home consume repositorios sin importar JSON directamente; las ilustraciones siguen pendientes.
 
 Los comandos disponibles son:
 
@@ -161,7 +162,7 @@ La convivencia es intencionada: `app/` sigue siendo el prototipo legado y `src/`
 
 Home y los placeholders restantes consumen el shell y el contenedor compartidos. Home añade un header granate y tarjetas suaves; las demás pantallas conservan una superficie elevada mínima. La StatusBar mantiene contenido oscuro sobre el fondo crema claro.
 
-La identidad continúa siendo provisional. Nombre y referencias de logo, icono y mascota se concentran en `src/config/brand.ts`; la paleta y la tipografía pueden sustituirse desde el theme. Permanecen pendientes el splash, buscador, filtros, ilustraciones reales, sidebar y funcionalidades de las restantes pestañas.
+La identidad continúa siendo provisional. Nombre y referencias de logo, icono y mascota se concentran en `src/config/brand.ts`; la paleta y la tipografía pueden sustituirse desde el theme. Permanecen pendientes el splash, ilustraciones reales, sidebar y funcionalidades de las restantes pestañas.
 
 ## Navegación base enlazable
 
@@ -170,18 +171,18 @@ La navegación principal mantiene cinco tabs, en este orden: Explorar, Agenda, I
 El stack raíz compone las tabs con rutas auxiliares delgadas:
 
 - `/eventos/[eventId]`: detalle provisional que muestra el identificador recibido;
-- `/buscar?q=...`: búsqueda provisional que muestra el término opcional;
+- `/buscar?q=...`: entrada que aplica el término en la búsqueda real de Home;
 - `/organizadores/[organizerId]`: perfil provisional que muestra el identificador;
 - `/notificaciones`: futura lista de notificaciones y punto de entrada para enlaces a eventos;
-- `/filtros`: pantalla del grupo `(modals)`, presentada como modal mediante Expo Router.
+- `/filtros`: entrada del grupo `(modals)` que lleva al panel inline de Home.
 
-`PlaceholderScreen` proporciona título accesible, descripción, parámetro opcional y acción de vuelta a las rutas que siguen provisionales. Si una URL se abre directamente y no existe historial, Volver lleva a Inicio. El modal de filtros continúa disponible como infraestructura de navegación, pero la Home no muestra todavía un acceso ni implementa filtros reales.
+`PlaceholderScreen` proporciona título, descripción y vuelta en las rutas provisionales. Sin historial, Volver lleva a Inicio. Buscar y Filtros reutilizan el único estado de Home mediante redirecciones; no hay segunda pantalla ni estado modal de filtros. La infraestructura de modales se conserva.
 
-La estructura de archivos ya permite rutas web directas y enlaces con el esquema `cultura://`, pero no se han configurado dominios universales, app links ni servicios de producción. Home carga datos demo; no se ejecutan búsquedas, notificaciones o filtros reales.
+La estructura admite rutas web directas y el esquema `cultura://`, pero no se han configurado dominios universales, app links ni servicios de producción. Home busca y filtra datos demo; no ejecuta notificaciones ni consultas remotas.
 
 ## Home Expo
 
-La ruta `src/app/(tabs)/index.tsx` se mantiene delgada y compone `HomeScreen`. La pantalla usa `AppShell` para la safe area y el fondo, coloca `HomeHeader` fuera de la lista y delega el contenido en `EventList`. `HomeHeader` obtiene `CULTURA` desde `src/config/brand.ts` y consume únicamente tokens del theme. No contiene buscador ni acciones provisionales.
+La ruta `src/app/(tabs)/index.tsx` se mantiene delgada y entrega los parámetros de entrada a `HomeScreen`. La pantalla usa `AppShell`, coloca `HomeHeader` fuera de la lista y delega el contenido en `EventList`. El header obtiene la marca desde configuración e incorpora SearchField dentro de la misma barra.
 
 `HomeScreen` crea una sola pareja de repositorios por montaje mediante `createHomeRepositories`: `FixtureEventRepository` aporta `EventResult` y `FixtureCategoryRepository` resuelve nombres de categoría y subcategoría. La prop opcional `repositories` permite sustituirlos en pruebas o por implementaciones remotas sin introducir un framework de inyección ni acoplar la UI al JSON.
 
@@ -197,7 +198,36 @@ Los estados viven en componentes separados. Loading expone una región viva y `a
 
 La validación web cubre 390×844, 800×1280, 1440×900 y cambio de orientación: una/dos columnas, etiquetas completas en la navegación, jerarquía de encabezados, ausencia de overflow y tarjetas sin elementos interactivos. También fuerza loading, empty, error, retry, desmontaje y respuestas obsoletas mediante una ruta temporal que no forma parte del resultado final. `scripts/validate-home.ts` comprueba orden, offsets, estabilidad, precios, etiquetas y formato en Madrid sin framework adicional.
 
-Quedan fuera de este paso el splash, búsqueda y filtros funcionales, navegación desde tarjetas, favoritos, agenda, assets reales, sidebar de escritorio, ubicación, persistencia y backend.
+El Paso 6 dejó búsqueda y filtros para el Paso 7, descrito a continuación. Continúan pendientes splash, navegación desde tarjetas, favoritos, agenda, assets reales, sidebar, ubicación, persistencia y backend.
+
+## Búsqueda y filtros Expo
+
+`src/features/filters/` contiene FilterState, filterReducer, useEventFilters, fechas y funciones puras, separados de los controles. `src/features/search/` concentra SearchField y normalización/búsqueda. El estado vive en Home, sin librería global ni persistencia. `useHomeEvents` sigue cargando y ordenando; `useEventFilters` memoiza el resultado filtrado y los resúmenes. EventCard no filtra. El reloj se renueva cada minuto y al volver a primer plano; los listeners se limpian al desmontar.
+
+La búsqueda ignora mayúsculas y acentos en título, artista, localidad, lugar, categoría, subcategoría y descripción. Abrir la lupa sustituye la marca en la misma fila y enfoca el campo. Cerrar o Escape limpia solo la búsqueda y devuelve el foco a la lupa.
+
+Fecha ofrece Hoy, Mañana, Esta semana, Este fin de semana, Este mes, día concreto y rango inclusivo. Los presets parten de hoy y se calculan en la zona del evento, no del equipo. La semana termina en domingo; el mes, en su último día. Un custom incompleto, inválido o invertido no se aplica y muestra un mensaje. Web utiliza el selector de fecha del navegador; native usa temporalmente AAAA-MM-DD, sin biblioteca de calendario.
+
+Precio opera con EventPrice: gratis es cero, fijo conserva céntimos y un rango coincide por solapamiento inclusivo. Distancia opera exclusivamente con EventResult.distanceMeters. Una distancia ausente solo se excluye si hay restricción activa. Ambos controles van de 0 a 1000; el estado neutro no restringe. El reducer limita valores y mantiene min ≤ max, haciendo acompañar al otro extremo al cruzarlo.
+
+No se instala slider. RangeFilter ofrece dos campos numéricos coordinados y botones −1/+1. Es una solución temporal accesible, sin arrastre, compartida entre plataformas; su contrato controlado permite sustituirla por un dual-range dedicado más adelante. Un campo vacío se restaura al salir y los valores superiores al límite se muestran ya limitados.
+
+El catálogo procede de FixtureCategoryRepository (11 categorías y 59 subcategorías). Varias categorías se combinan con OR; subcategorías dentro de cada categoría, también OR. Categoría sin subselección incluye todas. Desmarcar categoría elimina sus subfiltros. Búsqueda, fecha, precio, distancia y grupos de categorías se combinan con AND.
+
+FilterBar usa 2×2 en móvil y una fila desde tablet cuando la escala de texto lo permite. Solo abre un panel y conserva visibles los cuatro triggers. Sin filtro se muestra el nombre centrado; con filtro, un resumen compacto. Todo está dentro de FlatList, sin superposición ni scroll vertical anidado. El resumen activo, contador de eventos y vacío con Limpiar filtros permiten entender y restaurar el resultado a los 16 eventos. Limpiar también vacía búsqueda y fechas personalizadas.
+
+`/buscar?q=jazz` y `/filtros` conducen a Home y aplican, respectivamente, la búsqueda o apertura de Fecha. Inicio consume y retira esos parámetros. Se comparte un único estado local; el antiguo modal no duplica controles. No se guarda el estado al recargar o desmontar Home.
+
+Hay labels, roles, checked/expanded, regiones vivas, foco visible, selección marcada además del color y controles de al menos 44 px. Los cuatro tamaños de validación son 390×844, 800×1280, 1440×900 y 844×390. Dispositivos físicos, teclado native y lector de pantalla requieren una comprobación posterior.
+
+`scripts/validate-filters.ts` cubre búsqueda, fechas/zona/DST, precios, distancia, AND/OR, invariantes, limpieza y ausencia de mutación. Se ejecuta con el TypeScript y Node existentes:
+
+```powershell
+node node_modules/typescript/bin/tsc --ignoreConfig --module node16 --moduleResolution node16 --target es2022 --esModuleInterop --resolveJsonModule --strict --skipLibCheck --rootDir . --outDir .tmp-paso7-check scripts/validate-filters.ts
+node .tmp-paso7-check/scripts/validate-filters.js
+```
+
+Usar el directorio temporal solo si no existe y retirarlo tras validar su ruta dentro del repositorio. Ejecutar también typecheck, Expo Doctor y diff check. Ver [ADR-007](decisiones/ADR-007-busqueda-y-filtros.md) para semántica y límites. Backend, ubicación, persistencia y funcionalidades de otras pestañas siguen fuera de alcance.
 
 ## Modelo de datos Expo
 
@@ -228,7 +258,7 @@ El mapper combina fecha/hora con `Europe/Madrid` y emite un instante ISO UTC ter
 
 `EventRepository` expone `list(): Promise<EventResult[]>` y `getById(id): Promise<Event | null>`. `FixtureEventRepository` carga y mapea los registros; `includeDemoDistance: false` permite omitir la distancia ficticia. `CategoryRepository` y `FixtureCategoryRepository` ofrecen los mismos métodos para `Category`. Un id desconocido devuelve `null`; una carga inválida rechaza la promesa y no devuelve resultados parciales.
 
-Las implementaciones devuelven objetos independientes en cada llamada para que las modificaciones del consumidor no corrompan los fixtures. No hay caché global, red ni consultas complejas. Home depende de sus interfaces, por lo que un backend podrá sustituir los repositorios y su adaptador sin exponer transporte ni formato a los componentes. Todavía no se ha elegido proveedor ni añadido lógica de filtros.
+Las implementaciones devuelven objetos independientes en cada llamada para que las modificaciones del consumidor no corrompan los fixtures. No hay caché global, red ni consultas complejas. Home depende de sus interfaces; un backend podrá sustituir los repositorios y su adaptador sin exponer transporte ni formato a los componentes. El Paso 7 filtra en memoria; todavía no se ha elegido proveedor.
 
 ### Validación reproducible
 
