@@ -15,6 +15,7 @@ export type FilterState = {
 };
 export type FilterPanel = 'date' | 'price' | 'distance' | 'categories';
 export type FilterAction =
+  | { type: 'hydrate'; value: Omit<FilterState, 'query'> }
   | { type: 'query'; value: string }
   | { type: 'date'; value: DateFilterValue }
   | { type: 'range'; kind: 'price' | 'distance'; edge: 'min' | 'max'; value: number }

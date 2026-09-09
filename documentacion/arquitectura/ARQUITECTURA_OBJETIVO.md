@@ -31,6 +31,7 @@ src/
 ├── components/          piezas visuales reutilizables
 ├── features/            funcionalidades agrupadas por área
 ├── services/            acceso a APIs y capacidades externas
+├── storage/             persistencia local no sensible, claves y migraciones
 ├── hooks/               comportamiento React compartido
 ├── utils/               funciones puras
 ├── types/               contratos compartidos de TypeScript
@@ -90,11 +91,19 @@ Los JSON actuales se reutilizan mediante imports estáticos aislados en `src/dat
 
 Las claves de ilustración son semánticas y tienen fallback `generica`; no se importan assets todavía. Las validaciones y las funciones de conversión son puras y no utilizan el DOM. Consultar [ADR-005](../decisiones/ADR-005-modelo-datos-y-repositorios.md) y la sección Modelo de datos Expo de la guía para contratos y pruebas.
 
-El Paso 7 implementa `features/filters/` y `features/search/`: tipos/reducer, lógica pura y componentes separados. Home conserva una instancia local de useEventFilters; filterEvents recibe los datos de repositorio, catálogo, estado e instante de referencia. Combina AND entre tipos de filtro y OR entre categorías/subcategorías. Las fechas respetan la zona del evento; precios se comparan en céntimos y distancia en metros. No hay store global ni persistencia.
+El Paso 7 implementa `features/filters/` y `features/search/`: tipos/reducer, lógica pura y componentes separados. Home conserva una instancia local de useEventFilters; filterEvents recibe los datos de repositorio, catálogo, estado e instante de referencia. Combina AND entre tipos de filtro y OR entre categorías/subcategorías. Las fechas respetan la zona del evento; precios se comparan en céntimos y distancia en metros. No hay store global. El Paso 8 añade persistencia local de los filtros, separada del reducer y de la UI.
 
 Los paneles comparten el scroll de FlatList, con triggers 2×2 móvil/una fila tablet. SearchField sustituye visualmente la marca en el mismo header. Dos campos coordinados con ajustes accesibles cubren temporalmente precio/distancia; native usa entrada de fecha ISO y web su control date. No se añaden dependencias. Una futura consulta remota adaptará FilterState sin acoplar la UI al transporte; ver [ADR-007](../decisiones/ADR-007-busqueda-y-filtros.md).
 
 La distancia futura se calculará a partir de coordenadas. El repositorio demo convierte `distanciaKm` en `EventResult.distanceMeters`, que puede omitirse. No forma parte de `Event`: cambiar de usuario o consulta cambia la distancia, no la identidad ni los datos canónicos del evento.
+
+## Persistencia local no sensible
+
+`src/storage/` contiene claves centralizadas, tipos de sobre/driver, get/set/remove con JSON seguro, la frontera mínima de migraciones y el único adaptador AsyncStorage. `features/filters/persistence.ts` valida el dominio guardado; `usePersistedEventFilters` coordina la hidratación y el guardado automático de la instancia local de Home. La UI no accede al proveedor. El driver sustituible permite pruebas sin native/DOM y la futura incorporación de otras preferencias sin duplicar la capa técnica.
+
+La clave estable `cultura.filters` contiene `{ version: 1, data: ... }`. Solo se persisten fecha, precio, distancia y categorías/subcategorías. No se persisten query, eventos/resultados, fixtures ni información sensible. La hidratación espera al catálogo actual, descarta IDs obsoletos, normaliza fechas/rangos y aplica el reducer antes de permitir escrituras. Home usa su loading existente y mantiene la búsqueda temporal. La cola de storage ordena cambios rápidos; la comparación de snapshots evita duplicados.
+
+JSON corrupto y versiones desconocidas vuelven a defaults y se reparan con v1. Un fallo de lectura mantiene defaults en memoria sin sobrescribir storage; los fallos de escritura no bloquean la app. No existe sincronización entre pestañas, dispositivos o cuentas. AsyncStorage no cifra datos sensibles: futuros tokens/credenciales requerirán SecureStore en una tarea específica. Las futuras migraciones serán explícitas y testeadas; actualmente solo existe v1. Ver [ADR-008](../decisiones/ADR-008-persistencia-local.md).
 
 ## Assets e ilustraciones
 

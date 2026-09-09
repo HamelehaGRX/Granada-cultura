@@ -20,6 +20,7 @@ La base nueva dispone de dominio tipado, repositorios demo y Home con tarjetas, 
 - `src/components/`: componentes reutilizables; contiene el shell, el contenedor de pantalla y la pantalla provisional común.
 - `src/config/`: configuración sustituible, incluida la identidad provisional de marca.
 - `src/theme/`: colores, tipografía, espaciado, radios, sombras, movimiento y breakpoints centralizados.
+- `src/storage/`: claves, contrato JSON tipado, adaptador AsyncStorage y frontera de migraciones.
 - `src/features/events/` y `src/features/categories/`: modelos de dominio, adaptación y repositorios de eventos y categorías.
 - `src/types/common.ts`: coordenadas, instantes ISO y zona horaria compartidos.
 - `src/data/fixtures/`: frontera temporal que importa los JSON existentes sin modificarlos ni duplicarlos.
@@ -198,11 +199,11 @@ Los estados viven en componentes separados. Loading expone una región viva y `a
 
 La validación web cubre 390×844, 800×1280, 1440×900 y cambio de orientación: una/dos columnas, etiquetas completas en la navegación, jerarquía de encabezados, ausencia de overflow y tarjetas sin elementos interactivos. También fuerza loading, empty, error, retry, desmontaje y respuestas obsoletas mediante una ruta temporal que no forma parte del resultado final. `scripts/validate-home.ts` comprueba orden, offsets, estabilidad, precios, etiquetas y formato en Madrid sin framework adicional.
 
-El Paso 6 dejó búsqueda y filtros para el Paso 7, descrito a continuación. Continúan pendientes splash, navegación desde tarjetas, favoritos, agenda, assets reales, sidebar, ubicación, persistencia y backend.
+El Paso 6 dejó búsqueda y filtros para el Paso 7, descrito a continuación. El Paso 8 incorpora persistencia de filtros. Continúan pendientes splash, navegación desde tarjetas, favoritos, agenda, assets reales, sidebar, ubicación y backend.
 
 ## Búsqueda y filtros Expo
 
-`src/features/filters/` contiene FilterState, filterReducer, useEventFilters, fechas y funciones puras, separados de los controles. `src/features/search/` concentra SearchField y normalización/búsqueda. El estado vive en Home, sin librería global ni persistencia. `useHomeEvents` sigue cargando y ordenando; `useEventFilters` memoiza el resultado filtrado y los resúmenes. EventCard no filtra. El reloj se renueva cada minuto y al volver a primer plano; los listeners se limpian al desmontar.
+`src/features/filters/` contiene FilterState, filterReducer, useEventFilters, fechas y funciones puras, separados de los controles. `src/features/search/` concentra SearchField y normalización/búsqueda. El estado vive en Home, sin librería global; desde el Paso 8 sus filtros se persisten mediante un hook separado. `useHomeEvents` sigue cargando y ordenando; `useEventFilters` memoiza el resultado filtrado y los resúmenes. EventCard no filtra. El reloj se renueva cada minuto y al volver a primer plano; los listeners se limpian al desmontar.
 
 La búsqueda ignora mayúsculas y acentos en título, artista, localidad, lugar, categoría, subcategoría y descripción. Abrir la lupa sustituye la marca en la misma fila y enfoca el campo. Cerrar o Escape limpia solo la búsqueda y devuelve el foco a la lupa.
 
@@ -216,7 +217,7 @@ El catálogo procede de FixtureCategoryRepository (11 categorías y 59 subcatego
 
 FilterBar usa 2×2 en móvil y una fila desde tablet cuando la escala de texto lo permite. Solo abre un panel y conserva visibles los cuatro triggers. Sin filtro se muestra el nombre centrado; con filtro, un resumen compacto. Todo está dentro de FlatList, sin superposición ni scroll vertical anidado. El resumen activo, contador de eventos y vacío con Limpiar filtros permiten entender y restaurar el resultado a los 16 eventos. Limpiar también vacía búsqueda y fechas personalizadas.
 
-`/buscar?q=jazz` y `/filtros` conducen a Home y aplican, respectivamente, la búsqueda o apertura de Fecha. Inicio consume y retira esos parámetros. Se comparte un único estado local; el antiguo modal no duplica controles. No se guarda el estado al recargar o desmontar Home.
+`/buscar?q=jazz` y `/filtros` conducen a Home y aplican, respectivamente, la búsqueda o apertura de Fecha. Inicio consume y retira esos parámetros. Se comparte un único estado local; el antiguo modal no duplica controles. Desde el Paso 8 se restauran los filtros al recargar o remontar Home; la búsqueda y el panel abierto siguen siendo temporales. Abrir expresamente un enlace de búsqueda aplica su consulta, mientras que recargar Home después de consumirla deja la búsqueda vacía.
 
 Hay labels, roles, checked/expanded, regiones vivas, foco visible, selección marcada además del color y controles de al menos 44 px. Los cuatro tamaños de validación son 390×844, 800×1280, 1440×900 y 844×390. Dispositivos físicos, teclado native y lector de pantalla requieren una comprobación posterior.
 
@@ -227,7 +228,46 @@ node node_modules/typescript/bin/tsc --ignoreConfig --module node16 --moduleReso
 node .tmp-paso7-check/scripts/validate-filters.js
 ```
 
-Usar el directorio temporal solo si no existe y retirarlo tras validar su ruta dentro del repositorio. Ejecutar también typecheck, Expo Doctor y diff check. Ver [ADR-007](decisiones/ADR-007-busqueda-y-filtros.md) para semántica y límites. Backend, ubicación, persistencia y funcionalidades de otras pestañas siguen fuera de alcance.
+Usar el directorio temporal solo si no existe y retirarlo tras validar su ruta dentro del repositorio. Ejecutar también typecheck, Expo Doctor y diff check. Ver [ADR-007](decisiones/ADR-007-busqueda-y-filtros.md) para semántica y límites del Paso 7. La persistencia de filtros se incorpora en el Paso 8; backend, ubicación y funcionalidades de otras pestañas siguen fuera de alcance.
+
+## Persistencia local
+
+El Paso 8 utiliza `@react-native-async-storage/async-storage` 2.2.0, la versión recomendada por el SDK 57 instalado. Solo se añadió esta dependencia directa y sus transitivas necesarias; no se actualizaron Expo ni Expo Router. La API de AsyncStorage guarda strings y ofrece implementación native/web: ver [documentación oficial v2](https://react-native-async-storage.github.io/2.0/Usage/).
+
+`src/storage/keys.ts` centraliza `cultura.filters`. La clave es estable y la versión reside en el contenido: `{ version: 1, data: { date, price, distance, categories } }`. `categories` contiene IDs de categoría y arrays de subcategorías. No se guardan query, panel abierto, eventos, fixtures, resultados, favoritos, agenda, perfil, ubicación, notificaciones, historial ni datos sensibles. La búsqueda representa una intención temporal y comienza vacía entre sesiones. SecureStore queda reservado para futuros secretos, sin instalarlo ni almacenar tokens en este paso.
+
+`storage.ts` expone get/set/remove tipados, captura errores de JSON y del proveedor, y exige un decodificador runtime para leer. Su cola conserva el orden de escrituras y de lecturas posteriores, también si se remonta Home antes de terminar un guardado. `localStorage.ts` es el único adaptador que importa AsyncStorage; el nombre no representa acceso directo al DOM. La lógica pura y las pruebas reciben un StorageDriver sustituible, sin dependencia del proveedor ni framework adicional.
+
+`usePersistedEventFilters` espera a que `useHomeEvents` haya cargado correctamente el catálogo del CategoryRepository. Lee, pasa por `migrateEnvelope`, valida y despacha `hydrate` al reducer; solo después activa el guardado. Mientras tanto Home reutiliza su estado accesible de carga y no muestra filtros editables ni un recuento incorrecto. La búsqueda del header sigue operativa: la acción hydrate conserva la consulta en memoria, incluido un deep link recibido durante la lectura. La limpieza del efecto ignora respuestas de montajes cancelados. Un error del repositorio conserva su UI de Reintentar y no borra preferencias con un catálogo de carga vacío.
+
+La validación manual elimina campos extra y comprueba versión, estructura y tipos. Fechas desconocidas, incompletas, imposibles o invertidas vuelven a Cualquier fecha. Los presets válidos se restauran y se evalúan respecto al día actual. Los rangos numéricos finitos se redondean, limitan a 0–1000 y ordenan; si sus tipos no son recuperables, se usa 0–1000. Las categorías inexistentes se descartan. Las subcategorías se validan dentro de su padre y se deduplican; una categoría válida cuya subselección queda vacía incluye toda esa categoría, conforme al Paso 7. Si el catálogo cargado correctamente está vacío, no se conservan selecciones.
+
+No hay migraciones históricas inventadas: `migrations.ts` solo acepta el sobre v1. JSON corrupto, un sobre inválido o una versión desconocida producen defaults y se reemplazan por un sobre v1 tras hidratar. Este comportamiento permite recuperar Home, pero no conserva datos de una versión futura al volver a una aplicación antigua. Cuando exista v2, se añadirá una conversión explícita v1→v2, seguida de validación del esquema destino y pruebas. Nuevas preferencias tendrán claves y decodificadores propios, sin persistir automáticamente todo el estado.
+
+Después de hidratar, los cambios de filtros se guardan automáticamente. Se compara el snapshot serializado: escribir búsqueda, abrir paneles o renderizar de nuevo no genera escrituras. Un estado restaurado sin cambios tampoco se reescribe. La normalización sí puede producir una escritura de reparación. Limpiar filtros restaura defaults y los guarda; tras recargar se mantienen neutros y aparecen los 16 eventos. No se usa debounce ni una librería de estado global.
+
+Si falla la lectura se continúa con defaults en memoria sin sobrescribir ciegamente el almacenamiento. Si falla una escritura, los filtros siguen funcionando y un cambio posterior permite reintentar. En desarrollo se registra solo la operación fallida, sin valor guardado, stack trace ni mensaje técnico en UI. No hay sincronización entre pestañas/dispositivos ni backend; web conserva preferencias por origen, por lo que otro puerto representa otro almacenamiento. Un cierre abrupto antes de completar una escritura puede perder el último cambio; no se promete persistencia cifrada ni confirmación de guardado en UI.
+
+### Validación de persistencia
+
+Ejecutar secuencialmente desde la raíz y detenerse ante cualquier fallo:
+
+```powershell
+node node_modules/typescript/bin/tsc --ignoreConfig --module node16 --moduleResolution node16 --target es2022 --esModuleInterop --resolveJsonModule --strict --skipLibCheck --rootDir . --outDir .tmp-paso8-check scripts/validate-storage.ts scripts/validate-filters.ts
+node .tmp-paso8-check/scripts/validate-storage.js
+node .tmp-paso8-check/scripts/validate-filters.js
+npm run typecheck
+npx expo-doctor
+git diff --check
+```
+
+El script de storage cubre serialización/lectura, migración base, corrupción, versión desconocida, catálogo obsoleto, fechas, rangos, defaults, limpieza, query excluida, errores simulados y escritura lenta seguida de limpieza/lectura. Usa aserciones de Node y un driver en memoria. Comprobar además en web Precio 0–25, Distancia 0–50 y Música, recargar, buscar jazz y recargar, limpiar y recargar a 16 eventos. Probar datos corruptos, versiones desconocidas y catálogo obsoleto en un origen local de validación. No introducir datos de prueba en instalaciones reales.
+
+Los exports de comprobación se generan con `npx expo export --platform all --output-dir .tmp-paso8-export`. Los directorios `.tmp-paso8-*/` están ignorados: deben crearse solo si no existen y eliminarse tras verificar sus rutas y contenido. No se añaden rutas de pruebas al producto. Los bundles no sustituyen ejecución en dispositivos físicos Android/iOS. Ver [ADR-008](decisiones/ADR-008-persistencia-local.md).
+
+Validación del Paso 8 (2026-09-09): typecheck, validate-storage, validate-filters y exports Android/iOS/web correctos. Web conserva Precio 0–25, Distancia 0–50 y Música (4 eventos), limpia y recarga a 16; jazz devuelve 1 y desaparece al recargar sin perder filtros. El contador de escrituras permanece en cero al remontar con estado válido y buscar/recargar sin cambios de filtros. Mañana también se conserva. Corrupción y versión desconocida vuelven a defaults; los IDs obsoletos se eliminan y se repara el JSON. Los fallos simulados de lectura/escritura mantienen Home utilizable; Limpiar intenta guardar incluso tras una lectura fallida. No hubo errores de consola, solo los avisos esperados de los fallos simulados. Los anchos CSS efectivos de 390 y 1440 no presentan desbordamiento horizontal.
+
+Expo Doctor, tras repetir las consultas que inicialmente fallaron por red, pasa 20/21: solo solicita los parches ya pendientes `expo ~57.0.21` y `expo-router ~57.0.20`, que no se actualizan en este paso. La prueba en navegador y los bundles no validan ejecución física ni reinicio del módulo nativo en Android/iOS.
 
 ## Modelo de datos Expo
 

@@ -16,7 +16,7 @@ export function HomeScreen({ repositories, incomingQuery, incomingPanel, onReque
 }) {
   const [defaults] = useState(createHomeRepositories);
   const { data, categories, loading, error, retry } = useHomeEvents(repositories ?? defaults);
-  const filters = useEventFilters(data, categories);
+  const filters = useEventFilters(data, categories, !loading && !error);
   const [panel, setPanel] = useState<FilterPanel | null>(null);
   const { setQuery } = filters;
   useEffect(() => {
@@ -30,10 +30,10 @@ export function HomeScreen({ repositories, incomingQuery, incomingPanel, onReque
     <AppShell>
       <HomeHeader query={filters.state.query} onQueryChange={filters.setQuery} />
       <ScreenContainer>
-        <EventList data={filters.results} categories={categories} loading={loading} error={error} onRetry={retry}
+        <EventList data={filters.results} categories={categories} loading={loading || (!error && !filters.hydrated)} error={error} onRetry={retry}
           filtered={filters.active} onClear={filters.clear}
-          filters={<FilterBar state={filters.state} dispatch={filters.dispatch} categories={categories}
-            summaries={filters.summaries} onClear={filters.clear} panel={panel} onPanelChange={setPanel} />} />
+          filters={filters.hydrated ? <FilterBar state={filters.state} dispatch={filters.dispatch} categories={categories}
+            summaries={filters.summaries} onClear={filters.clear} panel={panel} onPanelChange={setPanel} /> : null} />
       </ScreenContainer>
     </AppShell>
   );

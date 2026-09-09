@@ -4,9 +4,11 @@ import type { Category } from '../../categories/types';
 import type { EventResult } from '../../events/types';
 import { createFilterState, filterReducer } from '../reducer';
 import { filterEvents, filterSummaries } from '../utils';
+import { usePersistedEventFilters } from './usePersistedEventFilters';
 
-export function useEventFilters(data: EventResult[], categories: Category[]) {
+export function useEventFilters(data: EventResult[], categories: Category[], catalogReady: boolean) {
   const [state, dispatch] = useReducer(filterReducer, undefined, createFilterState);
+  const { hydrated, requestSave } = usePersistedEventFilters(state, dispatch, categories, catalogReady);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const refresh = () => setNow(new Date());
@@ -16,8 +18,8 @@ export function useEventFilters(data: EventResult[], categories: Category[]) {
   }, []);
   const results = useMemo(() => filterEvents(data, state, categories, now), [data, state, categories, now]);
   const summaries = useMemo(() => filterSummaries(state, categories), [state, categories]);
-  const clear = useCallback(() => dispatch({ type: 'clear' }), []);
+  const clear = useCallback(() => { requestSave(); dispatch({ type: 'clear' }); }, [requestSave]);
   const setQuery = useCallback((value: string) => dispatch({ type: 'query', value }), []);
   const active = Boolean(state.query.trim() || Object.values(summaries).some(Boolean));
-  return { state, dispatch, results, summaries, active, clear, setQuery };
+  return { state, dispatch, results, summaries, active, clear, setQuery, hydrated };
 }
