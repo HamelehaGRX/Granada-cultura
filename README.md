@@ -22,6 +22,36 @@ El prototipo utiliza datos ficticios locales. No implementa todavía cuentas rea
 
 No debe eliminarse ni moverse hasta que la futura versión Expo alcance una paridad suficiente y exista autorización explícita.
 
+## Puesta en marcha de la aplicación Expo
+
+Requisitos locales:
+
+- Node.js 20 LTS o posterior compatible con Expo SDK 57;
+- npm, usando el `package-lock.json` versionado;
+- Android Studio, emulador o dispositivo para ejecutar Android;
+- macOS con Xcode, dispositivo compatible o un servicio autorizado para ejecutar iOS.
+
+Desde la raíz del repositorio:
+
+```bash
+npm ci
+npm start
+```
+
+También están disponibles `npm run web`, `npm run android` y `npm run ios`. La ejecución local de iOS no puede completarse en Windows, aunque su bundle sí puede validarse con Expo.
+
+Las comprobaciones reproducibles del código actual son:
+
+```bash
+npm run validate
+npm run typecheck
+npx expo-doctor
+```
+
+`npm run validate` ejecuta las validaciones de datos, Home, filtros y almacenamiento. Sus carpetas de compilación son temporales, se eliminan automáticamente y están excluidas por Git.
+
+La configuración de EAS Build y los identificadores definitivos de Android/iOS se aplazan hasta disponer de cuentas, entornos de publicación y assets de marca aprobados. No deben inventarse para una build de producción.
+
 ## Documentación
 
 La carpeta `documentacion/` contiene:

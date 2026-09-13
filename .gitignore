@@ -18,6 +18,11 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
+# Configuración local y secretos de entorno
+.env
+.env.*
+!.env.example
+
 .DS_Store
 *.tsbuildinfo
 

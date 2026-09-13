@@ -8,14 +8,19 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "validate": "node scripts/run-validation.cjs all",
+    "validate:data": "node scripts/run-validation.cjs data",
+    "validate:home": "node scripts/run-validation.cjs home",
+    "validate:filters": "node scripts/run-validation.cjs filters",
+    "validate:storage": "node scripts/run-validation.cjs storage"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
-    "expo": "~57.0.20",
+    "expo": "~57.0.22",
     "expo-constants": "~57.0.17",
     "expo-linking": "~57.0.9",
-    "expo-router": "~57.0.19",
+    "expo-router": "~57.0.21",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",

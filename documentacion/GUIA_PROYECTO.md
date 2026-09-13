@@ -137,6 +137,8 @@ Consultar:
 - [ADR-005: modelo de dominio y repositorios desacoplados](decisiones/ADR-005-modelo-datos-y-repositorios.md).
 - [ADR-006: Home basada en repositorio y lista virtualizada](decisiones/ADR-006-home-y-listado-eventos.md).
 - [ADR-007: búsqueda y filtros como lógica pura con estado local](decisiones/ADR-007-busqueda-y-filtros.md).
+- [ADR-008: persistencia local versionada con AsyncStorage](decisiones/ADR-008-persistencia-local.md).
+- [ADR-009: estabilización técnica y estrategia de builds Expo](decisiones/ADR-009-estabilizacion-builds-expo.md).
 - [Plan de migración Expo](migracion/PLAN_MIGRACION_EXPO.md).
 
 ## Base Expo creada
@@ -152,6 +154,8 @@ Los comandos disponibles son:
 - `npm run ios`: prepara el inicio para iOS; la ejecución local completa requiere macOS o un dispositivo/servicio compatible.
 - `npm run web`: inicia la versión web.
 - `npm run typecheck`: valida TypeScript sin emitir archivos.
+- `npm run validate`: compila y ejecuta las validaciones de datos, Home, filtros y almacenamiento, y retira su temporal automáticamente.
+- `npm run validate:data`, `validate:home`, `validate:filters` y `validate:storage`: ejecutan una validación concreta.
 
 La convivencia es intencionada: `app/` sigue siendo el prototipo legado y `src/` es la base del producto migrado. No deben mezclarse rutas, service workers, manifests, datos ni assets de ambas implementaciones.
 
@@ -268,6 +272,32 @@ Los exports de comprobación se generan con `npx expo export --platform all --ou
 Validación del Paso 8 (2026-09-09): typecheck, validate-storage, validate-filters y exports Android/iOS/web correctos. Web conserva Precio 0–25, Distancia 0–50 y Música (4 eventos), limpia y recarga a 16; jazz devuelve 1 y desaparece al recargar sin perder filtros. El contador de escrituras permanece en cero al remontar con estado válido y buscar/recargar sin cambios de filtros. Mañana también se conserva. Corrupción y versión desconocida vuelven a defaults; los IDs obsoletos se eliminan y se repara el JSON. Los fallos simulados de lectura/escritura mantienen Home utilizable; Limpiar intenta guardar incluso tras una lectura fallida. No hubo errores de consola, solo los avisos esperados de los fallos simulados. Los anchos CSS efectivos de 390 y 1440 no presentan desbordamiento horizontal.
 
 Expo Doctor, tras repetir las consultas que inicialmente fallaron por red, pasa 20/21: solo solicita los parches ya pendientes `expo ~57.0.21` y `expo-router ~57.0.20`, que no se actualizan en este paso. La prueba en navegador y los bundles no validan ejecución física ni reinicio del módulo nativo en Android/iOS.
+
+## Estabilización técnica Expo
+
+La base utiliza Expo `~57.0.22` y Expo Router `~57.0.21`. Son actualizaciones de parche dentro de SDK 57; React, React Native, AsyncStorage y el resto de dependencias directas conservan las versiones aprobadas. El lockfile versionado permite reinstalar con `npm ci` sin recalcular versiones.
+
+`scripts/run-validation.cjs` convierte las cuatro comprobaciones existentes en comandos npm reproducibles. Usa el TypeScript local, crea una carpeta única `.tmp-paso9-validation-{pid}` dentro de la raíz y la elimina siempre al terminar, también si falla una prueba. No instala un framework ni crea rutas de validación en la aplicación. El flujo recomendado es:
+
+```powershell
+npm ci
+npm run validate
+npm run typecheck
+npx expo-doctor
+git diff --check
+```
+
+`.gitignore` excluye temporales de validación, builds locales, directorios nativos generados, certificados y archivos `.env` locales, pero permite un futuro `.env.example` sin secretos. Actualmente la aplicación no necesita variables de entorno ni contiene credenciales. Cualquier valor `EXPO_PUBLIC_*` futuro se considera público en el cliente y no debe contener secretos.
+
+La configuración `app.json` permanece deliberadamente mínima. `name`, `slug`, `version`, el esquema `cultura`, el soporte tablet iOS, la salida web estática, Expo Router y las rutas tipadas son suficientes para desarrollo y exports locales. No se definen aún `ios.bundleIdentifier`, `android.package`, icono, splash, adaptive icon, favicon, universal links/app links ni proyecto EAS: dependen de identidad gráfica, dominio, cuentas y entornos todavía no aprobados.
+
+Como propuesta no vinculante, los identificadores nativos podrían seguir un dominio controlado, por ejemplo `com.cultura.app`, después de comprobar propiedad y disponibilidad. Antes de distribución se deberán aprobar identificadores, assets, firma, credenciales, perfiles development/preview/production, política de versiones y deep links asociados a dominio. El esquema local `cultura://` no sustituye esa configuración.
+
+No se crea `eas.json` ni se lanza una build en la nube. `npx expo export --platform all` comprueba resolución y bundling de Android, iOS y web, pero no genera binarios firmados ni prueba módulos nativos, permisos, hardware, simuladores o tiendas. En Windows no puede ejecutarse el simulador iOS local.
+
+`npm audit` se revisa de forma informativa. Sus avisos moderados se concentran en la cadena transitiva de Expo/Router; la corrección automática propone cambios incompatibles, por lo que no se ejecuta `npm audit fix`. Se revisarán nuevos parches compatibles o una actualización de SDK en una tarea separada. Ver [ADR-009](decisiones/ADR-009-estabilizacion-builds-expo.md).
+
+Validación del Paso 9 (2026-09-13): `expo install --check` confirma dependencias compatibles y Expo Doctor pasa 21/21. Las cuatro validaciones y el typecheck terminan con código 0. El export conjunto genera bundles Android, iOS y web y 18 rutas estáticas, incluidas las rutas dinámicas parametrizadas. El smoke web confirma Home, cinco tabs, búsqueda, filtros, persistencia tras recarga, rutas directas y vuelta; no registra errores ni avisos de consola ni desbordamiento horizontal en 390×844, 800×1280, 1440×900 y 844×390. No se ha realizado prueba física Android/iOS ni build firmada.
 
 ## Modelo de datos Expo
 
