@@ -7,6 +7,7 @@ const validations = Object.freeze({
   home: 'validate-home',
   filters: 'validate-filters',
   storage: 'validate-storage',
+  illustrations: 'validate-illustrations',
 });
 
 const requested = process.argv[2] ?? 'all';

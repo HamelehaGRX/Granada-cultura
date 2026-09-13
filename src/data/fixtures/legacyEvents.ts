@@ -1,4 +1,4 @@
-import data from '../../../app/data/eventos.json';
+import data from './raw/eventos.json';
 import { dateInTimeZone, dateToEpoch } from '../../features/events/dates';
 
 /** Contrato exacto del registro actual: gratis se representa con precio === 0. */

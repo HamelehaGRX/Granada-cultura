@@ -10,7 +10,7 @@ El orden de prioridad será:
 2. iOS.
 3. Web como plataforma complementaria.
 
-El prototipo de `app/` continúa siendo la referencia visual y funcional durante la migración. La nueva aplicación no lo sustituirá hasta alcanzar suficiente paridad y recibir aprobación expresa.
+El prototipo de `app/` se conserva como referencia histórica congelada. La aplicación Expo ya no importa código, datos ni assets desde esa carpeta, pero el legado no se moverá ni retirará sin aprobación expresa.
 
 ## Tecnologías principales
 
@@ -19,7 +19,7 @@ El prototipo de `app/` continúa siendo la referencia visual y funcional durante
 - **TypeScript estricto:** ayuda a detectar datos incorrectos y contratos incompletos antes de ejecutar la aplicación.
 - **Expo Router:** organiza la navegación mediante archivos y prepara las pantallas para enlaces profundos.
 
-Estas tecnologías sostienen la navegación, las pantallas provisionales y la primera Home real con eventos demo. El resto de la interfaz y las funcionalidades del prototipo continúa pendiente de migración.
+Estas tecnologías sostienen la navegación, las pantallas provisionales y la Home real con eventos demo, búsqueda, filtros persistentes, splash de marca e ilustraciones temporales. Las funcionalidades de producto aplazadas continúan fuera de la migración base.
 
 ## Base actual y estructura de crecimiento
 
@@ -75,21 +75,23 @@ Los colores, tipografías, espacios, radios, sombras, movimiento y breakpoints y
 
 `AppShell` controla el fondo y la safe area superior y lateral. `ScreenContainer` controla el padding responsive, el ancho máximo y el contenido scrollable. La navegación por pestañas conserva la safe area inferior, de modo que cada pantalla no la aplique por duplicado.
 
+`AppSplash`, montado desde el layout raíz, implementa la secuencia visual CULTURA con primitivas `Animated` y consulta `AccessibilityInfo` para reducirla cuando el sistema solicita menos movimiento. Es una capa de UI independiente del splash técnico nativo y no introduce branding definitivo en `app.json`.
+
 Home separa composición, estado y presentación dentro de `src/features/events/`. `HomeScreen` une shell, header y lista; `useHomeEvents` carga interfaces de repositorio y protege frente a respuestas obsoletas; `EventList` virtualiza con `FlatList`; y `EventCard` consume únicamente datos de dominio y funciones de presentación. La composición por defecto instancia los repositorios de fixtures una vez por montaje y puede sustituirse sin modificar los componentes.
 
-En móvil la lista usa una columna; desde tablet usa dos si el escalado de texto lo permite. Los estados loading, empty y error son componentes explícitos. El espacio de ilustración es decorativo y no resuelve assets todavía. Consultar [ADR-006](../decisiones/ADR-006-home-y-listado-eventos.md).
+En móvil la lista usa una columna; desde tablet usa dos si el escalado de texto lo permite. Los estados loading, empty y error son componentes explícitos. Cada tarjeta compone una ilustración decorativa resuelta fuera de `EventCard`. Consultar [ADR-006](../decisiones/ADR-006-home-y-listado-eventos.md) y [ADR-010](../decisiones/ADR-010-cierre-paridad-visual.md).
 
 El nombre de trabajo es CULTURA y Granada es el territorio piloto. Nombre definitivo, logo, paleta, tipografía, mascota e ilustraciones seguirán siendo sustituibles sin tener que recorrer todos los componentes.
 
 ## Datos y filtros
 
-Los JSON actuales se reutilizan mediante imports estáticos aislados en `src/data/fixtures/`, sin copiar datos ni modificar el prototipo. `LegacyEventFixture` describe el formato heredado y `mapLegacyEventToEvent` lo transforma al dominio. Home consume los repositorios; las rutas y componentes no importan el formato legado.
+Expo posee sus copias exactas de demostración en `src/data/fixtures/raw/`. Los imports estáticos quedan aislados en `src/data/fixtures/`; no resuelven dentro de `/app`. `LegacyEventFixture` describe el formato heredado y `mapLegacyEventToEvent` lo transforma al dominio. Home consume los repositorios; las rutas y componentes no importan el formato legado.
 
 `EventRepository` y `CategoryRepository` exponen `list` y `getById` asíncronos. Sus implementaciones `FixtureEventRepository` y `FixtureCategoryRepository` devuelven objetos independientes de dominio y rechazan datos inválidos. Las categorías conservan los IDs existentes y cada subcategoría pertenece a una categoría; sus IDs no se consideran globalmente únicos.
 
 `Event` usa `EventPrice` discriminado (gratis, fijo o rango en céntimos enteros), instantes ISO con offset y zona IANA explícita en la localización. El mapper emite UTC y utiliza `Europe/Madrid`, sin depender de la zona del dispositivo. Los datos ausentes permanecen opcionales. La adaptación temporal de fechas se limita a los fixtures y captura un día de referencia por instancia del repositorio. Las horas ambiguas o inexistentes de Madrid se rechazan.
 
-Las claves de ilustración son semánticas y tienen fallback `generica`; no se importan assets todavía. Las validaciones y las funciones de conversión son puras y no utilizan el DOM. Consultar [ADR-005](../decisiones/ADR-005-modelo-datos-y-repositorios.md) y la sección Modelo de datos Expo de la guía para contratos y pruebas.
+Las claves de ilustración son semánticas y tienen fallback `generica`. Un mapa central las resuelve a placeholders gráficos hechos con primitivas React Native, compatibles con Android, iOS y web y sustituibles después por assets estáticos. Las validaciones y las funciones de conversión son puras y no utilizan el DOM. Consultar [ADR-005](../decisiones/ADR-005-modelo-datos-y-repositorios.md), [ADR-010](../decisiones/ADR-010-cierre-paridad-visual.md) y la sección Modelo de datos Expo de la guía.
 
 El Paso 7 implementa `features/filters/` y `features/search/`: tipos/reducer, lógica pura y componentes separados. Home conserva una instancia local de useEventFilters; filterEvents recibe los datos de repositorio, catálogo, estado e instante de referencia. Combina AND entre tipos de filtro y OR entre categorías/subcategorías. Las fechas respetan la zona del evento; precios se comparan en céntimos y distancia en metros. No hay store global. El Paso 8 añade persistencia local de los filtros, separada del reducer y de la UI.
 
@@ -109,12 +111,14 @@ JSON corrupto y versiones desconocidas vuelven a defaults y se reparan con v1. U
 
 CULTURA mantendrá una ilustración reutilizable por categoría o subcategoría, nunca una imagen distinta para cada evento como sistema base.
 
-Existirán:
+Actualmente existen:
 
-- un mapa explícito entre categoría/subcategoría y asset;
-- una ilustración genérica de fallback;
+- un mapa explícito entre `illustrationKey` y representación temporal;
+- una representación genérica de fallback;
 - iconos y recursos de marca separados;
 - una ruta clara para sustituir placeholders por ilustraciones definitivas de un dibujante externo.
+
+Los SVG del prototipo no se importan: React Native native no los consume directamente sin soporte adicional. Los placeholders se construyen con `View` y `Text`, permanecen ocultos al lector de pantalla y conservan la misma interfaz de resolución para sustituirlos por PNG, WEBP u otra estrategia estática aprobada.
 
 ## Backend futuro
 

@@ -4,9 +4,9 @@
 
 CULTURA ha iniciado una migración incremental hacia React Native, Expo, TypeScript estricto y Expo Router. Android e iOS son las plataformas prioritarias; web continúa como plataforma complementaria.
 
-Ya existe una base Expo mínima en `src/`. La carpeta `app/` conserva intacto el prototipo web aprobado y no se eliminará, moverá ni ampliará con funcionalidades grandes salvo petición explícita. Seguirá sirviendo como referencia hasta que la nueva aplicación alcance suficiente paridad y el usuario autorice qué hacer con el legado.
+La aplicación Expo de `src/` ya dispone de una base funcional. La carpeta `app/` conserva intacto el prototipo web aprobado como referencia histórica congelada y no se eliminará, moverá ni ampliará salvo petición explícita. Expo no importa código, datos ni assets desde ella.
 
-La base nueva dispone de dominio tipado, repositorios demo y Home con tarjetas, búsqueda y filtros. Las ilustraciones y las funcionalidades de las otras pestañas siguen pendientes de tareas independientes.
+La base nueva dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, splash visual y placeholders gráficos reutilizables. Las funcionalidades de las otras pestañas siguen pendientes de tareas independientes.
 
 ## Estructura general
 
@@ -17,14 +17,15 @@ La base nueva dispone de dominio tipado, repositorios demo y Home con tarjetas, 
 - `tsconfig.json`: TypeScript estricto y alias interno `@/`.
 - `app/`: prototipo web legado aprobado, sin frameworks ni dependencias externas.
 - `src/app/`: rutas y layouts de la nueva aplicación Expo.
-- `src/components/`: componentes reutilizables; contiene el shell, el contenedor de pantalla y la pantalla provisional común.
+- `src/components/`: componentes reutilizables; contiene branding, shell, contenedor de pantalla y pantalla provisional común.
 - `src/config/`: configuración sustituible, incluida la identidad provisional de marca.
 - `src/theme/`: colores, tipografía, espaciado, radios, sombras, movimiento y breakpoints centralizados.
 - `src/storage/`: claves, contrato JSON tipado, adaptador AsyncStorage y frontera de migraciones.
-- `src/features/events/` y `src/features/categories/`: modelos de dominio, adaptación y repositorios de eventos y categorías.
+- `src/features/events/` y `src/features/categories/`: modelos, adaptación, repositorios, Home y resolución de ilustraciones.
 - `src/types/common.ts`: coordenadas, instantes ISO y zona horaria compartidos.
-- `src/data/fixtures/`: frontera temporal que importa los JSON existentes sin modificarlos ni duplicarlos.
+- `src/data/fixtures/`: frontera de fixtures; `raw/` contiene las copias demo propiedad de Expo.
 - `scripts/validate-data.ts`: comprobaciones de datos sin framework adicional; se ejecuta fuera de la aplicación.
+- `scripts/validate-illustrations.ts`: comprueba claves, fallback e independencia de `/app`.
 - `assets/brand/`: ubicación reservada para futuros recursos definitivos de marca; no reutiliza los iconos PWA.
 - `app/data/`: catálogo de categorías y eventos demo en JSON.
 - `app/assets/icons/`: iconos de instalación existentes.
@@ -299,9 +300,21 @@ No se crea `eas.json` ni se lanza una build en la nube. `npx expo export --platf
 
 Validación del Paso 9 (2026-09-13): `expo install --check` confirma dependencias compatibles y Expo Doctor pasa 21/21. Las cuatro validaciones y el typecheck terminan con código 0. El export conjunto genera bundles Android, iOS y web y 18 rutas estáticas, incluidas las rutas dinámicas parametrizadas. El smoke web confirma Home, cinco tabs, búsqueda, filtros, persistencia tras recarga, rutas directas y vuelta; no registra errores ni avisos de consola ni desbordamiento horizontal en 390×844, 800×1280, 1440×900 y 844×390. No se ha realizado prueba física Android/iOS ni build firmada.
 
+## Cierre de paridad visual base — Paso 10B.1
+
+Expo ya no depende del prototipo: `src/data/fixtures/raw/eventos.json` y `categorias.json` son copias funcionalmente idénticas propiedad de la aplicación nueva. `legacyEvents.ts` y `legacyCategories.ts` solo importan desde esa ubicación. El prototipo conserva sus propios JSON, código, manifest, service worker y assets sin cambios. Esta duplicación es deliberada mientras `/app` permanezca como referencia histórica congelada; un backend futuro sustituirá los fixtures mediante las interfaces de repositorio existentes.
+
+`AppSplash`, montado por el layout raíz, muestra `CULTURA` en blanco sobre el fondo crema del theme. La secuencia normal espera 250 ms, presenta el nombre durante 550 ms, lo mantiene 800 ms y desvanece la capa durante 400 ms, aproximadamente dos segundos en total. `AccessibilityInfo` consulta y observa la preferencia de movimiento reducido; en ese modo muestra el nombre directamente y libera la aplicación en unos 200 ms. El contenido real se monta debajo del overlay para aprovechar el tiempo de carga y el color compartido evita un flash entre capas. Este splash pertenece a la UI y no sustituye el splash técnico nativo de Expo.
+
+`src/features/events/illustrations/illustrationMap.ts` es la única tabla `illustrationKey → representación`. `EventIllustration` resuelve allí cada clave y dibuja un placeholder suave con primitivas React Native; no utiliza DOM, imports dinámicos, SVG ni dependencias adicionales. Las ilustraciones son decorativas y se ocultan al lector de pantalla. Las 15 claves usadas por los eventos demo disponen de representación; una clave ausente, desconocida o catalogada sin archivo utiliza `generica`.
+
+Los SVG de `/app` siguen siendo únicamente recursos del prototipo. No se copian ni se consumen porque Android/iOS necesitarían soporte adicional. Cuando llegue el arte definitivo, el resolver podrá apuntar a imports estáticos de PNG/WEBP u otra solución aprobada sin cambiar EventCard ni asignar una imagen por evento.
+
+`npm run validate` incluye `validate-illustrations.ts`: comprueba todas las claves demo, el fallback, una clave inexistente y que ningún import ejecutable bajo `src/` resuelva dentro de `/app`. La sidebar de escritorio y la animación final del buscador continúan pendientes; este paso no las declara completadas. Ver [ADR-010](decisiones/ADR-010-cierre-paridad-visual.md).
+
 ## Modelo de datos Expo
 
-El Paso 5 incorporó los datos de demostración tipados y el Paso 6 conecta sus repositorios únicamente a Home. El flujo es: JSON legado → fixtures → mapper y repositorios → dominio → hook de Home. Solo `src/data/fixtures/legacyEvents.ts` y `legacyCategories.ts` importan los JSON de `app/data/`. TypeScript admite esos imports mediante `resolveJsonModule`, heredado de Expo. No se copian manualmente los 16 registros ni el catálogo 11/59.
+El Paso 5 incorporó los datos de demostración tipados y el Paso 6 conecta sus repositorios únicamente a Home. Desde el Paso 10B.1 el flujo es: JSON propios de Expo en `src/data/fixtures/raw/` → fixtures → mapper y repositorios → dominio → hook de Home. TypeScript admite esos imports mediante `resolveJsonModule`, heredado de Expo. Las copias iniciales conservan exactamente los 16 registros y el catálogo 11/59 del snapshot congelado, pero no existe dependencia runtime ni de build respecto a `/app`.
 
 ### Modelo de dominio
 
@@ -318,7 +331,7 @@ Los alias `ISODateTime` y `TimeZone` expresan contratos, no validan strings por 
 
 `LegacyEventFixture` refleja exactamente los campos actuales en español. El JSON no contiene `gratis`, rangos, fin, organizadores ni coordenadas. `mapLegacyEventToEvent` es una función pura: recibe un registro legado y categorías de dominio, convierte nombres, omite textos opcionales vacíos, traduce euros a céntimos y valida la relación categoría/subcategoría. No altera la entrada ni lee el reloj.
 
-Las claves de ilustración son semánticas, por ejemplo `musica/rock`; `generica` es el fallback cuando no existe ilustración asignada. No son rutas de archivos. Dos eventos de la misma subcategoría comparten la clave. No se importan SVG ni se crea todavía un mapa de assets Expo; esa integración corresponde a su fase futura.
+Las claves de ilustración son semánticas, por ejemplo `musica/rock`; `generica` es el fallback cuando no existe ilustración asignada. No son rutas de archivos. Dos eventos de la misma subcategoría comparten la clave. El mapa Expo resuelve actualmente placeholders gráficos multiplataforma y queda preparado para sustituirlos por imports estáticos del arte definitivo.
 
 `fechaBase` se utiliza exclusivamente dentro del fixture de eventos. Sus diferencias de días se trasladan a un día de referencia, por defecto el día actual en `Europe/Madrid`. El repositorio captura ese día al construirse para que `list` y `getById` sean coherentes aunque cruce medianoche. Para renovar la demo se crea otra instancia; para pruebas se inyecta `referenceDate: 'YYYY-MM-DD'`. El desplazamiento opera sobre días civiles y conserva la hora local incluso al atravesar un cambio de horario.
 
@@ -344,7 +357,7 @@ npx expo-doctor
 git diff --check
 ```
 
-Usar `.tmp-paso5-check` solo si no existe previamente y retirar después únicamente esa carpeta de comprobación, verificando que su ruta absoluta queda dentro del repositorio. El script cubre 16 eventos, 11 categorías, 59 subcategorías, los 4 gratuitos y 12 de precio fijo, búsquedas por id/null, aislamiento de resultados, mapper puro, distancia fuera de Event, céntimos y entradas inválidas. También comprueba años bisiestos, cruce de año, verano/invierno y horas ambiguas/inexistentes de Madrid. Compilar y probar en Node no sustituye la futura validación de estas APIs en dispositivos Android/iOS.
+Usar `.tmp-paso5-check` solo si no existe previamente y retirar después únicamente esa carpeta de comprobación, verificando que su ruta absoluta queda dentro del repositorio. El conjunto cubre 16 eventos, 11 categorías, 59 subcategorías, los 4 gratuitos y 12 de precio fijo, búsquedas por id/null, aislamiento de resultados, mapper puro, distancia fuera de Event, céntimos y entradas inválidas. También comprueba años bisiestos, cruce de año, verano/invierno, horas ambiguas/inexistentes de Madrid, claves de ilustración, fallback e independencia de `/app`. Compilar y probar en Node no sustituye la validación de UI en dispositivos Android/iOS.
 
 ## Documentación futura
 

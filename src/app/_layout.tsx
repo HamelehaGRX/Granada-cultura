@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { AppSplash } from '@/components/branding/AppSplash';
 import { colors } from '@/theme';
 
 export default function RootLayout() {
@@ -33,6 +34,7 @@ export default function RootLayout() {
         />
       </Stack>
       <StatusBar style="dark" />
+      <AppSplash />
     </SafeAreaProvider>
   );
 }

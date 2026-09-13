@@ -12,11 +12,11 @@ Prioridad de plataformas:
 2. iOS.
 3. Web como plataforma complementaria.
 
-Ya existe una base Expo mínima en `src/`, preparada para recibir de forma incremental la interfaz y las funcionalidades aprobadas. El prototipo de `app/` continúa intacto como referencia durante esa migración.
+La aplicación Expo de `src/` ya contiene navegación, Home, búsqueda, filtros persistentes, splash de marca y placeholders gráficos reutilizables. Sus fixtures son propios y no dependen en runtime ni durante el build del prototipo de `app/`.
 
-## Prototipo actual
+## Prototipo legado congelado
 
-La carpeta `app/` contiene el prototipo web aprobado en HTML, CSS y JavaScript nativo. Se conserva temporalmente como referencia visual y funcional durante la migración.
+La carpeta `app/` contiene el prototipo web aprobado en HTML, CSS y JavaScript nativo. Se conserva intacta como referencia histórica congelada mientras se completa y aprueba la migración.
 
 El prototipo utiliza datos ficticios locales. No implementa todavía cuentas reales, favoritos persistentes, agenda persistente, backend, notificaciones ni geolocalización real.
 
@@ -48,7 +48,7 @@ npm run typecheck
 npx expo-doctor
 ```
 
-`npm run validate` ejecuta las validaciones de datos, Home, filtros y almacenamiento. Sus carpetas de compilación son temporales, se eliminan automáticamente y están excluidas por Git.
+`npm run validate` ejecuta las validaciones de datos, Home, filtros, almacenamiento, claves de ilustración e independencia respecto a `/app`. Sus carpetas de compilación son temporales, se eliminan automáticamente y están excluidas por Git.
 
 La configuración de EAS Build y los identificadores definitivos de Android/iOS se aplazan hasta disponer de cuentas, entornos de publicación y assets de marca aprobados. No deben inventarse para una build de producción.
 

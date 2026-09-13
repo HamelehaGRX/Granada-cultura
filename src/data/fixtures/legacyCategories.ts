@@ -1,4 +1,4 @@
-import data from '../../../app/data/categorias.json';
+import data from './raw/categorias.json';
 
 export type LegacyCategoryFixture = {
   id: string;
@@ -8,7 +8,7 @@ export type LegacyCategoryFixture = {
 
 const catalog: { categorias: LegacyCategoryFixture[] } = data;
 
-/** La única importación del catálogo legado queda detrás de esta frontera. */
+/** La única importación del catálogo demo queda detrás de esta frontera. */
 export function loadLegacyCategories(): LegacyCategoryFixture[] {
   return catalog.categorias.map(category => ({
     ...category,

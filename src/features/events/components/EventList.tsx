@@ -55,7 +55,8 @@ export function EventList({ data, categories, loading, error, onRetry, filters, 
       }
       renderItem={({ item, index }) => (
         <View style={[styles.cell, columns > 1 && styles.twoColumnCell]}>
-          <EventCard result={item} index={index} categoryLabel={eventCategoryLabel(item.event, categories)} />
+          <EventCard result={item} index={index} categoryLabel={eventCategoryLabel(item.event, categories)}
+            illustrationKey={item.event.illustrationKey} />
         </View>
       )}
       ListEmptyComponent={empty}
