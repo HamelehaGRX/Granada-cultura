@@ -1,7 +1,13 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet, Text, type ColorValue } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  type ColorValue,
+} from 'react-native';
 
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { breakpoints, colors, radii, sizes, spacing, typography } from '@/theme';
 
 type TabIconProps = {
   color: ColorValue;
@@ -12,7 +18,22 @@ function TabIcon({ color, glyph }: TabIconProps) {
   return <Text style={[styles.icon, { color }]}>{glyph}</Text>;
 }
 
+function TabLabel({ children, color, focused }: {
+  children: string;
+  color: ColorValue;
+  focused: boolean;
+}) {
+  return (
+    <Text style={[styles.label, { color }, focused && styles.activeLabel]}>
+      {children}
+    </Text>
+  );
+}
+
 export default function TabLayout() {
+  const { width } = useWindowDimensions();
+  const desktop = Platform.OS === 'web' && width >= breakpoints.desktop;
+
   return (
     <Tabs
       initialRouteName="index"
@@ -22,9 +43,14 @@ export default function TabLayout() {
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarActiveBackgroundColor: colors.surfaceElevated,
         sceneStyle: styles.scene,
-        tabBarStyle: styles.tabBar,
-        tabBarItemStyle: styles.tabBarItem,
-        tabBarLabelStyle: styles.label,
+        tabBarPosition: desktop ? 'left' : 'bottom',
+        tabBarVariant: desktop ? 'material' : 'uikit',
+        tabBarLabelPosition: 'below-icon',
+        tabBarStyle: desktop ? styles.sidebar : styles.tabBar,
+        tabBarItemStyle: desktop ? styles.sidebarItem : styles.tabBarItem,
+        tabBarLabel: ({ children, color, focused }) => (
+          <TabLabel color={color} focused={focused}>{children}</TabLabel>
+        ),
       }}
     >
       <Tabs.Screen
@@ -84,8 +110,33 @@ const styles = StyleSheet.create({
     borderRadius: radii.medium,
     marginVertical: spacing.xs,
   },
+  sidebar: {
+    width: 160,
+    minHeight: '100%',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.surface,
+    borderTopWidth: 0,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: colors.border,
+  },
+  sidebarItem: {
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: 64,
+    width: '100%',
+    height: 64,
+    minHeight: sizes.touchTarget,
+    maxHeight: 64,
+    borderRadius: radii.medium,
+    marginVertical: spacing.xs,
+  },
   label: {
     ...typography.caption,
+  },
+  activeLabel: {
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
   icon: {
     ...typography.heading,

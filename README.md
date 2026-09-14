@@ -4,7 +4,7 @@ CULTURA es una aplicación para descubrir y organizar planes culturales. Granada
 
 ## Estado del proyecto
 
-El proyecto está en transición incremental hacia una arquitectura mobile-first basada en React Native, Expo, TypeScript estricto y Expo Router.
+La migración base ha finalizado. La aplicación activa y principal de CULTURA es la implementación mobile-first de `src/`, basada en React Native, Expo, TypeScript estricto y Expo Router. Toda funcionalidad nueva debe desarrollarse sobre esta base.
 
 Prioridad de plataformas:
 
@@ -12,15 +12,15 @@ Prioridad de plataformas:
 2. iOS.
 3. Web como plataforma complementaria.
 
-La aplicación Expo de `src/` ya contiene navegación, Home, búsqueda, filtros persistentes, splash de marca y placeholders gráficos reutilizables. Sus fixtures son propios y no dependen en runtime ni durante el build del prototipo de `app/`.
+La aplicación Expo contiene navegación responsive, Home, búsqueda, filtros persistentes, splash de marca y placeholders gráficos reutilizables. Sus fixtures son propios y no dependen en runtime ni durante el build del prototipo de `app/`.
 
 ## Prototipo legado congelado
 
-La carpeta `app/` contiene el prototipo web aprobado en HTML, CSS y JavaScript nativo. Se conserva intacta como referencia histórica congelada mientras se completa y aprueba la migración.
+La carpeta `app/` contiene el prototipo web aprobado en HTML, CSS y JavaScript nativo. Se conserva intacta, funcional y congelada únicamente como referencia histórica; ya no es la aplicación principal ni una fuente de runtime o build para Expo.
 
 El prototipo utiliza datos ficticios locales. No implementa todavía cuentas reales, favoritos persistentes, agenda persistente, backend, notificaciones ni geolocalización real.
 
-No debe eliminarse ni moverse hasta que la futura versión Expo alcance una paridad suficiente y exista autorización explícita.
+No debe ampliarse ni recibir funcionalidades nuevas. Solo podrá modificarse por una necesidad histórica excepcional solicitada expresamente, y no se eliminará ni moverá sin autorización explícita.
 
 ## Puesta en marcha de la aplicación Expo
 
@@ -70,4 +70,4 @@ El desarrollo se realiza en la rama `desarrollo`. No se modifica `main`, ni se h
 
 ## Publicación
 
-El prototipo no representa la arquitectura definitiva ni tiene en este momento un procedimiento de publicación vigente documentado. Antes de publicar cualquier versión debe decidirse expresamente qué aplicación y qué carpeta se desplegarán.
+Expo es la única base candidata a futuras distribuciones. Todavía no existe un procedimiento de publicación: antes de distribuir deben aprobarse identificadores, assets técnicos, firma, EAS y configuración de tiendas o del posible despliegue web.

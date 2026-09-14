@@ -1,12 +1,12 @@
 # Guía del proyecto CULTURA
 
-## Estado de transición
+## Estado actual
 
-CULTURA ha iniciado una migración incremental hacia React Native, Expo, TypeScript estricto y Expo Router. Android e iOS son las plataformas prioritarias; web continúa como plataforma complementaria.
+La migración base a React Native, Expo, TypeScript estricto y Expo Router está completada. `src/` contiene la aplicación activa y principal de CULTURA. Android e iOS son las plataformas prioritarias; web continúa como plataforma complementaria cuidada.
 
-La aplicación Expo de `src/` ya dispone de una base funcional. La carpeta `app/` conserva intacto el prototipo web aprobado como referencia histórica congelada y no se eliminará, moverá ni ampliará salvo petición explícita. Expo no importa código, datos ni assets desde ella.
+La carpeta `app/` conserva intacto el prototipo web aprobado como referencia histórica congelada. No recibirá funcionalidades nuevas y solo podrá modificarse por una necesidad histórica excepcional solicitada expresamente. Expo no importa código, datos ni assets desde ella.
 
-La base nueva dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, splash visual y placeholders gráficos reutilizables. Las funcionalidades de las otras pestañas siguen pendientes de tareas independientes.
+La base principal dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, splash visual, navegación responsive y placeholders gráficos reutilizables. Las funcionalidades reales de las otras pestañas pertenecen a fases de producto independientes.
 
 ## Estructura general
 

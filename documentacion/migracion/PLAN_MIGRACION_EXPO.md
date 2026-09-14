@@ -1,5 +1,9 @@
 # Plan incremental de migración a Expo
 
+## Estado final
+
+La migración base está completada. Expo es la aplicación activa y principal; `app/` queda congelada como referencia histórica independiente. Las fases posteriores son evolución del producto, no trabajo pendiente de paridad base.
+
 ## Principios
 
 - Migrar en pasos pequeños y verificables.
@@ -10,6 +14,8 @@
 - Documentar las decisiones importantes mediante ADR.
 
 ## Fase 0 — Baseline y prototipo
+
+**Estado: completada.**
 
 Objetivo: establecer una referencia estable antes de crear Expo.
 
@@ -22,6 +28,8 @@ Objetivo: establecer una referencia estable antes de crear Expo.
 Resultado: baseline documental completo y prototipo intacto.
 
 ## Fase 1 — Base Expo
+
+**Estado: completada.**
 
 Objetivo: crear la aplicación mínima sin migrar aún la interfaz.
 
@@ -36,6 +44,8 @@ Resultado: base universal compilable, sin funcionalidades del prototipo.
 
 ## Fase 2 — Theme y shell
 
+**Estado: completada.**
+
 Objetivo: disponer de los cimientos visuales.
 
 - Crear tokens de color, tipografía, espaciado, radios, sombras y movimiento.
@@ -46,6 +56,8 @@ Objetivo: disponer de los cimientos visuales.
 Resultado: shell vacío y centralizado, preparado para cambiar de identidad.
 
 ## Fase 3 — Navegación
+
+**Estado: completada.**
 
 Objetivo: reproducir la estructura principal de navegación.
 
@@ -60,6 +72,8 @@ Resultado: esqueleto navegable en Android, iOS y web.
 
 ## Fase 4 — Datos demo y tipos
 
+**Estado: completada.**
+
 Objetivo: introducir datos sin acoplar la UI al JSON legado.
 
 - Definir tipos TypeScript de evento, categoría y subcategoría.
@@ -71,6 +85,8 @@ Objetivo: introducir datos sin acoplar la UI al JSON legado.
 Resultado: datos demo accesibles mediante contratos sustituibles por una API.
 
 ## Fase 5 — Home y EventCard
+
+**Estado: completada.**
 
 Objetivo: migrar la primera experiencia visual completa.
 
@@ -84,6 +100,8 @@ Resultado: pantalla Inicio reconocible y alimentada por fixtures.
 
 ## Fase 6 — Búsqueda y filtros
 
+**Estado: completada.**
+
 Objetivo: recuperar el comportamiento funcional aprobado.
 
 - Extraer búsqueda y reglas de filtrado como funciones puras.
@@ -96,6 +114,8 @@ Resultado: paridad funcional de búsqueda y filtros.
 
 ## Fase 7 — Responsive web
 
+**Estado: completada.**
+
 Objetivo: consolidar la plataforma complementaria.
 
 - Adaptar columnas, ancho de contenido y navegación lateral.
@@ -107,6 +127,8 @@ Resultado: web funcional y cuidada sin condicionar el diseño mobile-first.
 
 ## Fase 8 — Persistencia local
 
+**Estado: completada.**
+
 Objetivo: preparar funcionalidades locales sin backend.
 
 - Definir una interfaz de almacenamiento.
@@ -117,6 +139,8 @@ Objetivo: preparar funcionalidades locales sin backend.
 Resultado: persistencia local sustituible por servicios autenticados.
 
 ## Fase 9 — Builds y pruebas
+
+**Estado: completada para la migración base.** Las pruebas físicas y la distribución firmada permanecen como deuda de producto y publicación.
 
 Objetivo: probar la aplicación fuera del entorno básico de desarrollo.
 
@@ -131,6 +155,8 @@ Resultado: aplicación instalable y validada en las plataformas prioritarias.
 
 ## Fase 10 — Paridad y retirada progresiva
 
+**Estado: completada para la paridad base.** Expo se declara implementación principal y el prototipo se conserva congelado, sin retirarlo.
+
 Objetivo: decidir el futuro del prototipo con evidencia.
 
 - Elaborar una matriz de paridad visual y funcional.
@@ -139,7 +165,7 @@ Objetivo: decidir el futuro del prototipo con evidencia.
 - Solicitar aprobación explícita antes de mover o retirar `app/`.
 - Si se aprueba, conservar una referencia histórica adecuada y actualizar despliegues.
 
-Resultado: Expo pasa a ser la implementación principal sin pérdida accidental de comportamiento.
+Resultado: Expo es la implementación principal sin pérdida crítica de comportamiento base.
 
 ## Fases posteriores independientes
 

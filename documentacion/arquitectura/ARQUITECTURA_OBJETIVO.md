@@ -2,7 +2,7 @@
 
 ## Qué se está construyendo
 
-CULTURA evolucionará desde el prototipo web actual hacia una aplicación mobile-first. Esto significa que se diseñará y validará primero para teléfonos, sin dejar de ofrecer una versión cuidada para tablet y web.
+CULTURA utiliza ya una aplicación mobile-first en Expo como base principal. Se diseña y valida primero para teléfonos, sin dejar de ofrecer una versión cuidada para tablet y web.
 
 El orden de prioridad será:
 
@@ -10,7 +10,7 @@ El orden de prioridad será:
 2. iOS.
 3. Web como plataforma complementaria.
 
-El prototipo de `app/` se conserva como referencia histórica congelada. La aplicación Expo ya no importa código, datos ni assets desde esa carpeta, pero el legado no se moverá ni retirará sin aprobación expresa.
+El prototipo de `app/` se conserva intacto y congelado como referencia histórica. La aplicación Expo no importa código, datos ni assets desde esa carpeta; el legado no recibirá funcionalidad nueva ni se moverá o retirará sin aprobación expresa.
 
 ## Tecnologías principales
 
@@ -67,7 +67,7 @@ Las rutas de evento, organizador y notificaciones continúan provisionales. `/bu
 
 El esquema `cultura` y la estructura de Expo Router dejan preparada la navegación mediante deep links. Los dominios universales de iOS y Android, la asociación con un dominio web y los destinos de notificaciones push se configurarán únicamente cuando exista una tarea específica y entornos de publicación definidos.
 
-En web amplia, la navegación podrá transformarse en una barra lateral compacta conservando las mismas rutas y el mismo contenido.
+En web, desde 1100 px, las mismas tabs se presentan como una barra lateral compacta a la izquierda. Por debajo del breakpoint se conserva la navegación inferior; el cambio responde al redimensionado sin recarga y no duplica rutas ni shell.
 
 ## Theme e identidad
 
@@ -95,7 +95,7 @@ Las claves de ilustración son semánticas y tienen fallback `generica`. Un mapa
 
 El Paso 7 implementa `features/filters/` y `features/search/`: tipos/reducer, lógica pura y componentes separados. Home conserva una instancia local de useEventFilters; filterEvents recibe los datos de repositorio, catálogo, estado e instante de referencia. Combina AND entre tipos de filtro y OR entre categorías/subcategorías. Las fechas respetan la zona del evento; precios se comparan en céntimos y distancia en metros. No hay store global. El Paso 8 añade persistencia local de los filtros, separada del reducer y de la UI.
 
-Los paneles comparten el scroll de FlatList, con triggers 2×2 móvil/una fila tablet. SearchField sustituye visualmente la marca en el mismo header. Dos campos coordinados con ajustes accesibles cubren temporalmente precio/distancia; native usa entrada de fecha ISO y web su control date. No se añaden dependencias. Una futura consulta remota adaptará FilterState sin acoplar la UI al transporte; ver [ADR-007](../decisiones/ADR-007-busqueda-y-filtros.md).
+Los paneles comparten el scroll de FlatList, con triggers 2×2 móvil/una fila tablet. SearchField se expande desde la derecha dentro del mismo header mientras la marca se desplaza y desvanece; cerrar o pulsar Escape limpia la consulta y devuelve el foco a la lupa. La transición usa `Animated` y se vuelve prácticamente inmediata con movimiento reducido. El slider dual y los steppers compactos coordinados cubren precio/distancia; native usa entrada de fecha ISO y web su control date. Una futura consulta remota adaptará FilterState sin acoplar la UI al transporte; ver [ADR-007](../decisiones/ADR-007-busqueda-y-filtros.md) y [ADR-011](../decisiones/ADR-011-dual-range-slider.md).
 
 La distancia futura se calculará a partir de coordenadas. El repositorio demo convierte `distanciaKm` en `EventResult.distanceMeters`, que puede omitirse. No forma parte de `Event`: cambiar de usuario o consulta cambia la distancia, no la identidad ni los datos canónicos del evento.
 
