@@ -71,12 +71,10 @@ validación compartida, sin instalar un calendario.
 
 ## Slider dual
 
-No hay un slider dual disponible en las dependencias actuales. Se utiliza la alternativa
-autorizada de dos campos coordinados con botones −1/+1, accesibles y sin gestos personalizados.
-`RangeFilter` es un componente controlado con rango y callback por extremo; permite sustituir
-solo la UI por un slider dual dedicado en una futura tarea. No se presenta como slider ni se
-asigna ese rol a un control que no puede deslizarse. Es una limitación visual y de interacción
-del Paso 7, especialmente en native, pero permite seleccionar todo el dominio y solo gratis.
+El Paso 10B.2A incorpora un slider de doble tirador como ayuda visual y táctil mediante un
+adaptador propio. `RangeFilter` mantiene los campos coordinados y botones −1/+1 para edición
+exacta y como vía accesible garantizada. Reducer, semántica, persistencia y unidades no dependen
+de la librería. La decisión y sus límites se detallan en ADR-011.
 
 ## Consecuencias y backend futuro
 
@@ -85,7 +83,7 @@ Los componentes dependen del dominio y los repositorios existentes. El catálogo
 no se duplican. Una futura API podrá recibir un contrato de consulta adaptado desde FilterState;
 la paginación remota requerirá mover el filtrado al servidor para no filtrar solo una página.
 Se conserva el contrato de UI y se revisará esta decisión al introducir esa consulta, un
-calendario/slider dedicado, persistencia o necesidades de estado entre varias pantallas.
+calendario dedicado o necesidades de estado entre varias pantallas.
 
 ## Pruebas
 

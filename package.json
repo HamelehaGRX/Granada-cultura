@@ -16,6 +16,7 @@
     "validate:storage": "node scripts/run-validation.cjs storage"
   },
   "dependencies": {
+    "@react-native-assets/slider": "11.0.12",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~57.0.22",
     "expo-constants": "~57.0.17",

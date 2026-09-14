@@ -92,6 +92,11 @@ async function main() {
   assert.deepEqual(ids(combined), ['demo-06']);
   assert.equal(run(filterReducer(combined, { type: 'clear' })).length, 16);
   for (const kind of ['price', 'distance'] as const) {
+    for (const [min, max] of [[0, 1000], [0, 0], [0, 25], [25, 100], [500, 500], [1000, 1000]]) {
+      const range = apply({ type: 'range', kind, edge: 'min', value: min },
+        { type: 'range', kind, edge: 'max', value: max })[kind];
+      assert.deepEqual(range, { min, max }, `${kind} ${min}–${max}`);
+    }
     const crossed = apply({ type: 'range', kind, edge: 'max', value: 20 }, { type: 'range', kind, edge: 'min', value: 30 });
     assert.deepEqual(crossed[kind], { min: 30, max: 30 });
     assert.deepEqual(filterReducer(crossed, { type: 'range', kind, edge: 'max', value: -4 })[kind], { min: 0, max: 0 });
