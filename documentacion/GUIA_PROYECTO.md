@@ -8,6 +8,12 @@ La carpeta `app/` conserva intacto el prototipo web aprobado como referencia his
 
 La base principal dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, splash visual, navegación responsive y placeholders gráficos reutilizables. Las funcionalidades reales de las otras pestañas pertenecen a fases de producto independientes.
 
+## Gobernanza y Constitución
+
+La [Constitución de CULTURA](CONSTITUCION_CULTURA.md) es documentación viva y versionada que fija el propósito, los principios éticos y los límites del producto. Complementa la arquitectura, los ADR, la documentación de funcionalidades y los requisitos técnicos; no sustituye ninguno de ellos.
+
+Cuando una propuesta entre en conflicto con un principio constitucional, el conflicto debe elevarse y resolverse conscientemente antes de implementar el cambio. La Constitución puede evolucionar mediante nuevas versiones cuando aparezcan casos nuevos: la reforma debe identificar el principio afectado, explicar los riesgos y quedar documentada junto con las decisiones técnicas relacionadas cuando corresponda.
+
 ## Estructura general
 
 - `AGENTS.md`: reglas del proyecto; se mantiene en la raíz.
@@ -31,6 +37,7 @@ La base principal dispone de dominio tipado, repositorios demo, Home con tarjeta
 - `app/assets/icons/`: iconos de instalación existentes.
 - `app/assets/images/categorias/`: ilustraciones genéricas por categoría/subcategoría y fallback.
 - `documentacion/`: guías del prototipo, copias explicadas, arquitectura objetivo, decisiones y plan de migración.
+- `documentacion/CONSTITUCION_CULTURA.md`: documento rector vivo sobre propósito, ética y límites del producto.
 - `documentacion/arquitectura/`: descripción comprensible de la arquitectura futura.
 - `documentacion/decisiones/`: ADR de decisiones arquitectónicas aprobadas.
 - `documentacion/migracion/`: fases y criterios de la migración a Expo.

@@ -52,6 +52,10 @@ npx expo-doctor
 
 La configuración de EAS Build y los identificadores definitivos de Android/iOS se aplazan hasta disponer de cuentas, entornos de publicación y assets de marca aprobados. No deben inventarse para una build de producción.
 
+## Constitución del proyecto
+
+CULTURA dispone de una [Constitución del proyecto](documentacion/CONSTITUCION_CULTURA.md) que define su propósito, sus principios éticos y los límites del producto. Debe consultarse antes de tomar decisiones relevantes de producto, especialmente cuando afecten a personas, datos, IA, moderación, accesibilidad, monetización o gobernanza.
+
 ## Documentación
 
 La carpeta `documentacion/` contiene:

@@ -66,6 +66,41 @@ Codex debe pedir autorización antes de:
 - modificar servicios externos;
 - realizar cualquier acción irreversible o con impacto fuera del entorno local.
 
+## 1.2. Constitución y principios del proyecto
+
+`documentacion/CONSTITUCION_CULTURA.md` es el documento rector de CULTURA para su propósito, ética y límites de producto. Complementa la arquitectura técnica, los ADR, la documentación de funcionalidades y los requisitos concretos; no los sustituye.
+
+Antes de implementar cambios relevantes relacionados con privacidad, seguridad, cuentas, publicadores, IA, recomendaciones, moderación, monetización, publicidad, patrocinios, datos personales, geolocalización, accesibilidad, gobernanza o recopilación nacional de datos, el agente debe consultar íntegramente la Constitución.
+
+Si una petición parece entrar en conflicto con la Constitución, el agente debe:
+
+- avisarlo explícitamente antes de implementar el cambio;
+- indicar qué principio entra en conflicto;
+- no ocultar ni reinterpretar silenciosamente el principio;
+- proponer alternativas compatibles cuando existan;
+- solicitar una decisión humana si el conflicto es real.
+
+Una instrucción explícita nueva que altere un principio constitucional debe tratarse como una posible reforma del proyecto, no como un simple cambio técnico. Ante un caso nuevo, se identificará el principio afectado, se explicarán los riesgos y se tomará una decisión consciente. La Constitución se actualizará primero o conjuntamente con el cambio, se registrarán fecha y versión y, cuando corresponda, la decisión se reflejará también en un ADR o en la documentación técnica.
+
+La Constitución es documentación viva y versionable. No debe utilizarse como excusa para bloquear cambios puramente técnicos que no tengan implicaciones éticas o de producto.
+
+Principios nucleares, como referencia rápida:
+
+- el usuario no es el producto y no se venden perfiles ni información personal;
+- privacidad por defecto y minimización de datos;
+- cultura accesible y diversa, con cobertura rural como objetivo real;
+- lo grande no debe invisibilizar automáticamente a lo pequeño;
+- el dinero no compra ranking orgánico;
+- publicidad y patrocinio deben estar claramente identificados;
+- la base cultural esencial debe permanecer accesible gratuitamente;
+- las decisiones sensibles conservan control humano y la IA debe ser trazable y supervisada;
+- los cambios importantes de eventos deben ser auditables;
+- los publicadores deben estar sujetos a verificación y responsabilidad;
+- el usuario debe poder recuperar, descargar y eliminar sus datos;
+- se evitará el diseño adictivo.
+
+Este resumen no sustituye la lectura del documento completo.
+
 ## 2. Etapa y arquitectura principal
 
 CULTURA está migrando de forma incremental desde un prototipo web hacia su arquitectura definitiva:
