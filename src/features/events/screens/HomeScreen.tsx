@@ -7,6 +7,8 @@ import { HomeHeader } from '../components/HomeHeader';
 import { useHomeEvents } from '../hooks/useHomeEvents';
 import { createHomeRepositories, type HomeRepositories } from '../repositories/homeRepositories';
 import { FilterBar } from '../../filters/components/FilterBar';
+import { FilterModal } from '../../filters/components/FilterModal';
+import { activeFilterGroupCount } from '../../filters/draft';
 import { useEventFilters } from '../../filters/hooks/useEventFilters';
 import type { FilterPanel } from '../../filters/types';
 
@@ -18,11 +20,15 @@ export function HomeScreen({ repositories, incomingQuery, incomingPanel, onReque
   const { data, categories, loading, error, retry } = useHomeEvents(repositories ?? defaults);
   const filters = useEventFilters(data, categories, !loading && !error);
   const [panel, setPanel] = useState<FilterPanel | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const { setQuery } = filters;
   useEffect(() => {
     if (incomingQuery === undefined && incomingPanel === undefined) return;
     if (incomingQuery !== undefined) setQuery(incomingQuery);
-    if (incomingPanel === 'date') setPanel('date');
+    if (incomingPanel === 'date') {
+      setPanel('date');
+      setFiltersOpen(true);
+    }
     onRequestHandled?.();
   }, [incomingQuery, incomingPanel, onRequestHandled, setQuery]);
 
@@ -32,9 +38,12 @@ export function HomeScreen({ repositories, incomingQuery, incomingPanel, onReque
       <ScreenContainer>
         <EventList data={filters.results} categories={categories} loading={loading || (!error && !filters.hydrated)} error={error} onRetry={retry}
           filtered={filters.active} onClear={filters.clear}
-          filters={filters.hydrated ? <FilterBar state={filters.state} dispatch={filters.dispatch} categories={categories}
-            summaries={filters.summaries} onClear={filters.clear} panel={panel} onPanelChange={setPanel} /> : null} />
+          filters={filters.hydrated ? <FilterBar activeCount={activeFilterGroupCount(filters.state)}
+            onOpen={() => { setPanel(null); setFiltersOpen(true); }} /> : null} />
       </ScreenContainer>
+      <FilterModal visible={filtersOpen} appliedState={filters.state} categories={categories}
+        initialPanel={panel} onApply={filters.apply} onClearApplied={filters.clearFilters}
+        onDismiss={() => { setFiltersOpen(false); setPanel(null); }} />
     </AppShell>
   );
 }

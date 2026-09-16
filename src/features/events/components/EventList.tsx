@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { router } from 'expo-router';
 import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { breakpoints, colors, sizes, spacing, typography } from '@/theme';
@@ -53,10 +54,11 @@ export function EventList({ data, categories, loading, error, onRetry, filters, 
           <Text style={styles.note}>Eventos ficticios · Distancias de ejemplo, sin geolocalización.</Text>
         </View>
       }
-      renderItem={({ item, index }) => (
+      renderItem={({ item }) => (
         <View style={[styles.cell, columns > 1 && styles.twoColumnCell]}>
-          <EventCard result={item} index={index} categoryLabel={eventCategoryLabel(item.event, categories)}
-            illustrationKey={item.event.illustrationKey} />
+          <EventCard result={item} categoryLabel={eventCategoryLabel(item.event, categories)}
+            illustrationKey={item.event.illustrationKey}
+            onOpen={() => router.push({ pathname: '/eventos/[eventId]', params: { eventId: item.event.id } })} />
         </View>
       )}
       ListEmptyComponent={empty}

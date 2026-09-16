@@ -1,4 +1,5 @@
 import type { LegacyEventFixture } from '../../data/fixtures/legacyEvents';
+import { applyEventDetailFixture } from '../../data/fixtures/eventDetails';
 import type { Category } from '../categories/types';
 import { combineDateAndTime } from './dates';
 import type { Event } from './types';
@@ -28,6 +29,7 @@ export function mapLegacyEventToEvent(legacy: LegacyEventFixture, categories: re
     illustrationKey: subcategory?.illustrationKey ?? 'generica',
     status: 'scheduled',
   };
-  validateEvent(event, categories);
-  return event;
+  const detailed = applyEventDetailFixture(event);
+  validateEvent(detailed, categories);
+  return detailed;
 }

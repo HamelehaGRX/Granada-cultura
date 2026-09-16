@@ -9,7 +9,7 @@ import { combineDateAndTime, dateInTimeZone, dateToEpoch } from '../src/features
 import { mapLegacyEventToEvent } from '../src/features/events/mappers';
 import { FixtureEventRepository } from '../src/features/events/repositories/FixtureEventRepository';
 import { eurosToCents } from '../src/features/events/utils';
-import { validateEvent, validateEventPrice } from '../src/features/events/validation';
+import { validateEvent, validateEventPrice, validateEventTicketing } from '../src/features/events/validation';
 
 async function main() {
   const categoryRepository = new FixtureCategoryRepository();
@@ -41,7 +41,8 @@ async function main() {
     assert.equal(event.description, original.descripcion);
     assert.equal(event.artistName, original.artista || undefined);
     assert.equal(event.location.timeZone, 'Europe/Madrid');
-    assert.equal(event.status, 'scheduled');
+    const expectedStatus = event.id === 'demo-05' ? 'postponed' : event.id === 'demo-15' ? 'soldOut' : 'scheduled';
+    assert.equal(event.status, expectedStatus);
     assert.equal(dateInTimeZone(new Date(event.startsAt), event.location.timeZone), original.fecha);
     assert.equal(new Intl.DateTimeFormat('en-GB', {
       timeZone: event.location.timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
@@ -53,13 +54,23 @@ async function main() {
     for (const excluded of ['distanciaKm', 'distanceKm', 'distanceMeters', 'fechaBase', 'gratis', 'precio']) {
       assert.equal(excluded in event, false);
     }
-    for (const absent of ['organizerId', 'source', 'ticketUrl', 'endsAt', 'media', 'accessibility']) {
-      assert.equal(absent in event, false);
-    }
-    assert.equal(event.location.coordinates, undefined);
+    assert.equal(event.organizerId, event.organizer?.id);
+    assert.equal(event.source?.verifiedOfficial, true);
+    assert(event.ticketing);
+    validateEventTicketing(event.ticketing);
+    assert.equal(event.shortDescription, original.descripcion);
+    if (event.id === 'demo-01') assert.deepEqual(event.location.coordinates, { latitude: 37.176, longitude: -3.597 });
+    else assert.equal(event.location.coordinates, undefined);
     assert.deepEqual(await eventRepository.getById(event.id), event);
   }
   assert.equal(results.filter(result => result.event.price.kind === 'free').length, 4);
+  assert.equal(results.filter(result => result.event.status === 'soldOut').length, 1);
+  assert.equal(results.filter(result => result.event.status === 'postponed').length, 1);
+  assert(results.some(result => result.event.changeNotice?.kind === 'time'));
+  assert(results.some(result => result.event.program && result.event.program.length > 1));
+  assert(results.some(result => result.event.ticketing?.statuses.includes('reservationRequired')));
+  assert(results.some(result => result.event.ticketing?.statuses.includes('registrationRequired')));
+  assert(results.some(result => result.event.ticketing?.statuses.includes('unverified')));
   assert.equal(results[0].event.illustrationKey, results[13].event.illustrationKey);
   assert.equal(results[15].event.illustrationKey, 'generica');
   assert.equal(await eventRepository.getById('no-existe'), null);
@@ -86,6 +97,14 @@ async function main() {
     assert.throws(() => eurosToCents(invalid));
   }
   validateEventPrice({ kind: 'range', currency: 'EUR', minAmountCents: 0, maxAmountCents: 1200 });
+  validateEventTicketing({ statuses: ['available'], action: {
+    kind: 'purchase', url: 'https://example.org/entradas', verifiedOfficial: true,
+  }, baseAmountCents: 1000, feesAmountCents: 100, totalAmountCents: 1100 });
+  assert.throws(() => validateEventTicketing({ statuses: [] }));
+  assert.throws(() => validateEventTicketing({ statuses: ['available', 'available'] }));
+  assert.throws(() => validateEventTicketing({ statuses: ['available'], action: {
+    kind: 'purchase', url: 'no-es-url', verifiedOfficial: true,
+  } }));
   assert.throws(() => validateEventPrice({ kind: 'range', currency: 'EUR', minAmountCents: 1200, maxAmountCents: 1000 }));
   assert.throws(() => validateEventPrice({ kind: 'fixed', currency: 'EUR', amountCents: 0 }));
   assert.throws(() => validateEventPrice({ kind: 'fixed', currency: 'EUR', amountCents: 1.5 }));

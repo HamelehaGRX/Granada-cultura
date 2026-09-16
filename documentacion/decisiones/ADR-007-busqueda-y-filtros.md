@@ -41,28 +41,36 @@ Los fixtures mantienen su día de referencia por montaje, como acordó ADR-005.
   se incluye en estado neutro y se excluye cuando hay una restricción de distancia.
 - Rangos limitados a 0–1000, min ≤ max. Al cruzarse por edición, el otro extremo acompaña.
   Rangos neutros no se aplican (tampoco excluyen futuros precios/distancias superiores).
-- Limpiar restaura búsqueda, fecha y todos los rangos/categorías sin recarga.
+- La limpieza global de Home restaura búsqueda y filtros. La acción del modal limpia inmediatamente
+  fecha, rangos y categorías aplicados, pero mantiene separada la búsqueda.
 
 ## Home, rutas y fuente única de estado
 
 HomeHeader reemplaza visualmente la marca por SearchField dentro de la misma barra y da
 foco al campo. Cerrar o Escape vacía solo la búsqueda y devuelve foco a la acción de abrir.
-FilterBar forma parte del encabezado de FlatList: los paneles y categorías largas desplazan
-el contenido, sin overlay ni ScrollView vertical anidado. EventCard no filtra ni cambia.
+FilterBar forma parte del encabezado de FlatList únicamente como botón de apertura. Los controles
+se presentan en un `Modal` superpuesto, fuera del flujo del listado, de modo que no desplazan
+EventCard ni alteran la posición de scroll. El modal bloquea la interacción con Home; usa una
+ventana flotante de cuatro esquinas redondeadas y márgenes verticales en móvil, y una ventana
+centrada desde tablet. Web mejora el overlay con `backdrop-filter` y native conserva una
+atenuación semitransparente sin dependencia adicional.
 
-Se elige panel inline en todas las plataformas. `/filtros` conserva una entrada enlazable,
-pero redirige a Inicio con Fecha abierta; no mantiene una segunda UI modal. `/buscar?q=…`
-redirige a la misma Home y aplica la búsqueda. La ruta de Inicio consume y elimina esos
-parámetros tras entregarlos a Home. No se serializa el estado en URL ni se promete conservarlo
-tras recargar o desmontar. La infraestructura de modales permanece disponible para el futuro.
+El modal no crea una segunda fuente aplicada: al abrir clona fecha, precio, distancia y categorías
+en un borrador local. Los controles existentes editan esa copia. Guardar despacha una única acción
+al reducer y deja que la persistencia vigente observe el nuevo estado; cerrar, tocar el backdrop,
+Escape o Back descartan la copia. Limpiar neutraliza inmediatamente borrador y estado aplicado,
+actualiza la persistencia y mantiene el modal abierto; un cierre posterior no revierte la limpieza.
+`/filtros` conserva una entrada enlazable y redirige a Inicio con el modal abierto en Fecha;
+`/buscar?q=…` aplica la búsqueda separada. La ruta de Inicio consume ambos parámetros.
 
 ## Responsive y accesibilidad
 
-Cuatro triggers: 2×2 móvil, una fila desde tablet si la escala de texto lo permite. Solo
-un panel abierto; los otros triggers permanecen en el flujo. Sin valor aplicado se muestra
-solo el nombre centrado. Con valor aparece un resumen compacto con etiqueta accesible completa.
-La cuenta y el vacío explican resultados y permiten limpiar. Las categorías proceden del
-catálogo 11/59 del repositorio, sin duplicarlo.
+El botón compacto tiene target mínimo, foco visible y un badge que cuenta como máximo cuatro
+grupos efectivos. La búsqueda y la cantidad de subcategorías no incrementan ese valor. Dentro del
+modal, los cuatro triggers usan patrón 2×2 en móvil y una fila desde tablet; solo un grupo se
+expande a la vez y el contenido dispone de scroll propio mientras el pie de acciones permanece
+estable. La cuenta y el vacío explican resultados y permiten limpiar los filtros ya aplicados.
+Las categorías proceden del catálogo 11/59 del repositorio, sin duplicarlo.
 
 Controles con labels, roles, estados checked/expanded explícitos, foco visible, indicación
 de selección mediante marca además del color y targets mínimos de 44 px. Fecha usa `input
@@ -88,7 +96,8 @@ calendario dedicado o necesidades de estado entre varias pantallas.
 ## Pruebas
 
 `scripts/validate-filters.ts` cubre búsqueda, presets, custom, cambios de día/zona y DST,
-precios y solapamientos, distancias desconocidas, AND/OR, invariantes, no mutación y limpieza.
+precios y solapamientos, distancias desconocidas, AND/OR, invariantes, no mutación, borrador,
+aplicación, descarte, limpieza y conteo de grupos sin incluir la búsqueda.
 Se combina con los scripts de datos y Home, typecheck, Expo Doctor y bundles sin dependencias
 nuevas. Las comprobaciones de navegador usan 390×844, 800×1280, 1440×900 y 844×390.
 La ejecución web y el empaquetado no sustituyen pruebas posteriores en dispositivos físicos

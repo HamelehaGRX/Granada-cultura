@@ -9,6 +9,7 @@ export function createFilterState(): FilterState {
 export function filterReducer(state: FilterState, action: FilterAction): FilterState {
   switch (action.type) {
     case 'hydrate': return { ...action.value, query: state.query };
+    case 'apply': return { ...action.value, query: state.query };
     case 'clear': return createFilterState();
     case 'query': return { ...state, query: action.value };
     case 'date': return { ...state, date: action.value };

@@ -19,7 +19,7 @@ El prototipo de `app/` se conserva intacto y congelado como referencia históric
 - **TypeScript estricto:** ayuda a detectar datos incorrectos y contratos incompletos antes de ejecutar la aplicación.
 - **Expo Router:** organiza la navegación mediante archivos y prepara las pantallas para enlaces profundos.
 
-Estas tecnologías sostienen la navegación, las pantallas provisionales y la Home real con eventos demo, búsqueda, filtros persistentes, splash de marca e ilustraciones temporales. Las funcionalidades de producto aplazadas continúan fuera de la migración base.
+Estas tecnologías sostienen la navegación, las pantallas provisionales, la Home real y el detalle de evento con datos demo, búsqueda, filtros y preferencias persistentes, splash de marca e ilustraciones temporales. Las funcionalidades de producto aplazadas continúan fuera de la migración base.
 
 ## Base actual y estructura de crecimiento
 
@@ -63,7 +63,7 @@ En móvil se mantendrá el orden aprobado:
 
 Inicio ocupa la posición central y es la ruta inicial. Esa ruta compone `HomeScreen`, mientras las restantes tabs continúan provisionales. El stack raíz incluye rutas delgadas para detalle de evento, búsqueda, organizadores, notificaciones y el grupo de modales.
 
-Las rutas de evento, organizador y notificaciones continúan provisionales. `/buscar?q=…` entrega la consulta a Home y `/filtros`, en el grupo `(modals)`, abre su panel inline. Ambas entradas redirigen al mismo estado local y consumen sus parámetros. No hay una segunda UI de filtros dentro del modal ni acceso a servicios.
+La ruta `/eventos/[eventId]` ya ofrece el detalle real sobre `EventRepository`, con cabecera persistente, acciones personales, ticketing seguro, información ampliada y relacionados. Las rutas de organizador y notificaciones continúan provisionales. `/buscar?q=…` entrega la consulta a Home y `/filtros`, en el grupo `(modals)`, abre su panel inline. Ambas entradas redirigen al mismo estado local y consumen sus parámetros. No hay una segunda UI de filtros dentro del modal ni acceso a servicios.
 
 El esquema `cultura` y la estructura de Expo Router dejan preparada la navegación mediante deep links. Los dominios universales de iOS y Android, la asociación con un dominio web y los destinos de notificaciones push se configurarán únicamente cuando exista una tarea específica y entornos de publicación definidos.
 
@@ -101,11 +101,13 @@ La distancia futura se calculará a partir de coordenadas. El repositorio demo c
 
 ## Persistencia local no sensible
 
-`src/storage/` contiene claves centralizadas, tipos de sobre/driver, get/set/remove con JSON seguro, la frontera mínima de migraciones y el único adaptador AsyncStorage. `features/filters/persistence.ts` valida el dominio guardado; `usePersistedEventFilters` coordina la hidratación y el guardado automático de la instancia local de Home. La UI no accede al proveedor. El driver sustituible permite pruebas sin native/DOM y la futura incorporación de otras preferencias sin duplicar la capa técnica.
+`src/storage/` contiene claves centralizadas, tipos de sobre/driver, get/set/remove con JSON seguro, la frontera mínima de migraciones y el único adaptador AsyncStorage. `features/filters/persistence.ts` valida el dominio guardado; `usePersistedEventFilters` coordina la hidratación y el guardado automático de la instancia local de Home. `features/events/interactions/` aplica la misma frontera a favorito, Me interesa y Voy a ir mediante un proveedor común para tarjetas y detalle. La UI no accede al proveedor. El driver sustituible permite pruebas sin native/DOM y la futura incorporación de otras preferencias sin duplicar la capa técnica.
 
-La clave estable `cultura.filters` contiene `{ version: 1, data: ... }`. Solo se persisten fecha, precio, distancia y categorías/subcategorías. No se persisten query, eventos/resultados, fixtures ni información sensible. La hidratación espera al catálogo actual, descarta IDs obsoletos, normaliza fechas/rangos y aplica el reducer antes de permitir escrituras. Home usa su loading existente y mantiene la búsqueda temporal. La cola de storage ordena cambios rápidos; la comparación de snapshots evita duplicados.
+La clave estable `cultura.filters` contiene `{ version: 1, data: ... }`. Solo se persisten fecha, precio, distancia y categorías/subcategorías. `cultura.eventInteractions` usa otro sobre v1 y conserva únicamente favorito y la asistencia local de cada evento. No se persisten query, eventos/resultados, fixtures ni información sensible. La hidratación de filtros espera al catálogo actual, descarta IDs obsoletos, normaliza fechas/rangos y aplica el reducer antes de permitir escrituras. Home usa su loading existente y mantiene la búsqueda temporal. La cola de storage ordena cambios rápidos; la comparación de snapshots evita duplicados.
 
 JSON corrupto y versiones desconocidas vuelven a defaults y se reparan con v1. Un fallo de lectura mantiene defaults en memoria sin sobrescribir storage; los fallos de escritura no bloquean la app. No existe sincronización entre pestañas, dispositivos o cuentas. AsyncStorage no cifra datos sensibles: futuros tokens/credenciales requerirán SecureStore en una tarea específica. Las futuras migraciones serán explícitas y testeadas; actualmente solo existe v1. Ver [ADR-008](../decisiones/ADR-008-persistencia-local.md).
+
+El detalle mantiene separadas carga, presentación, interacciones, ticketing y relacionados. Los enlaces directos de entrada solo se exponen tras una comprobación central de URL, origen oficial y estado. La selección relacionada es local, determinista y explicable: afinidad primero y, como máximo, una propuesta popular compatible. No hay perfilado remoto ni IA. Ver [la documentación del detalle](../DETALLE_EVENTO.md).
 
 ## Assets e ilustraciones
 

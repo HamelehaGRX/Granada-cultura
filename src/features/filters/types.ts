@@ -13,9 +13,11 @@ export type FilterState = {
   distance: NumericRange;
   categories: CategorySelection;
 };
+export type FilterSelection = Omit<FilterState, 'query'>;
 export type FilterPanel = 'date' | 'price' | 'distance' | 'categories';
 export type FilterAction =
   | { type: 'hydrate'; value: Omit<FilterState, 'query'> }
+  | { type: 'apply'; value: FilterSelection }
   | { type: 'query'; value: string }
   | { type: 'date'; value: DateFilterValue }
   | { type: 'range'; kind: 'price' | 'distance'; edge: 'min' | 'max'; value: number }

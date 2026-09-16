@@ -6,7 +6,7 @@ La migración base a React Native, Expo, TypeScript estricto y Expo Router está
 
 La carpeta `app/` conserva intacto el prototipo web aprobado como referencia histórica congelada. No recibirá funcionalidades nuevas y solo podrá modificarse por una necesidad histórica excepcional solicitada expresamente. Expo no importa código, datos ni assets desde ella.
 
-La base principal dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, splash visual, navegación responsive y placeholders gráficos reutilizables. Las funcionalidades reales de las otras pestañas pertenecen a fases de producto independientes.
+La base principal dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, detalle completo de evento, preferencias locales de evento, splash visual, navegación responsive y placeholders gráficos reutilizables. Las funcionalidades reales de las otras pestañas pertenecen a fases de producto independientes.
 
 ## Gobernanza y Constitución
 
@@ -27,7 +27,7 @@ Cuando una propuesta entre en conflicto con un principio constitucional, el conf
 - `src/config/`: configuración sustituible, incluida la identidad provisional de marca.
 - `src/theme/`: colores, tipografía, espaciado, radios, sombras, movimiento y breakpoints centralizados.
 - `src/storage/`: claves, contrato JSON tipado, adaptador AsyncStorage y frontera de migraciones.
-- `src/features/events/` y `src/features/categories/`: modelos, adaptación, repositorios, Home y resolución de ilustraciones.
+- `src/features/events/` y `src/features/categories/`: modelos, adaptación, repositorios, Home, detalle de evento, interacciones locales y resolución de ilustraciones.
 - `src/types/common.ts`: coordenadas, instantes ISO y zona horaria compartidos.
 - `src/data/fixtures/`: frontera de fixtures; `raw/` contiene las copias demo propiedad de Expo.
 - `scripts/validate-data.ts`: comprobaciones de datos sin framework adicional; se ejecuta fuera de la aplicación.
@@ -38,6 +38,7 @@ Cuando una propuesta entre en conflicto con un principio constitucional, el conf
 - `app/assets/images/categorias/`: ilustraciones genéricas por categoría/subcategoría y fallback.
 - `documentacion/`: guías del prototipo, copias explicadas, arquitectura objetivo, decisiones y plan de migración.
 - `documentacion/CONSTITUCION_CULTURA.md`: documento rector vivo sobre propósito, ética y límites del producto.
+- `documentacion/DETALLE_EVENTO.md`: funcionamiento, reglas de seguridad, persistencia y validación del detalle Expo.
 - `documentacion/arquitectura/`: descripción comprensible de la arquitectura futura.
 - `documentacion/decisiones/`: ADR de decisiones arquitectónicas aprobadas.
 - `documentacion/migracion/`: fases y criterios de la migración a Expo.
@@ -183,13 +184,13 @@ La navegación principal mantiene cinco tabs, en este orden: Explorar, Agenda, I
 
 El stack raíz compone las tabs con rutas auxiliares delgadas:
 
-- `/eventos/[eventId]`: detalle provisional que muestra el identificador recibido;
+- `/eventos/[eventId]`: detalle real cargado desde `EventRepository`;
 - `/buscar?q=...`: entrada que aplica el término en la búsqueda real de Home;
 - `/organizadores/[organizerId]`: perfil provisional que muestra el identificador;
 - `/notificaciones`: futura lista de notificaciones y punto de entrada para enlaces a eventos;
 - `/filtros`: entrada del grupo `(modals)` que lleva al panel inline de Home.
 
-`PlaceholderScreen` proporciona título, descripción y vuelta en las rutas provisionales. Sin historial, Volver lleva a Inicio. Buscar y Filtros reutilizan el único estado de Home mediante redirecciones; no hay segunda pantalla ni estado modal de filtros. La infraestructura de modales se conserva.
+`PlaceholderScreen` proporciona título, descripción y vuelta en las rutas que continúan provisionales. El detalle de evento usa su propia pantalla; sin historial, Volver lleva a Inicio. Buscar y Filtros reutilizan el único estado de Home mediante redirecciones; no hay segunda pantalla ni estado modal de filtros. La infraestructura de modales se conserva.
 
 La estructura admite rutas web directas y el esquema `cultura://`, pero no se han configurado dominios universales, app links ni servicios de producción. Home busca y filtra datos demo; no ejecuta notificaciones ni consultas remotas.
 
@@ -203,15 +204,27 @@ La ruta `src/app/(tabs)/index.tsx` se mantiene delgada y entrega los parámetros
 
 `EventList` usa `FlatList`, claves de evento estables y renderizado inicial limitado. Muestra una columna en móvil y dos desde el breakpoint de tablet mientras el escalado de texto no supere el límite previsto; cuando aumenta, vuelve a una columna. La lista se remonta al cambiar el número de columnas, según requiere React Native. El encabezado presenta Inicio, Granada, el recuento de planes y el aviso de que eventos y distancias son ficticios.
 
-`EventCard` es una pieza visual no interactiva en este paso. Presenta categoría y subcategoría, título, fecha/hora en la zona del evento, lugar/localidad, distancia demo y precio. Los bordes alternan tres tokens suaves. Reserva un espacio decorativo sin descripción para la futura ilustración y acepta un asset ya resuelto, pero no convierte claves en rutas ni importa SVG. Las tarjetas no navegan aún al detalle.
+`EventCard` presenta categoría y subcategoría en una franja superior, y conserva título, fecha/hora en la zona del evento, lugar/localidad, distancia demo y precio en el cuerpo claro. Cada categoría obtiene desde el theme un color principal para borde/texto y un tono suave para la franja; el texto permanece siempre visible. La acción principal abre el detalle; el corazón mantiene un área táctil de 44 px sin círculo visual y cambia favorito sin provocar navegación. Me interesa y Voy a ir se muestran como indicadores accesibles sin texto visual ni interacción. Me interesa utiliza un ámbar oscuro centralizado que mantiene contraste AA sobre todas las franjas suaves.
 
 Las funciones de `presentation.ts` ordenan por instante de inicio y, en empate, por distancia disponible; los resultados sin distancia quedan después de los que sí la tienen. El orden no muta la entrada. La fecha se formatea con `Intl` y la zona IANA del evento. El precio consume `EventPrice`: `Gratis`, importe fijo o intervalo, conservando céntimos cuando existen. La distancia se etiqueta explícitamente como demo.
 
 Los estados viven en componentes separados. Loading expone una región viva y `aria-busy`; empty comunica que todavía no hay encuentros; error usa rol de alerta y ofrece un botón Reintentar de 44 px con foco visible. La solución usa props aceptadas por React Native y React Native Web, sin APIs del DOM en el código universal.
 
-La validación web cubre 390×844, 800×1280, 1440×900 y cambio de orientación: una/dos columnas, etiquetas completas en la navegación, jerarquía de encabezados, ausencia de overflow y tarjetas sin elementos interactivos. También fuerza loading, empty, error, retry, desmontaje y respuestas obsoletas mediante una ruta temporal que no forma parte del resultado final. `scripts/validate-home.ts` comprueba orden, offsets, estabilidad, precios, etiquetas y formato en Madrid sin framework adicional.
+La validación web de Home cubre 390×844, 800×1280, 1440×900 y cambio de orientación: una/dos columnas, etiquetas completas en la navegación, jerarquía de encabezados, ausencia de overflow y separación entre la apertura de detalle y favorito. También fuerza loading, empty, error, retry, desmontaje y respuestas obsoletas mediante una ruta temporal que no forma parte del resultado final. `scripts/validate-home.ts` comprueba orden, offsets, estabilidad, precios, etiquetas y formato en Madrid sin framework adicional.
 
-El Paso 6 dejó búsqueda y filtros para el Paso 7, descrito a continuación. El Paso 8 incorpora persistencia de filtros. Continúan pendientes splash, navegación desde tarjetas, favoritos, agenda, assets reales, sidebar, ubicación y backend.
+El Paso 6 dejó búsqueda y filtros para el Paso 7, descrito a continuación. El Paso 8 incorpora persistencia de filtros. El detalle de evento y las preferencias locales se documentan en la sección siguiente. Continúan pendientes agenda real, assets definitivos, ubicación y backend.
+
+## Detalle de evento Expo
+
+`/eventos/[eventId]` es una ruta real y enlazable que carga el evento desde `EventRepository` y delega la interfaz en `EventDetailScreen`. Presenta avisos de cambio antes que el resto, información esencial, entradas, acciones personales, descripción, contenido ampliado y hasta cuatro eventos relacionados. Un acceso directo puede volver a Inicio aunque no exista historial previo.
+
+Las tarjetas abren el detalle desde su acción principal. Su botón de favorito es independiente y no navega. Favorito se mantiene separado de Me interesa y Voy a ir; estas dos últimas opciones son mutuamente excluyentes. Los estados se comparten entre tarjetas y detalle y se guardan localmente, con sobre versionado, mediante la misma abstracción de storage utilizada por los filtros.
+
+Los enlaces de compra, reserva o inscripción solo aparecen si `getSafeTicketingAction` confirma una URL HTTPS oficial verificada y un estado compatible. HTTP, esquemas no web, agotado, venta no iniciada o procedencia no verificada bloquean la acción y, cuando corresponde, muestran un aviso de seguridad. Los enlaces informativos de fuente pueden seguir usando HTTP o HTTPS. Gratis, aforo libre, gastos, total, cambios, aplazamiento y patrocinio conservan etiquetas explícitas.
+
+Los relacionados se seleccionan de forma determinista por afinidad de categoría/subcategoría e interacciones locales. Se admite como máximo una propuesta popular compatible para descubrimiento; la popularidad y el patrocinio no compran el ranking. No hay IA, perfilado oculto ni datos enviados fuera del dispositivo.
+
+La ficha limita el ancho de lectura en escritorio, evita desbordamiento móvil y mantiene una cabecera persistente. Roles, estados, avisos, foco y objetivos táctiles se han diseñado para accesibilidad; la comprobación final en dispositivos con TalkBack y VoiceOver permanece como validación previa a publicación. La descripción detallada está en [Detalle de evento](DETALLE_EVENTO.md).
 
 ## Búsqueda y filtros Expo
 
@@ -227,13 +240,15 @@ Precio opera con EventPrice: gratis es cero, fijo conserva céntimos y un rango 
 
 El catálogo procede de FixtureCategoryRepository (11 categorías y 59 subcategorías). Varias categorías se combinan con OR; subcategorías dentro de cada categoría, también OR. Categoría sin subselección incluye todas. Desmarcar categoría elimina sus subfiltros. Búsqueda, fecha, precio, distancia y grupos de categorías se combinan con AND.
 
-FilterBar usa 2×2 en móvil y una fila desde tablet cuando la escala de texto lo permite. Solo abre un panel y conserva visibles los cuatro triggers. Sin filtro se muestra el nombre centrado; con filtro, un resumen compacto. Todo está dentro de FlatList, sin superposición ni scroll vertical anidado. El resumen activo, contador de eventos y vacío con Limpiar filtros permiten entender y restaurar el resultado a los 16 eventos. Limpiar también vacía búsqueda y fechas personalizadas.
+FilterBar muestra en el flujo de Home un único botón compacto y centrado con engranaje, el texto «¿Qué te apetece hoy?» y, cuando corresponde, un badge de 1 a 4. El badge cuenta grupos aplicados —fecha, precio, distancia y categorías—, no valores o subcategorías; la búsqueda permanece separada y no suma. En móvil abre una ventana flotante superpuesta de un 82 % de altura, con margen visible arriba y abajo, cuatro esquinas redondeadas y una ligera elevación. Desde tablet conserva la ventana centrada y contenida. `Modal` bloquea interacción y scroll del Home situado detrás; web añade desenfoque progresivo y las demás plataformas mantienen una atenuación semitransparente sin dependencia nueva.
 
-`/buscar?q=jazz` y `/filtros` conducen a Home y aplican, respectivamente, la búsqueda o apertura de Fecha. Inicio consume y retira esos parámetros. Se comparte un único estado local; el antiguo modal no duplica controles. Desde el Paso 8 se restauran los filtros al recargar o remontar Home; la búsqueda y el panel abierto siguen siendo temporales. Abrir expresamente un enlace de búsqueda aplica su consulta, mientras que recargar Home después de consumirla deja la búsqueda vacía.
+El panel crea un borrador a partir de los filtros aplicados cada vez que se abre. Fecha, rangos y categorías editan exclusivamente ese borrador, por lo que el listado, el badge y el almacenamiento no cambian durante la edición. «Guardar filtros» sustituye los grupos aplicados, activa la persistencia existente y cierra conservando la posición del listado. «Limpiar filtros» es una acción aplicada explícita: neutraliza inmediatamente el borrador y los filtros aplicados, actualiza Home, badge y almacenamiento, pero mantiene la ventana abierta. Después se pueden elegir filtros nuevos y guardarlos. Cerrar con ×, tocar el fondo, pulsar Escape en web o usar Back en Android descarta solo cambios de borrador no guardados; nunca revierte una limpieza ya aplicada. Las acciones, ordenadas como Guardar y Limpiar, permanecen fuera del scroll interno y accesibles al pie del panel.
+
+`/buscar?q=jazz` y `/filtros` conducen a Home y aplican, respectivamente, la búsqueda o apertura del modal en Fecha. Inicio consume y retira esos parámetros. Se comparte un único estado aplicado; el modal mantiene solo una copia borrador temporal y reutiliza los controles existentes. Desde el Paso 8 se restauran los filtros guardados al recargar o remontar Home; la búsqueda y el panel abierto siguen siendo temporales. Abrir expresamente un enlace de búsqueda aplica su consulta, mientras que recargar Home después de consumirla deja la búsqueda vacía.
 
 Hay labels, roles, checked/expanded, regiones vivas, foco visible, selección marcada además del color y controles de al menos 44 px. Los tiradores incorporan rol ajustable, valores y teclado básico proporcionados por la librería, pero sus etiquetas internas se limitan a mínimo/máximo; los campos identifican expresamente Precio o Distancia y siguen siendo la vía accesible completa. Los cuatro tamaños de validación son 390×844, 800×1280, 1440×900 y 844×390. Dispositivos físicos, teclado native y lector de pantalla requieren una comprobación posterior.
 
-`scripts/validate-filters.ts` cubre búsqueda, fechas/zona/DST, precios, distancia, AND/OR, invariantes, limpieza y ausencia de mutación. Se ejecuta con el TypeScript y Node existentes:
+`scripts/validate-filters.ts` cubre búsqueda, fechas/zona/DST, precios, distancia, AND/OR, invariantes, ausencia de mutación y el flujo modal de copia, edición, descarte, guardado, limpieza y contador por grupos. Se ejecuta con el TypeScript y Node existentes:
 
 ```powershell
 node node_modules/typescript/bin/tsc --ignoreConfig --module node16 --moduleResolution node16 --target es2022 --esModuleInterop --resolveJsonModule --strict --skipLibCheck --rootDir . --outDir .tmp-paso7-check scripts/validate-filters.ts

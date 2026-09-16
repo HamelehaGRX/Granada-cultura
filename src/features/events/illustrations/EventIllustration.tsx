@@ -10,9 +10,10 @@ const variantStyles: Record<IllustrationVariant, { backgroundColor: string; colo
 };
 
 /** Placeholder gráfico multiplataforma, sustituible por assets estáticos definitivos. */
-export function EventIllustration({ illustrationKey, compact = false }: {
+export function EventIllustration({ illustrationKey, compact = false, featured = false }: {
   illustrationKey?: string;
   compact?: boolean;
+  featured?: boolean;
 }) {
   const illustration = resolveEventIllustration(illustrationKey);
   const palette = variantStyles[illustration.variant];
@@ -22,7 +23,9 @@ export function EventIllustration({ illustrationKey, compact = false }: {
       accessible={false}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      style={[styles.frame, compact && styles.compact, { backgroundColor: palette.backgroundColor }]}
+      style={[styles.frame, featured ? styles.featured : styles.thumbnail,
+        !featured && compact && styles.compact,
+        { backgroundColor: palette.backgroundColor }]}
       testID={`event-illustration-${illustration.key.replace('/', '-')}`}
     >
       <View style={styles.halo} />
@@ -33,17 +36,24 @@ export function EventIllustration({ illustrationKey, compact = false }: {
 
 const styles = StyleSheet.create({
   frame: {
-    width: sizes.eventIllustration,
-    height: sizes.eventIllustration,
     flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
     borderRadius: radii.medium,
   },
+  thumbnail: {
+    width: sizes.eventIllustration,
+    height: sizes.eventIllustration,
+  },
   compact: {
     width: sizes.eventIllustrationCompact,
     height: sizes.eventIllustrationCompact,
+  },
+  featured: {
+    width: '100%',
+    aspectRatio: sizes.eventHeroAspectRatio,
+    borderRadius: radii.large,
   },
   halo: {
     position: 'absolute',

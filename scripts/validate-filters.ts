@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { FixtureEventRepository } from '../src/features/events/repositories/FixtureEventRepository';
 import { FixtureCategoryRepository } from '../src/features/categories/repositories/FixtureCategoryRepository';
 import { createFilterState, filterReducer } from '../src/features/filters/reducer';
+import { activeFilterGroupCount, clearFilterDraft, createFilterDraft, filterSelection } from '../src/features/filters/draft';
 import { customDateBounds, matchesDate, presetBounds } from '../src/features/filters/dates';
 import { filterEvents, filterSummaries, matchesPrice } from '../src/features/filters/utils';
 import { normalizeSearchText } from '../src/features/search/utils';
@@ -103,7 +104,46 @@ async function main() {
     assert.equal(apply({ type: 'range', kind, edge: 'min', value: 1001 })[kind].min, 1000);
     assert.deepEqual(apply({ type: 'range', kind, edge: 'min', value: NaN }), createFilterState());
   }
+
+  // Flujo modal: el borrador permanece aislado hasta Guardar y el badge cuenta grupos.
+  const applied = apply({ type: 'query', value: 'jazz' }, category, rock);
+  const draft = createFilterDraft(applied);
+  assert.deepEqual(draft, applied);
+  assert.notEqual(draft.categories, applied.categories);
+  assert.notEqual(draft.categories.musica, applied.categories.musica);
+  const cineDraft = filterReducer(filterReducer(draft, category), { type: 'category', id: 'cine' });
+  assert.deepEqual(cineDraft.categories, { cine: [] });
+  assert.deepEqual(applied.categories, { musica: ['rock'] });
+  const editedDraft = filterReducer(draft, { type: 'date', value: { kind: 'preset', preset: 'today' } });
+  assert.equal(applied.date.kind, 'any');
+  assert.deepEqual(applied, apply({ type: 'query', value: 'jazz' }, category, rock));
+  const saved = filterReducer(applied, { type: 'apply', value: filterSelection(editedDraft) });
+  assert.equal(saved.query, 'jazz');
+  assert.deepEqual(saved.date, { kind: 'preset', preset: 'today' });
+  const clearedDraft = clearFilterDraft(saved);
+  assert.equal(activeFilterGroupCount(saved), 2);
+  assert.equal(activeFilterGroupCount(clearedDraft), 0);
+  assert.equal(saved.categories.musica.length, 1);
+  const clearedImmediately = filterReducer(saved, { type: 'apply', value: filterSelection(clearedDraft) });
+  assert.equal(clearedImmediately.query, 'jazz');
+  assert.equal(activeFilterGroupCount(clearedImmediately), 0);
+  assert.deepEqual(filterSelection(clearedImmediately), filterSelection(createFilterState()));
+  const cineAfterClear = filterReducer(clearFilterDraft(clearedImmediately), { type: 'category', id: 'cine' });
+  const savedAfterClear = filterReducer(clearedImmediately, { type: 'apply', value: filterSelection(cineAfterClear) });
+  assert.deepEqual(savedAfterClear.categories, { cine: [] });
+  assert.equal(activeFilterGroupCount(savedAfterClear), 1);
+  assert.equal(activeFilterGroupCount(apply({ type: 'query', value: 'jazz' })), 0);
+  const fourGroups = apply(
+    { type: 'date', value: { kind: 'preset', preset: 'today' } },
+    { type: 'range', kind: 'price', edge: 'max', value: 25 },
+    { type: 'range', kind: 'distance', edge: 'max', value: 50 },
+    category,
+    rock,
+    jazz,
+  );
+  assert.equal(activeFilterGroupCount(fourGroups), 4);
+  assert.equal(activeFilterGroupCount(filterReducer(fourGroups, { type: 'subcategory', categoryId: 'musica', id: 'jazz' })), 4);
   assert.equal(JSON.stringify({ data, catalog }), snapshot);
-  console.log('OK filtros: búsqueda 7 campos/acentos, 5 presets, fechas/DST, rangos inclusivos, céntimos, distancia desconocida, AND/OR, invariantes, limpieza a 16 y ausencia de mutación.');
+  console.log('OK filtros: búsqueda, fechas/DST, rangos, AND/OR, invariantes y flujo modal borrador/aplicar/limpiar/badge sin mutación.');
 }
 main().catch((error: unknown) => { console.error(error); process.exitCode = 1; });

@@ -24,6 +24,24 @@ export function formatEventDate(event: Pick<Event, 'startsAt' | 'location'>): st
   return `${day} · ${hour}`;
 }
 
+export function formatEventDay(event: Pick<Event, 'startsAt' | 'location'>): string {
+  return new Intl.DateTimeFormat('es-ES', {
+    timeZone: event.location.timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  }).format(new Date(event.startsAt));
+}
+
+export function formatEventTime(value: string, timeZone: string): string {
+  return new Intl.DateTimeFormat('es-ES', {
+    timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).format(new Date(value));
+}
+
+export function formatEventDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60), rest = minutes % 60;
+  if (hours === 0) return `${rest} min`;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}
+
 export function formatEventPrice(price: EventPrice): string {
   const amount = (cents: number) => new Intl.NumberFormat('es-ES', {
     style: 'currency', currency: price.currency,
