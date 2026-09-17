@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, TextInput } from 'react-native';
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useAppTheme, useThemeStyles, type ThemeColors } from '@/theme';
 
 export function SearchField({ value, onChange, onClose }: {
   value: string; onChange: (value: string) => void; onClose: () => void;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemeStyles(createStyles);
   const input = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
   useEffect(() => { input.current?.focus(); }, []);
@@ -15,7 +17,7 @@ export function SearchField({ value, onChange, onClose }: {
     onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
     style={[styles.input, focused && styles.focused]} />;
 }
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   input: { ...typography.body, flex: 1, minWidth: 0, minHeight: sizes.touchTarget, paddingHorizontal: spacing.sm,
     borderWidth: 2, borderColor: colors.borderStrong, borderRadius: radii.medium,
     color: colors.textPrimary, backgroundColor: colors.surface },

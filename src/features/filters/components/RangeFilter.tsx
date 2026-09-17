@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import { RANGE_LIMIT } from '../reducer';
 import type { NumericRange } from '../types';
 import { DualRangeSlider } from './DualRangeSlider';
@@ -11,6 +11,7 @@ type EndpointProps = { filterLabel: string; edgeLabel: string; unit: string; val
 
 function StepperButton({ label, symbol, side, onPress, onFocusChange }: { label: string; symbol: string;
   side: 'left' | 'right'; onPress: () => void; onFocusChange: (focused: boolean) => void }) {
+  const styles = useThemeStyles(createStyles);
   return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress}
     onFocus={() => onFocusChange(true)} onBlur={() => onFocusChange(false)}
     style={({ pressed }) => [styles.stepButton, side === 'left' ? styles.stepLeft : styles.stepRight,
@@ -20,6 +21,7 @@ function StepperButton({ label, symbol, side, onPress, onFocusChange }: { label:
 }
 
 function RangeEndpoint({ filterLabel, edgeLabel, unit, value, minimumValue, maximumValue, onChange }: EndpointProps) {
+  const styles = useThemeStyles(createStyles);
   const [draft, setDraft] = useState(String(value));
   const [focused, setFocused] = useState(false);
   useEffect(() => setDraft(String(value)), [value]);
@@ -58,6 +60,7 @@ function RangeEndpoint({ filterLabel, edgeLabel, unit, value, minimumValue, maxi
 
 /** Frontera sustituible por un slider dual: valores controlados y callback por extremo. */
 export function RangeFilter({ label, unit, value, onChange }: Props) {
+  const styles = useThemeStyles(createStyles);
   return <View style={styles.stack}>
     <Text style={styles.note}>Desliza los tiradores o escribe un valor exacto entre 0 y 1.000 {unit}.</Text>
     <DualRangeSlider label={label} unit={unit} value={value} minimumValue={0} maximumValue={RANGE_LIMIT}
@@ -71,7 +74,7 @@ export function RangeFilter({ label, unit, value, onChange }: Props) {
     <Text accessibilityLiveRegion="polite" aria-live="polite" style={styles.note}>{value.min} {unit} — {value.max} {unit}</Text>
   </View>;
 }
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   stack: { gap: spacing.md }, endpoints: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   endpoint: { flex: 1, minWidth: sizes.rangeEndpointMinWidth, gap: spacing.sm },
   label: { ...typography.label, color: colors.textPrimary },

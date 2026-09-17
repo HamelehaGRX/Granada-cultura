@@ -1,6 +1,6 @@
 import { RangeSlider } from '@react-native-assets/slider';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useAppTheme, useThemeStyles, type ThemeColors } from '@/theme';
 import type { NumericRange } from '../types';
 
 type RangeEdge = 'min' | 'max';
@@ -19,6 +19,8 @@ const TRACK_HEIGHT = 6;
 
 /** Aísla la dependencia visual; reducer, persistencia y unidades conservan sus contratos. */
 export function DualRangeSlider({ label, unit, value, minimumValue, maximumValue, step, onChange }: Props) {
+  const { colors } = useAppTheme();
+  const styles = useThemeStyles(createStyles);
   const handleValueChange = ([minimum, maximum]: [number, number]) => {
     if (minimum !== value.min) {
       onChange('min', minimum);
@@ -53,7 +55,7 @@ export function DualRangeSlider({ label, unit, value, minimumValue, maximumValue
   </View>;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   stack: { gap: spacing.xs },
   bounds: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
   bound: { ...typography.caption, color: colors.textSecondary },

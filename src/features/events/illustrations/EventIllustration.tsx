@@ -1,13 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, sizes, typography } from '@/theme';
+import { radii, sizes, typography, useAppTheme, useThemeStyles, type ThemeColors } from '@/theme';
 import { resolveEventIllustration, type IllustrationVariant } from './illustrationMap';
-
-const variantStyles: Record<IllustrationVariant, { backgroundColor: string; color: string }> = {
-  cream: { backgroundColor: colors.cardBorderCream, color: colors.brandPrimaryPressed },
-  rose: { backgroundColor: colors.cardBorderRose, color: colors.brandPrimary },
-  burgundy: { backgroundColor: colors.borderStrong, color: colors.brandPrimaryPressed },
-};
 
 /** Placeholder gráfico multiplataforma, sustituible por assets estáticos definitivos. */
 export function EventIllustration({ illustrationKey, compact = false, featured = false }: {
@@ -15,6 +9,13 @@ export function EventIllustration({ illustrationKey, compact = false, featured =
   compact?: boolean;
   featured?: boolean;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemeStyles(createStyles);
+  const variantStyles: Record<IllustrationVariant, { backgroundColor: string; color: string }> = {
+    cream: { backgroundColor: colors.cardBorderCream, color: colors.textPrimary },
+    rose: { backgroundColor: colors.cardBorderRose, color: colors.brandPrimary },
+    burgundy: { backgroundColor: colors.borderStrong, color: colors.textPrimary },
+  };
   const illustration = resolveEventIllustration(illustrationKey);
   const palette = variantStyles[illustration.variant];
 
@@ -34,7 +35,7 @@ export function EventIllustration({ illustrationKey, compact = false, featured =
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   frame: {
     flexShrink: 0,
     alignItems: 'center',

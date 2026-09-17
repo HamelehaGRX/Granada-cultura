@@ -60,3 +60,5 @@ La marca visible y las referencias sustituibles de logo, icono y mascota se conc
 ## Condiciones para revisar esta decisión
 
 Se revisará si las pruebas reales muestran que el shell no cubre una plataforma, si la navegación necesita controlar otras safe areas, si el sistema visual definitivo requiere nuevos tipos de token o si una futura librería de componentes aprobada aporta una base incompatible con esta estructura. Cualquier cambio arquitectónico duradero se documentará en otro ADR.
+
+La evolución posterior a un tema dinámico con preferencias Claro, Oscuro y Sistema se documenta en [ADR-013](ADR-013-tema-global-claro-oscuro-sistema.md).

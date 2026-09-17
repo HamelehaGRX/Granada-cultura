@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import type { FilterPanel } from '../types';
 
 type Props = { id: FilterPanel; label: string; summary: string; expanded: boolean; onPress: () => void };
 export function FilterTrigger({ id, label, summary, expanded, onPress }: Props) {
+  const styles = useThemeStyles(createStyles);
   const [focused, setFocused] = useState(false);
   return <Pressable accessibilityRole="button" accessibilityState={{ expanded }} aria-expanded={expanded}
     accessibilityLabel={`${label}${summary ? `: ${summary}` : ''}`} aria-controls={expanded ? `filter-panel-${id}` : undefined}
@@ -15,7 +16,7 @@ export function FilterTrigger({ id, label, summary, expanded, onPress }: Props) 
     {summary ? <Text numberOfLines={1} style={styles.summary}>{summary}</Text> : null}
   </Pressable>;
 }
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   trigger: { minHeight: sizes.touchTarget, padding: spacing.sm, alignItems: 'center', justifyContent: 'center',
     borderRadius: radii.medium, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface, gap: spacing.xs },
   expanded: { borderColor: colors.brandPrimary }, focused: { borderColor: colors.textPrimary },

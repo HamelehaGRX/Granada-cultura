@@ -71,11 +71,13 @@ En web, desde 1100 px, las mismas tabs se presentan como una barra lateral compa
 
 ## Theme e identidad
 
-Los colores, tipografías, espacios, radios, sombras, movimiento y breakpoints ya se definen mediante tokens semánticos en un theme central. Las sombras resuelven sus pequeñas diferencias desde el propio theme para Android, iOS y web.
+Los colores, tipografías, espacios, radios, sombras, movimiento y breakpoints se definen mediante tokens semánticos en un theme central. `AppThemeProvider` mantiene una única preferencia global `light`, `dark` o `system`; separa esa elección del tema efectivo y entrega a toda la UI la paleta activa. `system` se resuelve con `useColorScheme` y reacciona a cambios del dispositivo mientras la aplicación está abierta.
+
+Las paletas clara y oscura comparten los mismos contratos semánticos para fondos, superficies, textos, marca, bordes, inputs, overlay y estados. Las categorías también disponen de apariencias centralizadas por tema sin perder su familia cromática ni su rótulo. La preferencia se guarda como dato local no sensible en `cultura.themePreference`; nunca se persiste el tema efectivo. Consultar [ADR-013](../decisiones/ADR-013-tema-global-claro-oscuro-sistema.md).
 
 `AppShell` controla el fondo y la safe area superior y lateral. `ScreenContainer` controla el padding responsive, el ancho máximo y el contenido scrollable. La navegación por pestañas conserva la safe area inferior, de modo que cada pantalla no la aplique por duplicado.
 
-`AppSplash`, montado desde el layout raíz, implementa la secuencia visual CULTURA con primitivas `Animated` y consulta `AccessibilityInfo` para reducirla cuando el sistema solicita menos movimiento. Es una capa de UI independiente del splash técnico nativo y no introduce branding definitivo en `app.json`.
+`AppSplash`, montado desde el layout raíz, implementa la secuencia visual CULTURA con primitivas `Animated`, usa el tema efectivo y consulta `AccessibilityInfo` para reducirla cuando el sistema solicita menos movimiento. Antes de hidratar la preferencia, el layout mantiene una superficie granate neutral y no monta la navegación, reduciendo el flash de un tema incorrecto. Es una capa de UI independiente del splash técnico nativo y no introduce branding definitivo en `app.json`.
 
 Home separa composición, estado y presentación dentro de `src/features/events/`. `HomeScreen` une shell, header y lista; `useHomeEvents` carga interfaces de repositorio y protege frente a respuestas obsoletas; `EventList` virtualiza con `FlatList`; y `EventCard` consume únicamente datos de dominio y funciones de presentación. La composición por defecto instancia los repositorios de fixtures una vez por montaje y puede sustituirse sin modificar los componentes.
 
@@ -101,7 +103,7 @@ La distancia futura se calculará a partir de coordenadas. El repositorio demo c
 
 ## Persistencia local no sensible
 
-`src/storage/` contiene claves centralizadas, tipos de sobre/driver, get/set/remove con JSON seguro, la frontera mínima de migraciones y el único adaptador AsyncStorage. `features/filters/persistence.ts` valida el dominio guardado; `usePersistedEventFilters` coordina la hidratación y el guardado automático de la instancia local de Home. `features/events/interactions/` aplica la misma frontera a favorito, Me interesa y Voy a ir mediante un proveedor común para tarjetas y detalle. La UI no accede al proveedor. El driver sustituible permite pruebas sin native/DOM y la futura incorporación de otras preferencias sin duplicar la capa técnica.
+`src/storage/` contiene claves centralizadas, tipos de sobre/driver, get/set/remove con JSON seguro, la frontera mínima de migraciones y el único adaptador AsyncStorage. `features/filters/persistence.ts` valida el dominio guardado; `usePersistedEventFilters` coordina la hidratación y el guardado automático de la instancia local de Home. `features/events/interactions/` aplica la misma frontera a favorito, Me interesa y Voy a ir mediante un proveedor común para tarjetas y detalle. `AppThemeProvider` utiliza la misma capa para la preferencia de apariencia. La UI no accede al proveedor. El driver sustituible permite pruebas sin native/DOM y la futura incorporación de otras preferencias sin duplicar la capa técnica.
 
 La clave estable `cultura.filters` contiene `{ version: 1, data: ... }`. Solo se persisten fecha, precio, distancia y categorías/subcategorías. `cultura.eventInteractions` usa otro sobre v1 y conserva únicamente favorito y la asistencia local de cada evento. No se persisten query, eventos/resultados, fixtures ni información sensible. La hidratación de filtros espera al catálogo actual, descarta IDs obsoletos, normaliza fechas/rangos y aplica el reducer antes de permitir escrituras. Home usa su loading existente y mantiene la búsqueda temporal. La cola de storage ordena cambios rápidos; la comparación de snapshots evita duplicados.
 

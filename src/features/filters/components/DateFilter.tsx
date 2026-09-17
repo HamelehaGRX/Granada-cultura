@@ -1,12 +1,13 @@
 import type { Dispatch } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import { customDateBounds, DATE_PRESETS } from '../dates';
 import type { DateFilterValue, FilterAction } from '../types';
 import { DateInput } from './DateInput';
 import { FilterChoice } from './FilterChoice';
 
 export function DateFilter({ value, dispatch }: { value: DateFilterValue; dispatch: Dispatch<FilterAction> }) {
+  const styles = useThemeStyles(createStyles);
   const setDate = (date: DateFilterValue) => dispatch({ type: 'date', value: date });
   const valid = Boolean(customDateBounds(value));
   return <View style={styles.stack}>
@@ -33,7 +34,7 @@ export function DateFilter({ value, dispatch }: { value: DateFilterValue; dispat
     </View> : null}
   </View>;
 }
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   stack: { gap: spacing.md }, choices: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   note: { ...typography.caption, color: colors.textSecondary },
 });

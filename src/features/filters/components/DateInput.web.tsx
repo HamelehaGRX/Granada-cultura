@@ -1,9 +1,10 @@
 import { useId } from 'react';
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useAppTheme } from '@/theme';
 import type { DateInputProps } from './DateInput';
 
 /** DOM aislado en la variante web; no se empaqueta para native. */
 export function DateInput({ label, value, onChange, invalid }: DateInputProps) {
+  const { colors } = useAppTheme();
   const id = useId();
   return <label htmlFor={id} style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs,
     fontSize: typography.label.fontSize, color: colors.textPrimary }}>

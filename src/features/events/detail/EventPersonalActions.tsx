@@ -1,22 +1,23 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useAppTheme, useThemeStyles, type ThemeColors } from '@/theme';
 import type { EventInteraction } from '../interactions/types';
 
 type ActionKind = 'favorite' | 'interested' | 'going';
 
-const activeStyle = {
-  favorite: { borderColor: colors.brandPrimary, backgroundColor: colors.errorSurface, color: colors.brandPrimary },
-  interested: { borderColor: colors.warning, backgroundColor: colors.warningSurface, color: colors.warning },
-  going: { borderColor: colors.success, backgroundColor: colors.successSurface, color: colors.success },
-} as const;
-
 function PersonalAction({ active, disabled, glyph, kind, label, onPress }: {
   active: boolean; disabled: boolean; glyph: string; kind: ActionKind; label: string; onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemeStyles(createStyles);
   const [focused, setFocused] = useState(false);
-  const palette = activeStyle[kind];
+  const activeStyles = {
+    favorite: { borderColor: colors.favorite, backgroundColor: colors.errorSurface, color: colors.favorite },
+    interested: { borderColor: colors.warning, backgroundColor: colors.warningSurface, color: colors.warning },
+    going: { borderColor: colors.attending, backgroundColor: colors.successSurface, color: colors.attending },
+  } as const;
+  const palette = activeStyles[kind];
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label}
       accessibilityState={{ selected: active, disabled }} disabled={disabled}
@@ -34,6 +35,7 @@ export function EventPersonalActions({ hydrated, interaction, onFavorite, onInte
   hydrated: boolean; interaction: EventInteraction; onFavorite: () => void;
   onInterested: () => void; onGoing: () => void;
 }) {
+  const styles = useThemeStyles(createStyles);
   return (
     <View accessibilityLabel="Acciones personales del evento" style={styles.group}>
       <PersonalAction active={interaction.favorite} disabled={!hydrated}
@@ -48,7 +50,7 @@ export function EventPersonalActions({ hydrated, interaction, onFavorite, onInte
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   group: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   action: {
     flexGrow: 1, flexBasis: 120, minHeight: sizes.touchTarget, flexDirection: 'row', alignItems: 'center',

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { breakpoints, colors, radii, sizes, spacing, typography } from '@/theme';
+import { breakpoints, radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 
 function HeaderAction({ label, glyph, onPress, selected, disabled = false }: {
   label: string; glyph: string; onPress: () => void; selected?: boolean; disabled?: boolean;
 }) {
+  const styles = useThemeStyles(createStyles);
   const [focused, setFocused] = useState(false);
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label}
@@ -21,6 +22,7 @@ function HeaderAction({ label, glyph, onPress, selected, disabled = false }: {
 export function EventDetailHeader({ favorite, hydrated, onBack, onFavorite, onShare }: {
   favorite: boolean; hydrated: boolean; onBack: () => void; onFavorite: () => void; onShare: () => void;
 }) {
+  const styles = useThemeStyles(createStyles);
   return (
     <View style={styles.header} testID="event-detail-header">
       <View style={styles.content}>
@@ -35,10 +37,10 @@ export function EventDetailHeader({ favorite, hydrated, onBack, onFavorite, onSh
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   header: {
-    backgroundColor: colors.brandPrimary,
-    borderBottomColor: colors.brandPrimaryPressed,
+    backgroundColor: colors.brandSurface,
+    borderBottomColor: colors.brandSurfacePressed,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   content: {
@@ -50,8 +52,8 @@ const styles = StyleSheet.create({
     width: sizes.touchTarget, height: sizes.touchTarget, alignItems: 'center', justifyContent: 'center',
     borderRadius: radii.pill, borderWidth: 2, borderColor: 'transparent', backgroundColor: 'transparent',
   },
-  selected: { borderColor: colors.textInverse, backgroundColor: colors.brandPrimaryPressed },
-  pressed: { backgroundColor: colors.brandPrimaryPressed },
+  selected: { borderColor: colors.textInverse, backgroundColor: colors.brandSurfacePressed },
+  pressed: { backgroundColor: colors.brandSurfacePressed },
   focused: { borderColor: colors.textInverse },
   glyph: { ...typography.heading, color: colors.textInverse, lineHeight: 28 },
   selectedGlyph: { color: colors.textInverse },

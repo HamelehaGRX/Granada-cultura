@@ -9,6 +9,7 @@ const validations = Object.freeze({
   storage: 'validate-storage',
   illustrations: 'validate-illustrations',
   detail: 'validate-event-detail',
+  theme: 'validate-theme',
 });
 
 const requested = process.argv[2] ?? 'all';

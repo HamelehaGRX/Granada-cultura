@@ -11,7 +11,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { breakpoints, colors, radii, shadows, sizes, spacing, typography } from '@/theme';
+import { breakpoints, radii, shadows, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import type { Category } from '../../categories/types';
 import { activeFilterGroupCount, clearFilterDraft, createFilterDraft, filterSelection } from '../draft';
 import { filterReducer } from '../reducer';
@@ -44,6 +44,7 @@ type Props = {
 
 export function FilterModal({ appliedState, categories, initialPanel = null, onApply, onClearApplied,
   onDismiss, visible }: Props) {
+  const styles = useThemeStyles(createStyles);
   const { width } = useWindowDimensions();
   const wide = width >= breakpoints.tablet;
   const [draft, dispatch] = useReducer(filterReducer, appliedState, createFilterDraft);
@@ -136,14 +137,14 @@ export function FilterModal({ appliedState, categories, initialPanel = null, onA
   </Modal>;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   overlay: { flex: 1, padding: spacing.md },
   overlayFloating: { alignItems: 'center', justifyContent: 'center', paddingBottom: spacing.xl },
   overlayCentered: { alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   backdrop: {
     position: 'absolute',
     inset: 0,
-    backgroundColor: 'rgba(56, 47, 50, 0.48)',
+    backgroundColor: colors.overlay,
   },
   modal: {
     width: '100%',
@@ -215,5 +216,5 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: colors.background },
   disabled: { opacity: 0.45 },
   secondaryLabel: { ...typography.label, color: colors.brandPrimary, textAlign: 'center' },
-  primaryLabel: { ...typography.label, color: colors.textInverse, textAlign: 'center' },
+  primaryLabel: { ...typography.label, color: colors.textOnPrimary, textAlign: 'center' },
 });

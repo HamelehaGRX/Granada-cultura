@@ -1,6 +1,6 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import { getSafeTicketingAction, ticketingNeedsSafetyNotice } from '../ticketing';
 import type { Event, EventTicketingStatus } from '../types';
 
@@ -16,6 +16,7 @@ function money(cents: number) {
 }
 
 export function EventTicketingPanel({ event }: { event: Event }) {
+  const styles = useThemeStyles(createStyles);
   const ticketing = event.ticketing;
   if (!ticketing) {
     return <Text style={styles.safety}>No se dispone todavía de información fiable sobre entradas o reservas.</Text>;
@@ -60,7 +61,7 @@ export function EventTicketingPanel({ event }: { event: Event }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   panel: { gap: spacing.md },
   statuses: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   status: { ...typography.label, color: colors.textPrimary, paddingHorizontal: spacing.sm,
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   note: { ...typography.bodySmall, color: colors.textSecondary },
   cta: { minHeight: sizes.touchTarget, alignItems: 'center', justifyContent: 'center',
     borderRadius: radii.medium, backgroundColor: colors.brandPrimary, paddingHorizontal: spacing.md },
-  ctaLabel: { ...typography.label, color: colors.textInverse },
+  ctaLabel: { ...typography.label, color: colors.textOnPrimary },
   pressed: { backgroundColor: colors.brandPrimaryPressed },
   safety: { ...typography.bodySmall, color: colors.warning, backgroundColor: colors.warningSurface,
     padding: spacing.md, borderRadius: radii.medium },

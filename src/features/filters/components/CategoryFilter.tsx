@@ -1,6 +1,6 @@
 import type { Dispatch } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import type { Category } from '../../categories/types';
 import type { CategorySelection, FilterAction } from '../types';
 import { FilterChoice } from './FilterChoice';
@@ -8,6 +8,7 @@ import { FilterChoice } from './FilterChoice';
 export function CategoryFilter({ categories, value, dispatch }: {
   categories: Category[]; value: CategorySelection; dispatch: Dispatch<FilterAction>;
 }) {
+  const styles = useThemeStyles(createStyles);
   return <View style={styles.stack}>
     <Text style={styles.note}>Sin selección se incluyen todas. Una categoría marcada incluye todas sus subcategorías hasta que elijas alguna.</Text>
     <View style={styles.choices}>{categories.map(category => <FilterChoice key={category.id}
@@ -21,7 +22,7 @@ export function CategoryFilter({ categories, value, dispatch }: {
     </View>)}
   </View>;
 }
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   stack: { gap: spacing.md }, choices: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   note: { ...typography.caption, color: colors.textSecondary }, title: { ...typography.label, color: colors.textPrimary },
 });

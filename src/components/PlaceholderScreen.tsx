@@ -10,11 +10,12 @@ import {
 import { BRAND } from '@/config/brand';
 import {
   breakpoints,
-  colors,
   radii,
   shadows,
   spacing,
   typography,
+  useThemeStyles,
+  type ThemeColors,
 } from '@/theme';
 
 type PlaceholderScreenProps = {
@@ -39,6 +40,7 @@ export function PlaceholderScreen({
   showBackAction = false,
   showBrand = false,
 }: PlaceholderScreenProps) {
+  const styles = useThemeStyles(createStyles);
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -94,7 +96,7 @@ export function PlaceholderScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   panel: {
     alignItems: 'center',
     width: '100%',

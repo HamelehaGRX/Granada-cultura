@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useAppTheme, useThemeStyles, type ThemeColors } from '@/theme';
 import { FilterChoice } from '../../filters/components/FilterChoice';
 
 export function EventListLoading() {
+  const { colors } = useAppTheme();
+  const styles = useThemeStyles(createStyles);
   return (
     <View aria-live="polite" aria-busy={true} testID="events-loading" style={styles.panel}>
       <ActivityIndicator size="small" color={colors.brandPrimary} accessible={false} />
@@ -14,6 +16,7 @@ export function EventListLoading() {
 }
 
 export function EventListEmpty({ filtered, onClear }: { filtered?: boolean; onClear?: () => void }) {
+  const styles = useThemeStyles(createStyles);
   return (
     <View accessibilityLiveRegion="polite" aria-live="polite" testID="events-empty" style={styles.panel}>
       <View accessible={false} style={styles.illustrationSpace} />
@@ -27,6 +30,7 @@ export function EventListEmpty({ filtered, onClear }: { filtered?: boolean; onCl
 }
 
 export function EventListError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const styles = useThemeStyles(createStyles);
   const [focused, setFocused] = useState(false);
   return (
     <View testID="events-error" style={styles.panel}>
@@ -40,7 +44,7 @@ export function EventListError({ message, onRetry }: { message: string; onRetry:
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   panel: {
     alignItems: 'center', gap: spacing.md, padding: spacing.lg,
     backgroundColor: colors.surface, borderRadius: radii.large,
@@ -56,6 +60,6 @@ const styles = StyleSheet.create({
   },
   pressed: { backgroundColor: colors.brandPrimaryPressed },
   focused: { borderColor: colors.textPrimary },
-  buttonLabel: { ...typography.label, color: colors.textInverse },
+  buttonLabel: { ...typography.label, color: colors.textOnPrimary },
   focusedLabel: { textDecorationLine: 'underline' },
 });

@@ -148,6 +148,7 @@ Consultar:
 - [ADR-007: búsqueda y filtros como lógica pura con estado local](decisiones/ADR-007-busqueda-y-filtros.md).
 - [ADR-008: persistencia local versionada con AsyncStorage](decisiones/ADR-008-persistencia-local.md).
 - [ADR-009: estabilización técnica y estrategia de builds Expo](decisiones/ADR-009-estabilizacion-builds-expo.md).
+- [ADR-013: tema global Claro, Oscuro y Sistema](decisiones/ADR-013-tema-global-claro-oscuro-sistema.md).
 - [Plan de migración Expo](migracion/PLAN_MIGRACION_EXPO.md).
 
 ## Base Expo creada
@@ -170,13 +171,19 @@ La convivencia es intencionada: `app/` sigue siendo el prototipo legado y `src/`
 
 ## Theme y shell compartido
 
-`src/theme/` ofrece tokens semánticos para que los componentes expresen la función de cada valor en lugar de repetir colores o medidas. Incluye colores de fondo, superficies, marca, texto, bordes y estados; estilos tipográficos con fuente del sistema; una escala de espaciado; radios; sombras suaves por plataforma; duraciones y curvas conceptuales de movimiento; y breakpoints de móvil, tablet y escritorio.
+`src/theme/` ofrece tokens semánticos para que los componentes expresen la función de cada valor en lugar de repetir colores o medidas. Incluye paletas clara y oscura para fondo, superficies, marca, texto, bordes, inputs, overlays y estados; estilos tipográficos con fuente del sistema; una escala de espaciado; radios; sombras suaves por plataforma; duraciones y curvas conceptuales de movimiento; y breakpoints de móvil, tablet y escritorio.
 
 `AppShell` establece el fondo general y aplica la safe area superior y lateral. `ScreenContainer` aporta padding responsive, ancho máximo centrado en web y una variante scrollable cuando una pantalla la necesite. La safe area inferior queda bajo la responsabilidad de la navegación por pestañas, evitando padding duplicado.
 
-Home y los placeholders restantes consumen el shell y el contenedor compartidos. Home añade un header granate y tarjetas suaves; las demás pantallas conservan una superficie elevada mínima. La StatusBar mantiene contenido oscuro sobre el fondo crema claro.
+`AppThemeProvider` diferencia la preferencia (`light`, `dark` o `system`) del tema efectivo (`light` o `dark`). Claro y Oscuro ignoran cambios del dispositivo; Sistema usa `useColorScheme` y se actualiza cuando la plataforma comunica un cambio. La instalación sin dato y cualquier valor corrupto o desconocido usan Sistema de forma segura.
 
-La identidad continúa siendo provisional. Nombre y referencias de logo, icono y mascota se concentran en `src/config/brand.ts`; la paleta y la tipografía pueden sustituirse desde el theme. Permanecen pendientes el splash, ilustraciones reales, sidebar y funcionalidades de las restantes pestañas.
+La clave versionada `cultura.themePreference` persiste únicamente la preferencia mediante la capa común de storage. Los componentes consumen `useAppTheme()` o `useThemeStyles()`; no consultan Appearance ni AsyncStorage individualmente. Home, navegación, tarjetas, detalle, filtros, placeholders, splash y StatusBar reaccionan al mismo estado global. Las categorías conservan sus once familias cromáticas mediante variantes claras y oscuras centralizadas.
+
+El selector de apariencia situado junto a la lupa es temporal y abre un diálogo accesible con Claro, Oscuro y Sistema. No contiene lógica propia: cuando exista `Perfil > Ajustes > Apariencia`, se retirará el control del header y esa pantalla reutilizará `setThemePreference()` sin duplicar persistencia ni resolución.
+
+Durante la lectura inicial del storage se muestra una superficie de arranque granate neutral; la navegación se monta después de resolver la preferencia y el splash React utiliza ya el tema efectivo. Esto reduce el salto Light→Dark. El splash técnico nativo de Expo sigue siendo una capa distinta y se revisará al preparar builds de tienda.
+
+La identidad continúa siendo provisional. Nombre y referencias de logo, icono y mascota se concentran en `src/config/brand.ts`; ambas paletas y la tipografía pueden sustituirse desde el theme. Ver [ADR-013](decisiones/ADR-013-tema-global-claro-oscuro-sistema.md).
 
 ## Navegación base enlazable
 

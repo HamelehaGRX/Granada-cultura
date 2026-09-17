@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 
 type Props = {
   activeCount: number;
@@ -9,6 +9,7 @@ type Props = {
 
 /** Único elemento de filtros que permanece en el flujo de Home. */
 export function FilterBar({ activeCount, onOpen }: Props) {
+  const styles = useThemeStyles(createStyles);
   const [focused, setFocused] = useState(false);
   const status = activeCount === 0
     ? 'Ningún grupo de filtros activo'
@@ -27,7 +28,7 @@ export function FilterBar({ activeCount, onOpen }: Props) {
   </View>;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: { marginTop: spacing.lg, alignItems: 'center' },
   button: {
     minWidth: 250,
@@ -57,5 +58,5 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     backgroundColor: colors.brandPrimary,
   },
-  badgeText: { ...typography.caption, color: colors.textInverse, fontWeight: '700' },
+  badgeText: { ...typography.caption, color: colors.textOnPrimary, fontWeight: '700' },
 });

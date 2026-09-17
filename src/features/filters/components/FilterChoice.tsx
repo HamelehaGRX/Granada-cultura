@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 
 type Props = { label: string; selected?: boolean; onPress: () => void; testID?: string };
 export function FilterChoice({ label, selected, onPress, testID }: Props) {
+  const styles = useThemeStyles(createStyles);
   const [focused, setFocused] = useState(false);
   return <Pressable accessibilityRole={selected === undefined ? 'button' : 'checkbox'}
     accessibilityLabel={label} aria-checked={selected}
@@ -13,7 +14,7 @@ export function FilterChoice({ label, selected, onPress, testID }: Props) {
     <Text style={[styles.label, focused && styles.focusedLabel]}>{selected ? '✓ ' : ''}{label}</Text>
   </Pressable>;
 }
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   button: { minHeight: sizes.touchTarget, minWidth: sizes.touchTarget, padding: spacing.sm,
     justifyContent: 'center', borderRadius: radii.medium, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface },
   selected: { borderColor: colors.brandPrimary, backgroundColor: colors.background },

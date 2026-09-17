@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radii, spacing, typography } from '@/theme';
+import { radii, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 
 export type PlaceholderActionConfig = {
   accessibilityHint?: string;
@@ -19,6 +19,7 @@ export function PlaceholderAction({
   onPress,
   variant,
 }: PlaceholderActionProps) {
+  const styles = useThemeStyles(createStyles);
   const [focused, setFocused] = useState(false);
 
   return (
@@ -53,7 +54,7 @@ export function PlaceholderAction({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   action: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   primaryLabel: {
-    color: colors.textInverse,
+    color: colors.textOnPrimary,
   },
   secondaryLabel: {
     color: colors.brandPrimary,

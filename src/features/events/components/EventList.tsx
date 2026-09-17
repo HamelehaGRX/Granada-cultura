@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { router } from 'expo-router';
 import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
-import { breakpoints, colors, sizes, spacing, typography } from '@/theme';
+import { breakpoints, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import type { Category } from '../../categories/types';
 import { eventCategoryLabel } from '../presentation';
 import type { EventResult } from '../types';
@@ -21,6 +21,7 @@ type EventListProps = {
 };
 
 export function EventList({ data, categories, loading, error, onRetry, filters, filtered, onClear }: EventListProps) {
+  const styles = useThemeStyles(createStyles);
   const { width, fontScale } = useWindowDimensions();
   const columns = width >= breakpoints.tablet && fontScale <= sizes.twoColumnMaxFontScale ? 2 : 1;
   const empty = loading ? <EventListLoading /> : error
@@ -68,7 +69,7 @@ export function EventList({ data, categories, loading, error, onRetry, filters, 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   list: { flex: 1 },
   content: { paddingBottom: spacing.md },
   intro: { marginBottom: spacing.lg },

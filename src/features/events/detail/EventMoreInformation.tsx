@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { router } from 'expo-router';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import { isSafeWebUrl } from '../ticketing';
 import type { Event } from '../types';
 
@@ -13,6 +13,7 @@ function dateTime(value: string, timeZone: string) {
 }
 
 function InformationBlock({ title, children }: { title: string; children: ReactNode }) {
+  const styles = useThemeStyles(createStyles);
   return (
     <View style={styles.block}>
       <Text accessibilityRole="header" aria-level={3} style={styles.heading}>{title}</Text>
@@ -22,6 +23,7 @@ function InformationBlock({ title, children }: { title: string; children: ReactN
 }
 
 function AccessibilityAndPractical({ event }: { event: Event }) {
+  const styles = useThemeStyles(createStyles);
   const accessibility = event.accessibility;
   const practical = event.practicalInformation;
   const lines = accessibility ? [
@@ -52,6 +54,7 @@ function AccessibilityAndPractical({ event }: { event: Event }) {
 }
 
 export function EventMoreInformation({ event }: { event: Event }) {
+  const styles = useThemeStyles(createStyles);
   const [expanded, setExpanded] = useState(false);
   const sourceLink = event.source?.verifiedOfficial && event.source.url && isSafeWebUrl(event.source.url)
     ? event.source.url : undefined;
@@ -121,7 +124,7 @@ export function EventMoreInformation({ event }: { event: Event }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   toggle: {
     minWidth: 208, minHeight: sizes.touchTarget, alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,

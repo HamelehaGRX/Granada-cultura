@@ -7,7 +7,7 @@ import {
   type ColorValue,
 } from 'react-native';
 
-import { breakpoints, colors, radii, sizes, spacing, typography } from '@/theme';
+import { breakpoints, radii, sizes, spacing, typography, useAppTheme, useThemeStyles, type ThemeColors } from '@/theme';
 
 type TabIconProps = {
   color: ColorValue;
@@ -15,6 +15,7 @@ type TabIconProps = {
 };
 
 function TabIcon({ color, glyph }: TabIconProps) {
+  const styles = useThemeStyles(createStyles);
   return <Text style={[styles.icon, { color }]}>{glyph}</Text>;
 }
 
@@ -23,6 +24,7 @@ function TabLabel({ children, color, focused }: {
   color: ColorValue;
   focused: boolean;
 }) {
+  const styles = useThemeStyles(createStyles);
   return (
     <Text style={[styles.label, { color }, focused && styles.activeLabel]}>
       {children}
@@ -31,6 +33,8 @@ function TabLabel({ children, color, focused }: {
 }
 
 export default function TabLayout() {
+  const { colors } = useAppTheme();
+  const styles = useThemeStyles(createStyles);
   const { width } = useWindowDimensions();
   const desktop = Platform.OS === 'web' && width >= breakpoints.desktop;
 
@@ -97,7 +101,7 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   scene: {
     backgroundColor: colors.background,
   },

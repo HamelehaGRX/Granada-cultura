@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
-import { categoryAppearanceFor, colors, radii, sizes, spacing, typography } from '@/theme';
+import { radii, sizes, spacing, typography, useAppTheme, useThemeStyles, type ThemeColors } from '@/theme';
 import { useEventInteraction } from '../interactions/EventInteractionProvider';
 import { EventIllustration } from '../illustrations/EventIllustration';
 import { formatDemoDistance, formatEventDate, formatEventPrice } from '../presentation';
@@ -15,6 +15,8 @@ type EventCardProps = {
 };
 
 export function EventCard({ result, categoryLabel, illustrationKey, onOpen }: EventCardProps) {
+  const { categoryAppearanceFor } = useAppTheme();
+  const styles = useThemeStyles(createStyles);
   const { event, distanceMeters } = result;
   const appearance = categoryAppearanceFor(event.categoryId);
   const { fontScale } = useWindowDimensions();
@@ -66,7 +68,7 @@ export function EventCard({ result, categoryLabel, illustrationKey, onOpen }: Ev
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     borderWidth: 1, borderRadius: radii.large, backgroundColor: colors.surface,
     width: '100%', flex: 1, minWidth: 0, overflow: 'hidden',
@@ -87,7 +89,7 @@ const styles = StyleSheet.create({
   bottom: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   distance: { ...typography.caption, color: colors.textSecondary },
   interested: { ...typography.heading, width: 32, color: colors.interestIndicator, textAlign: 'center', fontWeight: '800' },
-  going: { ...typography.label, width: 36, color: colors.success, textAlign: 'center', fontWeight: '700' },
+  going: { ...typography.label, width: 36, color: colors.attending, textAlign: 'center', fontWeight: '700' },
   price: { ...typography.label, color: colors.brandPrimary, marginLeft: 'auto', flexShrink: 1 },
   favorite: {
     width: sizes.touchTarget, height: sizes.touchTarget, alignItems: 'center', justifyContent: 'center',
@@ -95,5 +97,5 @@ const styles = StyleSheet.create({
   },
   favoritePressed: { opacity: 0.64 },
   favoriteIcon: { ...typography.heading, color: colors.textPrimary },
-  favoriteIconActive: { color: colors.brandPrimary },
+  favoriteIconActive: { color: colors.favorite },
 });

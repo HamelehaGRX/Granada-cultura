@@ -5,7 +5,7 @@ import { Image, Linking, Pressable, Share, StyleSheet, Text, View } from 'react-
 
 import { AppShell } from '@/components/layout/AppShell';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
-import { colors, radii, shadows, sizes, spacing, typography } from '@/theme';
+import { radii, shadows, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import { eventCategoryLabel, formatEventDay, formatEventDuration, formatEventTime } from '../presentation';
 import { createHomeRepositories, type HomeRepositories } from '../repositories/homeRepositories';
 import { EventCard } from '../components/EventCard';
@@ -24,13 +24,10 @@ const statusLabels: Partial<Record<EventStatus, string>> = {
   cancelled: 'CANCELADO', soldOut: 'AGOTADO', postponed: 'APLAZADO',
 };
 
-function currentStatusStyle(status: EventStatus) {
-  return status === 'cancelled' || status === 'soldOut' ? styles.dangerBadge : styles.warningBadge;
-}
-
 function InfoRow({ glyph, label, value, action }: {
   glyph?: string; label: string; value: string; action?: ReactNode;
 }) {
+  const styles = useThemeStyles(createStyles);
   return (
     <View accessibilityLabel={`${label}: ${value}`} style={styles.infoRow}>
       <View style={styles.infoLabelGroup}>
@@ -46,6 +43,7 @@ function InfoRow({ glyph, label, value, action }: {
 }
 
 function ChangeNotice({ event }: { event: Event }) {
+  const styles = useThemeStyles(createStyles);
   const notice = event.changeNotice;
   if (!notice) return null;
   const updated = notice.updatedAt ? new Intl.DateTimeFormat('es-ES', {
@@ -66,6 +64,7 @@ function ChangeNotice({ event }: { event: Event }) {
 }
 
 function DetailState({ message, action }: { message: string; action?: () => void }) {
+  const styles = useThemeStyles(createStyles);
   return (
     <View style={styles.state}>
       <Text accessibilityRole="header" style={styles.stateText}>{message}</Text>
@@ -113,7 +112,10 @@ function EventDetailContent({ event, categories, related, actionMessage, onMapEr
   event: Event; categories: Parameters<typeof eventCategoryLabel>[1]; related: ReturnType<typeof selectRelatedEvents>;
   actionMessage: string | null; onMapError: () => void;
 }) {
+  const styles = useThemeStyles(createStyles);
   const status = statusLabels[event.status];
+  const statusStyle = event.status === 'cancelled' || event.status === 'soldOut'
+    ? styles.dangerBadge : styles.warningBadge;
   const authorizedImage = event.media?.find(item => item.kind === 'image' && item.authorizedForUse);
   const { hydrated, interaction, toggleFavorite, toggleInterested, toggleGoing } = useEventInteraction(event.id);
   const locality = [event.location.locality, event.location.province].filter(Boolean).join(', ');
@@ -127,7 +129,7 @@ function EventDetailContent({ event, categories, related, actionMessage, onMapEr
 
       <View style={styles.identity}>
         <Text style={styles.category}>{eventCategoryLabel(event, categories)}</Text>
-        {status ? <Text style={[styles.badge, currentStatusStyle(event.status)]}>{status}</Text> : null}
+        {status ? <Text style={[styles.badge, statusStyle]}>{status}</Text> : null}
         <Text accessibilityRole="header" aria-level={1} style={styles.title}>{event.title}</Text>
       </View>
 
@@ -174,7 +176,7 @@ function EventDetailContent({ event, categories, related, actionMessage, onMapEr
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   content: { gap: spacing.lg, paddingBottom: spacing.xl },
   notice: { gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radii.medium,
     backgroundColor: colors.warningSurface, borderWidth: 1, borderColor: colors.warning },
@@ -212,5 +214,5 @@ const styles = StyleSheet.create({
   stateText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
   retry: { minHeight: sizes.touchTarget, justifyContent: 'center', paddingHorizontal: spacing.lg,
     borderRadius: radii.medium, backgroundColor: colors.brandPrimary },
-  retryText: { ...typography.label, color: colors.textInverse },
+  retryText: { ...typography.label, color: colors.textOnPrimary },
 });
