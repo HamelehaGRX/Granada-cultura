@@ -5,5 +5,6 @@ export const STORAGE_KEYS = {
   themePreference: 'cultura.themePreference',
   exploreSoon: 'cultura.exploreSoon',
   exploreGetaway: 'cultura.exploreGetaway',
+  exploreCollectionRotation: 'cultura.exploreCollectionRotation',
 } as const;
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

@@ -8,6 +8,8 @@ import { useEventInteractions } from '@/features/events/interactions/EventIntera
 import { breakpoints, radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import { useExplorePreferences } from '../ExplorePreferencesProvider';
 import { useSoonFilters } from '../SoonFilterProvider';
+import { rotateCollections, selectCollections } from '../collections';
+import { CollectionTile } from '../components/CollectionIdentity';
 import { ExploreCarousel } from '../components/ExploreCarousel';
 import { GetawayFilterModal } from '../components/GetawayFilterModal';
 import { SoonSection } from '../components/SoonSection';
@@ -22,7 +24,8 @@ export function ExploreScreen() {
   const padding = width >= breakpoints.desktop ? spacing.xxl
     : width >= breakpoints.tablet ? spacing.xl : spacing.lg;
   const { rememberScroll, savedScroll, applied: soonFilters } = useSoonFilters();
-  const { maxKm, hydrated: getawayHydrated, applyMaxKm, differentPreviousIds,
+  const { maxKm, hydrated: getawayHydrated, applyMaxKm, differentPreviousIds, collectionSessionSeed,
+    collectionRotationReady,
     renewDifferentFrom } = useExplorePreferences();
   const interactions = useEventInteractions();
   const { candidates, categories, loading, error, retry, now } = useExploreEvents();
@@ -38,6 +41,9 @@ export function ExploreScreen() {
   [different, differentPreviousIds, soon]);
   const getaway = useMemo(() => selectGetawayWithExpansion(candidates, context, maxKm),
     [candidates, context, maxKm]);
+  const availableCollections = useMemo(() => selectCollections(candidates, context), [candidates, context]);
+  const featuredCollections = useMemo(() => rotateCollections(availableCollections, collectionSessionSeed),
+    [availableCollections, collectionSessionSeed]);
   const blocks = useMemo(() => assembleExploreEventBlocks(['soon', 'different', 'getaway'],
     { soon, different: orderedDifferent, getaway: getaway.selected }),
   [soon, orderedDifferent, getaway]);
@@ -107,6 +113,25 @@ export function ExploreScreen() {
                 onMore={() => router.push('/explorar/escapate')} />
                 : <Text style={styles.message}>No hay propuestas en este radio.</Text>}
         </View>
+        {!loading && !error && collectionRotationReady && availableCollections.length > 0 ? <View testID="collections-section"
+          style={styles.section}>
+          <Text accessibilityRole="header" aria-level={2} style={styles.sectionTitle}>COLECCIONES</Text>
+          <Text style={styles.sectionSubtitle}>¿Por qué no?</Text>
+          <Text style={styles.demoNote}>Otras formas de descubrir · selección con datos demo.</Text>
+          <View style={styles.collectionGrid}>
+            {featuredCollections.map(collection => <View key={collection.id}
+              style={{ width: width >= breakpoints.tablet ? '23%' : '47%' }}>
+              <CollectionTile collection={collection} onPress={() => router.push({
+                pathname: '/explorar/colecciones/[collectionId]', params: { collectionId: collection.id },
+              })} />
+            </View>)}
+          </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Ver todas las colecciones"
+            testID="all-collections-link" onPress={() => router.push('/explorar/colecciones')}
+            style={({ pressed }) => [styles.allCollectionsLink, pressed && styles.pressed]}>
+            <Text style={styles.allCollectionsText}>Ver todas →</Text>
+          </Pressable>
+        </View> : null}
       </View>
     </ScrollView>
     <GetawayFilterModal visible={getawayOpen} appliedMaxKm={maxKm}
@@ -139,4 +164,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   pressed: { backgroundColor: colors.surfaceMuted },
   message: { ...typography.body, color: colors.textPrimary, marginVertical: spacing.md },
   notice: { ...typography.bodySmall, color: colors.warning, marginBottom: spacing.md },
+  collectionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  allCollectionsLink: { minHeight: sizes.touchTarget, alignSelf: 'flex-end',
+    paddingHorizontal: spacing.sm, justifyContent: 'center', marginTop: spacing.md },
+  allCollectionsText: { ...typography.label, color: colors.brandPrimary },
 });

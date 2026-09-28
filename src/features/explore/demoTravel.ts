@@ -1,5 +1,6 @@
 import type { EventResult } from '../events/types';
 import type { ExploreCandidate, TravelEstimate } from './types';
+import { DEMO_EDITORIAL } from './demoEditorial';
 
 /** Trayectos ficticios explícitos; nunca inferir minutos de distancia en línea recta. */
 const DEMO_TRAVEL: Readonly<Record<string, TravelEstimate>> = {
@@ -11,6 +12,7 @@ const DEMO_TRAVEL: Readonly<Record<string, TravelEstimate>> = {
 
 export function exploreCandidates(data: readonly EventResult[]): ExploreCandidate[] {
   return data.map(result => ({ result,
+    ...(DEMO_EDITORIAL[result.event.id] ? { editorial: DEMO_EDITORIAL[result.event.id] } : {}),
     ...(DEMO_TRAVEL[result.event.id] ? { travel: DEMO_TRAVEL[result.event.id] } : {}),
   }));
 }

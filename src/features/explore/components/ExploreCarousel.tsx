@@ -10,9 +10,9 @@ import { soonCardDate, travelLabel } from '../presentation';
 import { previewEvents } from '../selection';
 import type { ExploreCandidate } from '../types';
 
-export function ExploreCarousel({ candidates, categories, now, onMore, kind, title }: {
+export function ExploreCarousel({ candidates, categories, now, onMore, kind, title, carouselId }: {
   candidates: readonly ExploreCandidate[]; categories: Category[]; now: Date; onMore: () => void;
-  kind: 'soon' | 'different' | 'getaway'; title: string;
+  kind: 'soon' | 'different' | 'getaway' | 'collection'; title: string; carouselId?: string;
 }) {
   const styles = useThemeStyles(createStyles);
   const { width, fontScale } = useWindowDimensions();
@@ -22,7 +22,8 @@ export function ExploreCarousel({ candidates, categories, now, onMore, kind, tit
   const cardWidth = Math.max(220, Math.floor((measure - spacing.md * (Math.ceil(columns) - 1)) / columns));
   const items = previewEvents(candidates);
 
-  return <View testID={`${kind}-carousel`} onLayout={event => setAvailableWidth(event.nativeEvent.layout.width)}>
+  return <View testID={carouselId ?? `${kind}-carousel`}
+    onLayout={event => setAvailableWidth(event.nativeEvent.layout.width)}>
     <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled"
       accessibilityLabel={`Eventos de ${title}; desliza para ver más`}
       contentContainerStyle={styles.track} style={styles.scroller}>
@@ -35,11 +36,12 @@ export function ExploreCarousel({ candidates, categories, now, onMore, kind, tit
             params: { eventId: candidate.result.event.id } })} />
       </View>)}
       <Pressable accessibilityRole="button" accessibilityLabel={`Ver todos los eventos de ${title}`}
-        testID={`${kind}-more-tile`} onPress={onMore}
+        testID={`${carouselId ?? kind}-more-tile`} onPress={onMore}
         style={({ pressed }) => [styles.more, { width: cardWidth }, pressed && styles.morePressed]}>
         <Text style={styles.moreArrow}>→</Text>
         <Text style={styles.moreTitle}>VER MÁS</Text>
-        <Text style={styles.moreCaption}>Todas las propuestas de este bloque</Text>
+        <Text style={styles.moreCaption}>{kind === 'collection' ? 'Toda la colección' :
+          'Todas las propuestas de este bloque'}</Text>
       </Pressable>
     </ScrollView>
     {fontScale > sizes.twoColumnMaxFontScale ? null : <Text style={styles.hint}>Desliza para descubrir más →</Text>}

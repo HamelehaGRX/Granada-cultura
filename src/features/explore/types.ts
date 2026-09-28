@@ -35,6 +35,7 @@ export type ExploreEditorial = {
   neighborhoodId?: string;
   curiosity?: boolean;
   nighttime?: boolean;
+  outdoor?: boolean;
 };
 
 /** Estimación aportada por un fixture o proveedor futuro; no se infiere de la distancia en línea recta. */

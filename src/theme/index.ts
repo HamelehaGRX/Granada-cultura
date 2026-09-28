@@ -7,6 +7,8 @@ export {
   type CategoryAppearance,
 } from './categoryAppearances';
 export { AppThemeProvider, useAppTheme, useThemeStyles } from './AppThemeProvider';
+export { collectionAppearanceFor, darkCollectionAppearances, lightCollectionAppearances,
+  type CollectionAppearance } from './collectionAppearances';
 export { colors, darkColors, lightColors, themeColors, type ThemeColors } from './colors';
 export {
   DEFAULT_THEME_PREFERENCE,

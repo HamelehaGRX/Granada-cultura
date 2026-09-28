@@ -35,6 +35,8 @@ function ThemedApplication() {
           <Stack.Screen name="explorar/ocurre-pronto" options={{ title: 'Ocurre pronto' }} />
           <Stack.Screen name="explorar/descubre" options={{ title: 'Descubre de otra forma' }} />
           <Stack.Screen name="explorar/escapate" options={{ title: 'Escápate un poco' }} />
+          <Stack.Screen name="explorar/colecciones/index" options={{ title: 'Todas las colecciones' }} />
+          <Stack.Screen name="explorar/colecciones/[collectionId]" options={{ title: 'Colección' }} />
         </Stack>
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <AppSplash />

@@ -9,6 +9,10 @@ import { assembleExploreEventBlocks, previewEvents, renewDifferent, resolveExplo
 import { groupSoonEvents, soonCardDate, soonResultState, travelLabel } from '../src/features/explore/presentation';
 import { clampGetawayMax, persistableGetawayMax, restoreGetawayMax } from '../src/features/explore/getawayFilters';
 import { exploreCandidates } from '../src/features/explore/demoTravel';
+import { DEMO_EDITORIAL } from '../src/features/explore/demoEditorial';
+import { persistableCollectionRotation, restoreCollectionRotation } from '../src/features/explore/collectionRotation';
+import { collectionAppearanceFor, darkCollectionAppearances,
+  lightCollectionAppearances } from '../src/theme/collectionAppearances';
 import { DEFAULT_SOON_FILTERS, persistableSoonFilters, restoreSoonFilters,
   soonFilterSummary } from '../src/features/explore/soonFilters';
 import type { ExploreCandidate, ExploreContext, ExploreEditorial } from '../src/features/explore/types';
@@ -149,6 +153,8 @@ async function main() {
   assert.equal(restoreGetawayMax({ version: 1, data: { maxKm: 900 } }), null);
   const enriched = exploreCandidates(fixture);
   assert.equal(enriched.find(item => item.result.event.id === 'demo-18')?.travel?.durationMinutes, 52);
+  assert.equal(enriched.find(item => item.result.event.id === 'demo-11')?.editorial?.hiddenHeritage, true);
+  assert(Object.values(DEMO_EDITORIAL).every(item => item.provenance === 'demo'));
   assert.equal(selectGetaway(enriched, context, 100).length, 3);
 
   const cheap = make('cheap', 1, { price: { kind: 'fixed', currency: 'EUR', amountCents: 800 },
@@ -172,11 +178,62 @@ async function main() {
   assert.equal(withContext.find(item => item.id === 'yourNeighborhood')?.events[0].result.event.id, 'tagged');
   assert(withContext.some(item => item.id === 'somethingNew'));
   assert.equal(COLLECTIONS.length, 12);
+  assert.deepEqual(COLLECTIONS.map(item => item.title), [
+    'Cultura por menos de 10 €', 'Artistas emergentes', 'Pequeños espacios',
+    'Patrimonio escondido', 'Cultura rural', 'Escena local', 'Participa, no solo mires',
+    'Descubre tu barrio', 'Para curiosos', 'De noche', 'Cultura al aire libre', 'Elige algo nuevo',
+  ]);
+  const demoCollections = selectCollections(enriched, context);
+  assert.equal(demoCollections.length, 10);
+  assert(!demoCollections.some(item => item.id === 'yourNeighborhood' || item.id === 'somethingNew'));
+  assert.deepEqual(demoCollections.map(item => item.id), COLLECTIONS.filter(item =>
+    item.id !== 'yourNeighborhood' && item.id !== 'somethingNew').map(item => item.id));
   assert.deepEqual(rotateCollections(withContext, 3).map(item => item.id),
     rotateCollections(withContext, 3).map(item => item.id));
-  assert(rotateCollections(withContext, 3).length <= 4);
+  assert.equal(rotateCollections(demoCollections, 3).length, 4);
+  assert.equal(new Set(rotateCollections(demoCollections, 3).map(item => item.id)).size, 4);
   assert(rotateCollections(withContext, 3).every(item => item.events.length > 0));
+  assert.deepEqual(rotateCollections(demoCollections.slice(0, 3), 2).length, 3);
+  assert.deepEqual(rotateCollections([], 2), []);
+  assert.equal(new Set(Array.from({ length: demoCollections.length }, (_, seed) =>
+    rotateCollections(demoCollections, seed).map(item => item.id)).flat()).size,
+  demoCollections.length);
+  assert.deepEqual(restoreCollectionRotation(persistableCollectionRotation(4)), 4);
+  assert.equal(restoreCollectionRotation({ version: 1, data: { cursor: 99 } }), null);
+  assert.equal(restoreCollectionRotation({ version: 2, data: { cursor: 4 } }), null);
   assert(collectionPreview(withContext[0]).length <= 7);
+  const manyCheap = selectCollections(Array.from({ length: 70 }, (_, index) => make(`cheap-${index}`,
+    index + 1, { price: FREE })), context).find(item => item.id === 'under10');
+  assert.equal(manyCheap?.events.length, 70);
+  assert.equal(manyCheap && collectionPreview(manyCheap).length, 7);
+  assert(selectCollections([tagged], context).filter(item => item.events.some(candidate =>
+    candidate.result.event.id === 'tagged')).length > 1);
+  assert(assembleExploreEventBlocks(['soon', 'collections'], { soon: [tagged] })[0].preview
+    .some(candidate => candidate.result.event.id === 'tagged'));
+  assert(selectCollections([tagged], context).some(item => item.events.some(candidate =>
+    candidate.result.event.id === 'tagged')));
+  const appearanceIds = COLLECTIONS.map(item => item.id);
+  assert.deepEqual(Object.keys(lightCollectionAppearances).sort(), [...appearanceIds].sort());
+  assert.deepEqual(Object.keys(darkCollectionAppearances).sort(), [...appearanceIds].sort());
+  for (const id of appearanceIds) {
+    for (const theme of ['light', 'dark'] as const) {
+      const appearance = collectionAppearanceFor(id, theme);
+      assert(appearance.icon.length > 0 && appearance.accent.startsWith('#')
+        && appearance.surface.startsWith('#'));
+      const luminance = (hex: string) => {
+        const channels = hex.slice(1).match(/.{2}/g)?.map(value => Number.parseInt(value, 16) / 255) ?? [];
+        const [red, green, blue] = channels.map(value => value <= 0.03928 ? value / 12.92
+          : ((value + 0.055) / 1.055) ** 2.4);
+        return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+      };
+      const foreground = luminance(appearance.accent);
+      const background = luminance(appearance.surface);
+      assert((Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05) >= 4.5,
+        `${id} ${theme}: contraste insuficiente`);
+    }
+  }
+  assert.notEqual(collectionAppearanceFor('under10', 'light').accent,
+    collectionAppearanceFor('hiddenHeritage', 'light').accent);
 
   assert.deepEqual(selectForYou(varied, context), []);
   assert.deepEqual(selectForYou(varied, { ...context, interactions: {
@@ -213,8 +270,6 @@ async function main() {
   assert.equal(longBlock[0].preview.length, 7);
   assert.equal(longBlock[0].more.length, 70);
   assert.equal(longBlock[0].more[0].result.event.id, 'list-7');
-  assert(selectCollections([tagged], context).some(item => item.events.some(candidate =>
-    candidate.result.event.id === tagged.result.event.id)));
   assert.equal(JSON.stringify(fixture), original);
   console.log('OK Explora: ventanas/precio/estados, 7 + Ver más, diversidad, escapadas y radio, 12 colecciones, señales, orden y deduplicación.');
 }

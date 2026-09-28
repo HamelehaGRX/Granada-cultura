@@ -1,6 +1,6 @@
 # EXPLORA v1 — biblia funcional
 
-**Fase actual:** 3. Esta biblia distingue el diseño acordado de lo conectado: la pestaña Explorar muestra **Ocurre pronto**, **Descubre de otra forma** y **Escápate un poco**. Colecciones y También podría interesarte siguen sin interfaz pública.
+**Fase actual:** 4. Esta biblia distingue el diseño acordado de lo conectado: la pestaña Explorar muestra **Ocurre pronto**, **Descubre de otra forma**, **Escápate un poco** y **Colecciones**. También podría interesarte sigue sin interfaz pública.
 
 ## Objetivo y diferencia con Inicio
 
@@ -22,7 +22,7 @@ El dominio permite resolver el orden recomendado, un orden propio de los tres bl
 
 ## Regla transversal: siete eventos y Ver más
 
-Todo carrusel horizontal de eventos tendrá como máximo **7 eventos + tarjeta final Ver más**. Si hay cuatro candidatos válidos, muestra cuatro y Ver más. No se rellenan huecos artificialmente. Los tres bloques visibles reutilizan `ExploreCarousel`, EventCard y la misma tarjeta de acción neutra.
+Todo carrusel horizontal de eventos tendrá como máximo **7 eventos + tarjeta final Ver más**. Si hay cuatro candidatos válidos, muestra cuatro y Ver más. No se rellenan huecos artificialmente. Los tres bloques iniciales y cada colección disponible reutilizan `ExploreCarousel`, EventCard y la misma tarjeta de acción neutra. Las tarjetas de acceso a colecciones de la portada no son EventCards ni carruseles.
 
 Ver más no tiene tope artificial. Si hay 70 candidatos, se conservan los 70. En Ocurre pronto, el listado completo agrupa cronológicamente los disponibles por día y sitúa los agotados después. La deduplicación de portada no invalida candidatos en Ver más. No se almacenan impresiones ni historial permanente.
 
@@ -77,9 +77,15 @@ Orden estable de «Todas las colecciones»:
 11. Cultura al aire libre.
 12. Elige algo nuevo.
 
-Una colección sin candidatos válidos no está disponible. Todas usan el radio habitual y excluyen cancelados/terminados. Los agotados son elegibles en listados completos y se relegan. En la futura portada habrá cuatro colecciones rotativas entre las disponibles, sin una prioridad fija. La selección pura usa una semilla de sesión estable; la UI y «Todas las colecciones» quedan pendientes.
+Una colección sin candidatos válidos no está disponible: se omite sin bloque vacío. Todas usan el radio habitual y excluyen cancelados/terminados. Los agotados son elegibles en listados completos y se relegan. La portada muestra hasta cuatro accesos visuales en una cuadrícula después de Escápate; son tarjetas de colección, no tarjetas de evento. Un cursor local mínimo avanza entre sesiones y reparte la selección disponible por posiciones separadas para favorecer variedad conceptual. Permanece estable durante la sesión, no registra impresiones ni clasifica colecciones como «mejores». Con menos de cuatro disponibles se muestran solo las existentes.
 
-«Menos de 10 €» admite gratis o **total confirmado** de hasta 1.000 céntimos; un precio base bajo con tasas desconocidas no basta. Los atributos de artista emergente, espacio pequeño, patrimonio escondido, ruralidad, escena local, participación, curiosidad y horario nocturno exigen metadatos editoriales explícitos con procedencia. No se infieren de seguidores, fama, tamaño de precio o simple hora de inicio. Aire libre requiere que el evento declare `setting: outdoor`. Barrio requiere un identificador hiperlocal conocido y coincidente; si no existe, se omite. «Elige algo nuevo» requiere suficientes señales y otra categoría respecto de las conocidas.
+«Menos de 10 €» admite gratis o **total confirmado** de hasta 1.000 céntimos; un precio base bajo con tasas desconocidas no basta. Los atributos de artista emergente, espacio pequeño, patrimonio escondido, ruralidad, escena local, participación, curiosidad y horario nocturno exigen metadatos editoriales explícitos con procedencia. No se infieren de seguidores, fama, tamaño de precio o simple hora de inicio. Aire libre requiere `setting: outdoor` o una etiqueta editorial explícita de exterior. Barrio requiere un identificador hiperlocal conocido y coincidente; no se infiere de la ciudad ni aparece todavía con el contexto demo actual. «Elige algo nuevo» requiere señales explícitas de al menos dos eventos y otra categoría respecto de las conocidas; sin ellas no aparece.
+
+`/explorar/colecciones` presenta las colecciones disponibles en el orden estable anterior. Cada bloque tiene icono, subtítulo y carrusel manual de máximo siete EventCards más una tarjeta final neutra «Ver más»; no hay botón «Ver más» junto al título. `/explorar/colecciones/[collectionId]` muestra el listado íntegro de una colección en una columna de lectura, con renderizado virtualizado y sin filtros generales. Un evento puede pertenecer a varias colecciones y también haber aparecido en otro bloque de Explora: esta pertenencia no se deduplica contra la portada. Los eventos siguen usando el color de su **categoría**, nunca el de la colección.
+
+Las doce identidades visuales iniciales viven separadas de `categoryAppearances`: icono, acento y superficie específicos en Claro y Oscuro. El tono de Colecciones representa una forma de descubrir; no sustituye la clasificación del evento ni constituye una identidad de marca definitiva. En móvil la portada usa una cuadrícula compacta de dos columnas; tablet y escritorio distribuyen hasta cuatro accesos en una fila. «Todas» mantiene scroll vertical y carruseles horizontales independientes con una tarjeta y parte de la siguiente en móvil, unas dos en tablet y tres o cuatro en escritorio. El listado individual usa tarjeta ancha en móvil y ancho máximo de lectura en escritorio. Hay etiquetas accesibles, objetivos táctiles y scroll manual sin autoplay.
+
+`demoEditorial.ts` añade únicamente etiquetas ficticias con `provenance: demo` a trece de los 22 eventos Expo, sin tocar los JSON canónicos ni `/app`. Activa diez colecciones con contenido; Barrio y Elige algo nuevo permanecen no disponibles hasta tener contexto suficiente. Etiquetas como «rural», «emergente», «pequeño espacio» o «escena local» no son afirmaciones verificadas sobre municipios, artistas ni espacios reales. Antes de usar datos reales harán falta procedencia y revisión editorial. «Menos de 10 €» usa por ahora los registros explícitamente gratuitos; los ejemplos de total confirmado se prueban con datos sintéticos, no se inventan tasas ni totales en el catálogo.
 
 Quedan fuera de v1: Fuera del circuito habitual, Espacios inesperados, Para ir solo y Plan corto. Las colecciones son autónomas: un evento visto en Ocurre pronto puede volver a aparecer en una colección.
 
@@ -99,23 +105,25 @@ Cancelado y terminado significan «fuera de recomendaciones actuales», no elimi
 
 Los metadatos `ExploreEditorial` son opcionales y distinguen `demo` de `curated`; ausencia significa desconocido. Los fixtures Expo siguen siendo ficticios. En esta fase el catálogo Expo pasó de **16 a 22 eventos**: cuatro fuera del radio de 30 km para Escápate y dos dentro para que ↻ disponga de alternativas visibles. `/app` conserva sus 16 registros originales. Las distancias y duraciones son demostrativas, no verificadas para los lugares reales nombrados; los espacios añadidos se declaran «de muestra». No se atribuyen cualidades editoriales reales a artistas o espacios.
 
-Los tres bloques consumen los tokens globales de Claro/Oscuro/Sistema, sin paleta nueva. El carrusel calcula ancho según viewport y espacio disponible: aproximadamente una tarjeta más un fragmento en móvil, dos más un fragmento en tablet y tres o cuatro más un fragmento en escritorio; mantiene scroll manual y teclado/foco de los controles. Ver más usa tarjetas de ancho completo en móvil y columna de lectura en escritorio. En 390 CSS px se reduce discretamente el título de las dos nuevas secciones para mantener ↻ y el chip junto a su título.
+Los bloques consumen los tokens globales de Claro/Oscuro/Sistema. Colecciones añade su mapa visual provisional independiente, con acentos y superficies suaves para cada tema, sin alterar la paleta de las EventCards. El carrusel calcula ancho según viewport y espacio disponible: aproximadamente una tarjeta más un fragmento en móvil, dos más un fragmento en tablet y tres o cuatro más un fragmento en escritorio; mantiene scroll manual y teclado/foco de los controles. Ver más usa tarjetas de ancho completo en móvil y columna de lectura en escritorio. En 390 CSS px se reduce discretamente el título de Descubre y Escápate para mantener ↻ y el chip junto a su título.
 
 ## Estado de implementación
 
-| Parte | Estado real en fase 3 |
+| Parte | Estado real en fase 4 |
 | --- | --- |
 | Pestaña Explorar | Cabecera, búsqueda reutilizada, scroll vertical y tres bloques de eventos visibles. |
 | Tipos, radio como entrada, estimación de viaje | Implementados como contratos puros; radio no persistido, sin proveedor de rutas. |
 | Ocurre pronto, Descubre, Escápate | Selectores puros e interfaz conectados a fixtures Expo; tres rutas Ver más. |
 | También podría interesarte | Solo selector puro; no se muestra en portada. |
-| Colecciones y rotación | Doce definiciones estables, elegibilidad y rotación puras; sin pantalla. |
+| Colecciones y rotación | Doce definiciones, elegibilidad y rotación por sesión; hasta cuatro accesos de portada entre las disponibles. |
+| Todas las colecciones | Ruta propia, orden estable, bloques vacíos omitidos, carruseles 7 + Ver más. |
+| Detalle de colección | Ruta parametrizada, listado completo virtualizado y EventCard con identidad de categoría. |
 | Orden y deduplicación | Portada en orden recomendado; previews sin repeticiones de ID cuando hay alternativas, sin persistencia de impresiones. |
 | Carrusel y Ver más de Ocurre pronto | Máximo 7 + tarjeta final; listado completo por día, agotados al final, filtro común y retorno a Explora. |
 | Filtro de Ocurre pronto | Modal draft/applied, persistencia local de ventana y precio, cierre sin guardar, defaults 7 días/Todos. |
 | Renovación ↻ de Descubre | Manual, local a ese bloque y estable durante la sesión; sin autoplay. |
 | Filtro y Ver más de Escápate | Máximo 30–300 km persistente; una ampliación anunciada de +25 km; fecha solo en Ver más, no persistida. |
-| Cambio de orden, Colecciones y También podría interesarte | Diseño acordado; UI pendiente. |
+| Cambio de orden y También podría interesarte | Diseño acordado; UI pendiente. |
 | Integración con Inicio y radio habitual real | Pendiente. Los filtros temporales de Inicio no se mezclan con Explora. |
 | Personalización avanzada, visitas, impresiones, decaimiento | Pendiente; no se registran nuevas señales ni datos personales. |
 
@@ -125,11 +133,11 @@ Los tres bloques consumen los tokens globales de Claro/Oscuro/Sistema, sin palet
 - Definición y procedencia verificable de los atributos editoriales y del precio total confirmado al pasar de fixtures a datos reales.
 - Proveedor sustituible de rutas y condiciones para mostrar duración aproximada sin hacer promesas falsas.
 - Umbral y explicación de recomendaciones personales, renovación manual, decaimiento temporal y control del usuario.
-- Diseño y pruebas de Colecciones, También podría interesarte y orden personal; validación native de las nuevas pantallas/modales en Android e iOS.
+- Curación real de Colecciones, También podría interesarte y orden personal; validación native de las nuevas pantallas/modales en Android e iOS.
 - Cómo manejar sesiones futuras de eventos de larga duración sin confundir apertura continua con una actividad próxima.
 
 ## Arquitectura y validación de esta fase
 
-`src/features/explore/types.ts` define el contexto y metadatos; `selection.ts` concentra selección, renovación, orden y deduplicación; `collections.ts` conserva el catálogo estable y sus reglas. Consumen `EventResult`, `Event`, interacciones y estados existentes. No tienen imports de React ni de storage. `useExploreEvents` conecta el repositorio demo; `demoTravel.ts` contiene trayectos ficticios explícitos; `ExplorePreferencesProvider` guarda solo el máximo de Escápate y conserva la renovación en memoria. `getawayFilters.ts` valida la persistencia. El carrusel y la tarjeta Ver más son comunes a los tres bloques. `scripts/validate-explore.ts` verifica las reglas sin añadir dependencias.
+`src/features/explore/types.ts` define el contexto y metadatos; `selection.ts` concentra selección, renovación, orden y deduplicación; `collections.ts` conserva el catálogo estable y sus reglas. Consumen `EventResult`, `Event`, interacciones y estados existentes. No tienen imports de React ni de storage. `useExploreEvents` conecta el repositorio demo; `demoTravel.ts` y `demoEditorial.ts` enriquecen los resultados con datos ficticios explícitos. `ExplorePreferencesProvider` guarda el máximo de Escápate y un cursor de rotación sin historial, y conserva la renovación de Descubre en memoria. `getawayFilters.ts` y `collectionRotation.ts` validan la persistencia. `useExploreCollections` conecta las dos pantallas nuevas sin acoplar la selección a un fixture. El carrusel y la tarjeta Ver más son comunes a los bloques de eventos; la apariencia de Colecciones vive en `src/theme/collectionAppearances.ts`, separada de Categorías. `scripts/validate-explore.ts` verifica las reglas sin añadir dependencias.
 
-Desde la raíz: `node scripts/run-validation.cjs explore`, `npm run validate`, `npm run typecheck` y `git diff --check`. La fase 3 requiere además smoke visual web móvil/tablet/escritorio; Expo Doctor y exports quedan fuera de alcance.
+Desde la raíz: `node scripts/run-validation.cjs explore`, `npm run validate`, `npm run typecheck` y `git diff --check`. La fase 4 requiere además smoke visual web móvil/tablet/escritorio; Expo Doctor y exports quedan fuera de alcance.
