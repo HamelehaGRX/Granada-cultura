@@ -3,5 +3,6 @@ export const STORAGE_KEYS = {
   filters: 'cultura.filters',
   eventInteractions: 'cultura.eventInteractions',
   themePreference: 'cultura.themePreference',
+  exploreSoon: 'cultura.exploreSoon',
 } as const;
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

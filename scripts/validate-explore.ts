@@ -6,6 +6,9 @@ import type { Event, EventPrice, EventStatus } from '../src/features/events/type
 import { COLLECTIONS, collectionPreview, rotateCollections, selectCollections } from '../src/features/explore/collections';
 import { assembleExploreEventBlocks, previewEvents, resolveExploreOrder, selectDifferent,
   selectForYou, selectGetaway, selectSoon } from '../src/features/explore/selection';
+import { groupSoonEvents, soonCardDate, soonResultState } from '../src/features/explore/presentation';
+import { DEFAULT_SOON_FILTERS, persistableSoonFilters, restoreSoonFilters,
+  soonFilterSummary } from '../src/features/explore/soonFilters';
 import type { ExploreCandidate, ExploreContext, ExploreEditorial } from '../src/features/explore/types';
 
 const NOW = new Date('2026-09-03T08:00:00.000Z');
@@ -58,6 +61,21 @@ async function main() {
   assert.equal(selectSoon(seventy, context).length, 70);
   assert.equal(previewEvents(selectSoon(seventy, context)).length, 7);
   assert.equal(selectSoon([make('day-13', 13 * 24), make('day-14', 14 * 24)], context, '14days').length, 1);
+  assert.deepEqual(DEFAULT_SOON_FILTERS, { window: '7days', price: 'all' });
+  assert.equal(soonFilterSummary(DEFAULT_SOON_FILTERS), '7 días · Todos');
+  assert.deepEqual(restoreSoonFilters(persistableSoonFilters({ window: '14days', price: 'free' })),
+    { window: '14days', price: 'free' });
+  assert.equal(restoreSoonFilters({ version: 1, data: { window: 'other', price: 'all' } }), null);
+  assert.equal(soonResultState(0), 'empty');
+  assert.equal(soonResultState(3), 'few');
+  assert.equal(soonResultState(4), 'normal');
+  const grouped = groupSoonEvents(selectSoon(soon, context, '3days'), NOW);
+  assert.deepEqual(grouped.available.flatMap(group => ids(group.events)),
+    ['old-publication', 'late', 'tomorrow']);
+  assert.deepEqual(grouped.soldOut.flatMap(group => ids(group.events)), ['sold']);
+  assert.equal(grouped.available[0].heading, 'HOY');
+  assert.equal(grouped.available[1].heading, 'MAÑANA');
+  assert.match(soonCardDate(soon[0].result.event, NOW), /^HOY · \d{2}:\d{2}$/);
 
   const varied = [
     ...Array.from({ length: 5 }, (_, index) => make(`rock-${index}`, index + 1)),

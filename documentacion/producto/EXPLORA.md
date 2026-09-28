@@ -1,6 +1,6 @@
 # EXPLORA v1 — biblia funcional
 
-**Fase actual:** 0–1, documentación funcional y dominio puro. Esta especificación describe el diseño acordado; la pestaña Explorar sigue mostrando un placeholder. Ningún carrusel, listado «Ver más» ni control visual descrito aquí está todavía conectado a la interfaz.
+**Fase actual:** 2. Esta biblia distingue el diseño acordado de lo conectado: la pestaña Explorar muestra la cabecera y **Ocurre pronto**; los demás bloques siguen siendo contratos de dominio sin interfaz.
 
 ## Objetivo y diferencia con Inicio
 
@@ -22,9 +22,9 @@ El dominio permite resolver el orden recomendado, un orden propio de los tres bl
 
 ## Regla transversal: siete eventos y Ver más
 
-Todo carrusel horizontal de eventos tendrá como máximo **7 eventos + tarjeta final Ver más**. Si hay cuatro candidatos válidos, muestra cuatro y Ver más. No se rellenan huecos artificialmente. El selector `previewEvents` y el ensamblado de bloques aplican ya el límite de siete; la tarjeta y la navegación son futuras.
+Todo carrusel horizontal de eventos tendrá como máximo **7 eventos + tarjeta final Ver más**. Si hay cuatro candidatos válidos, muestra cuatro y Ver más. No se rellenan huecos artificialmente. Esta regla ya está conectada visualmente para Ocurre pronto mediante `previewEvents`, EventCard reutilizada y una tarjeta de acción neutra. Los demás carruseles siguen pendientes.
 
-Ver más no tiene tope artificial. Si hay 70 candidatos, se conservan los 70. Al abrir el listado completo se priorizan los candidatos que aún no aparecieron en la portada de esa sesión y, después, los ya vistos allí. Esto no almacena impresiones ni historial permanente.
+Ver más no tiene tope artificial. Si hay 70 candidatos, se conservan los 70. En Ocurre pronto, el listado completo agrupa cronológicamente los disponibles por día y sitúa los agotados después. La regla transversal de priorizar no vistos en otros bloques permanece diseñada, pero no se aplica a Ocurre pronto: aquí prima el orden fecha/hora y no hay otros bloques visibles. No se almacenan impresiones ni historial permanente.
 
 ## Radio habitual y ubicación
 
@@ -32,11 +32,17 @@ El radio habitual es contexto común de Inicio y de todos los bloques de Explora
 
 Un resultado sin distancia conocida queda fuera de los bloques dependientes del radio; no se inventa proximidad. `EventResult.distanceMeters` del repositorio actual es una distancia **ficticia desde Granada**, solo apta para demostración. En una fase posterior habrá que decidir cómo seleccionar, guardar y modificar la zona habitual, cómo calcular distancias reales y cómo compartir esa preferencia con Inicio. No se pide geolocalización en esta fase.
 
+La UI de fase 2 inyecta **30 km como radio demo fijo** en `useSoonEvents` para utilizar el contrato existente, y lo identifica junto a las distancias de ejemplo en ambas pantallas. No se presenta como una configuración personal persistida ni se mezcla con el filtro de Inicio.
+
 ## Ocurre pronto
 
 Busca eventos futuros, activos y dentro del radio habitual. Default: **7 días**. Opciones: Hoy, próximos 3 días, 7 días, 14 días; precio Todos, Gratis o De pago. No lleva otros filtros. Las ventanas son días civiles en la zona horaria del evento: por ejemplo, «3 días» incluye hoy y los dos días siguientes. Dentro de cada grupo de disponibilidad se ordena por instante real de inicio, fecha y después hora.
 
 Los cancelados y terminados no aparecen en estos listados; siguen conservados en el catálogo y su historial según la Constitución. Los aplazados pueden aparecer si disponen de nueva fecha futura válida. La antigüedad de publicación nunca entra en el orden. Un evento ya iniciado, aunque siga abierto varios días, no ocupa el bloque por esa sola razón: haría falta una sesión o actividad próxima representada con una fecha de inicio propia. Los agotados son válidos para Ver más, pero se sitúan detrás de los disponibles y no ocupan el carrusel mientras existan alternativas disponibles. «Gratis» requiere precio explícitamente gratuito; «De pago» requiere importe positivo, sin inferir que un precio desconocido sea gratuito.
+
+La pantalla muestra `CULTURA` y búsqueda reutilizando HomeHeader, seguida de «Explorar» y el subtítulo «Descubre algo que no estabas buscando.». La búsqueda envía el texto a la ruta existente `/buscar`, que lo aplica en Inicio; no hay buscador paralelo de Explora. El filtro compacto muestra una única síntesis de periodo/precio. Su modal superpuesto usa borrador: Guardar aplica y persiste; Restablecer solo cambia el borrador hasta guardar; ×, backdrop, Escape en web o Back en native descartan. Los valores por defecto son 7 días/Todos; no hereda filtros de Inicio. El carrusel es manual, sin autoplay, reutiliza EventCard y destaca fecha relativa con fecha absoluta secundaria. La tarjeta final «Ver más» abre `/explorar/ocurre-pronto`, con filtro compartido y listado por día sin límite de siete. Se conserva el filtro aplicado y la posición de scroll de la portada durante la navegación de la sesión.
+
+Con 1–3 resultados se indica discretamente que hay pocas propuestas; con cero se muestra un estado vacío legible. En ambos casos se ofrece ampliar explícitamente a 14 días si la ventana aún es menor; no se amplía de forma silenciosa. El filtro aplicado se guarda localmente mediante la frontera de storage existente y vuelve al visitar Explora.
 
 ## Descubre de otra forma
 
@@ -85,22 +91,24 @@ Los bloques de **eventos** de la portada procuran no repetir un ID ya usado por 
 
 Cancelado y terminado significan «fuera de recomendaciones actuales», no eliminación del evento histórico. Agotado conserva acceso en listado completo, pero pierde prioridad frente a disponible. Aplazado o modificado usa la fecha y estado **actuales**. No se crea un sistema paralelo de estados.
 
-## Datos, tema y adaptación visual futura
+## Datos, tema y adaptación visual
 
 Los metadatos `ExploreEditorial` son opcionales y distinguen `demo` de `curated`; ausencia significa desconocido. Los fixtures Expo existentes siguen siendo ficticios. La validación focalizada construye casos sintéticos claramente demo para comprobar precio final, diversidad, distancias, trayectos y curación; **no se ha alterado el catálogo de 16 eventos** ni se atribuyen cualidades reales a artistas o espacios.
 
-La interfaz futura utilizará los tokens globales para Claro/Oscuro/Sistema y mantendrá contraste y estados accesibles en ambos temas. En móvil se diseñará una columna legible con carruseles táctiles y foco accesible; en tablet se ampliará el ancho sin añadir bloques ficticios; en escritorio se aprovechará el espacio con contenedores y controles de teclado. Ver más tendrá una lista completa adaptable, sin límite de siete. Estas son **decisiones de diseño**, todavía no validadas visualmente ni implementadas.
+Ocurre pronto consume los tokens globales de Claro/Oscuro/Sistema, sin paleta nueva. El carrusel calcula ancho según viewport y espacio disponible: aproximadamente una tarjeta más un fragmento en móvil, dos más un fragmento en tablet y tres o cuatro más un fragmento en escritorio; mantiene scroll manual y teclado/foco de los controles. Ver más usa tarjetas de ancho completo en móvil. Los demás bloques conservan el diseño acordado, aún sin UI.
 
 ## Estado de implementación
 
-| Parte | Estado real en fase 0–1 |
+| Parte | Estado real en fase 2 |
 | --- | --- |
-| Pestaña Explorar | Placeholder existente; sin interfaz nueva. |
+| Pestaña Explorar | Cabecera, búsqueda reutilizada, scroll vertical y Ocurre pronto visibles. |
 | Tipos, radio como entrada, estimación de viaje | Implementados como contratos puros; radio no persistido, sin proveedor de rutas. |
 | Ocurre pronto, Descubre, Escápate, También podría interesarte | Selectores puros implementados y probados con datos demo. |
 | Colecciones y rotación | Doce definiciones estables, elegibilidad y rotación puras; sin pantalla. |
 | Orden y deduplicación | Resolución y ensamblado puros; sin ajuste visual ni persistencia. |
-| Carruseles, Ver más, cambio de orden, Muéstrame otras | Diseño acordado; UI pendiente. |
+| Carrusel y Ver más de Ocurre pronto | Máximo 7 + tarjeta final; listado completo por día, agotados al final, filtro común y retorno a Explora. |
+| Filtro de Ocurre pronto | Modal draft/applied, persistencia local de ventana y precio, cierre sin guardar, defaults 7 días/Todos. |
+| Cambio de orden, Muéstrame otras y demás carruseles | Diseño acordado; UI pendiente. |
 | Integración con Inicio y radio habitual real | Pendiente. Los filtros temporales de Inicio no se mezclan con Explora. |
 | Personalización avanzada, visitas, impresiones, decaimiento | Pendiente; no se registran nuevas señales ni datos personales. |
 
@@ -110,11 +118,11 @@ La interfaz futura utilizará los tokens globales para Claro/Oscuro/Sistema y ma
 - Definición y procedencia verificable de los atributos editoriales y del precio total confirmado al pasar de fixtures a datos reales.
 - Proveedor sustituible de rutas y condiciones para mostrar duración aproximada sin hacer promesas falsas.
 - Umbral y explicación de recomendaciones personales, renovación manual, decaimiento temporal y control del usuario.
-- Diseño y pruebas de las pantallas de portada, Ver más, colecciones y orden personal en Android, iOS y web.
+- Diseño y pruebas de colecciones, demás bloques y orden personal en Android, iOS y web; validación native de la nueva UI de Ocurre pronto.
 - Cómo manejar sesiones futuras de eventos de larga duración sin confundir apertura continua con una actividad próxima.
 
 ## Arquitectura y validación de esta fase
 
-`src/features/explore/types.ts` define el contexto y metadatos; `selection.ts` concentra selección, orden y deduplicación; `collections.ts` conserva el catálogo estable y sus reglas. Consumen `EventResult`, `Event`, interacciones y estados existentes. No tienen imports de React ni de storage. El llamador futuro aportará resultados del `EventRepository`, contexto y metadatos editoriales. `scripts/validate-explore.ts` verifica las reglas sin añadir dependencias.
+`src/features/explore/types.ts` define el contexto y metadatos; `selection.ts` concentra selección, orden y deduplicación; `collections.ts` conserva el catálogo estable y sus reglas. Consumen `EventResult`, `Event`, interacciones y estados existentes. No tienen imports de React ni de storage. La fase 2 añade un proveedor de filtros locales, `useSoonEvents` que conecta el repositorio demo y el radio provisional, componentes del modal/carrusel y pantallas. `soonFilters.ts` y `presentation.ts` mantienen restauración y presentación probables sin UI. `scripts/validate-explore.ts` verifica las reglas sin añadir dependencias.
 
-Desde la raíz: `node scripts/run-validation.cjs explore`, `npm run validate`, `npm run typecheck` y `git diff --check`. No hacen falta navegador, Expo Doctor ni exports en una fase sin nueva UI.
+Desde la raíz: `node scripts/run-validation.cjs explore`, `npm run validate`, `npm run typecheck` y `git diff --check`. La fase 2 requiere además smoke visual web móvil/tablet/escritorio; Expo Doctor y exports quedan fuera de alcance.

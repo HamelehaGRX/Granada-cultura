@@ -12,9 +12,12 @@ type EventCardProps = {
   categoryLabel: string;
   illustrationKey?: string;
   onOpen: () => void;
+  dateHighlight?: string;
+  showSoldOut?: boolean;
 };
 
-export function EventCard({ result, categoryLabel, illustrationKey, onOpen }: EventCardProps) {
+export function EventCard({ result, categoryLabel, illustrationKey, onOpen,
+  dateHighlight, showSoldOut = false }: EventCardProps) {
   const { categoryAppearanceFor } = useAppTheme();
   const styles = useThemeStyles(createStyles);
   const { event, distanceMeters } = result;
@@ -56,8 +59,11 @@ export function EventCard({ result, categoryLabel, illustrationKey, onOpen }: Ev
         <EventIllustration illustrationKey={illustrationKey} compact={fontScale > sizes.twoColumnMaxFontScale} />
         <View style={styles.info}>
           <Text accessibilityRole="header" aria-level={3} style={styles.title}>{event.title}</Text>
-          <Text style={styles.date}>{formatEventDate(event)}</Text>
+          <Text style={[styles.date, dateHighlight && styles.dateHighlight]}>{dateHighlight ?? formatEventDate(event)}</Text>
+          {dateHighlight ? <Text style={styles.dateSecondary}>{formatEventDate(event)}</Text> : null}
           <Text style={styles.place}>{event.location.venueName} · {event.location.locality}</Text>
+          {showSoldOut && (event.status === 'soldOut' || event.ticketing?.statuses.includes('soldOut'))
+            ? <Text style={styles.soldOut}>Agotado</Text> : null}
           <View style={styles.bottom}>
             {distance ? <Text style={styles.distance}>{distance}</Text> : null}
             <Text style={styles.price}>{formatEventPrice(event.price)}</Text>
@@ -85,7 +91,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   info: { flex: 1, minWidth: 0 },
   title: { ...typography.body, fontWeight: '600', color: colors.textPrimary, marginBottom: spacing.sm },
   date: { ...typography.bodySmall, color: colors.textPrimary },
+  dateHighlight: { ...typography.label, color: colors.brandPrimary, fontWeight: '700' },
+  dateSecondary: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
   place: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
+  soldOut: { ...typography.label, color: colors.warning, marginTop: spacing.xs },
   bottom: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   distance: { ...typography.caption, color: colors.textSecondary },
   interested: { ...typography.heading, width: 32, color: colors.interestIndicator, textAlign: 'center', fontWeight: '800' },

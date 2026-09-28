@@ -1,10 +1,3 @@
-import { PlaceholderScreen } from '@/components/PlaceholderScreen';
+import { ExploreScreen } from '@/features/explore/screens/ExploreScreen';
 
-export default function ExplorarScreen() {
-  return (
-    <PlaceholderScreen
-      title="Explorar"
-      description="Base preparada para descubrir actividades culturales."
-    />
-  );
-}
+export default ExploreScreen;

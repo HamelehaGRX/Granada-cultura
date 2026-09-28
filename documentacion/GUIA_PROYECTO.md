@@ -8,7 +8,7 @@ La carpeta `app/` conserva intacto el prototipo web aprobado como referencia his
 
 La base principal dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, detalle completo de evento, preferencias locales de evento, splash visual, navegación responsive y placeholders gráficos reutilizables. Las funcionalidades reales de las otras pestañas pertenecen a fases de producto independientes.
 
-**Explora v1 está diseñada funcionalmente y se encuentra en la fase 0–1:** [EXPLORA.md](producto/EXPLORA.md) distingue reglas acordadas y estado real. `src/features/explore/` contiene tipos y selectores puros para bloques, colecciones, radio contextual y deduplicación; la pestaña Explorar continúa como placeholder. Faltan el radio habitual persistido y compartido con Inicio, la curación real, la interfaz responsive, los listados Ver más y cualquier proveedor de tiempos de trayecto.
+**Explora v1 está en fase 2:** [EXPLORA.md](producto/EXPLORA.md) distingue reglas acordadas y estado real. La pestaña Explorar ya muestra cabecera y Ocurre pronto con filtro local persistente, carrusel limitado a siete más tarjeta Ver más y listado completo por día. Los demás bloques siguen siendo dominio sin UI; el radio de 30 km es demo y no una preferencia global. Faltan radio habitual compartido, curación real y proveedor de tiempos de trayecto.
 
 ## Gobernanza y Constitución
 
@@ -30,7 +30,7 @@ Cuando una propuesta entre en conflicto con un principio constitucional, el conf
 - `src/theme/`: colores, tipografía, espaciado, radios, sombras, movimiento y breakpoints centralizados.
 - `src/storage/`: claves, contrato JSON tipado, adaptador AsyncStorage y frontera de migraciones.
 - `src/features/events/` y `src/features/categories/`: modelos, adaptación, repositorios, Home, detalle de evento, interacciones locales y resolución de ilustraciones.
-- `src/features/explore/`: lógica base de Explora v1 sin interfaz ni persistencia nueva.
+- `src/features/explore/`: reglas de Explora v1 y UI de Ocurre pronto con filtros locales persistentes.
 - `src/types/common.ts`: coordenadas, instantes ISO y zona horaria compartidos.
 - `src/data/fixtures/`: frontera de fixtures; `raw/` contiene las copias demo propiedad de Expo.
 - `scripts/validate-data.ts`: comprobaciones de datos sin framework adicional; se ejecuta fuera de la aplicación.

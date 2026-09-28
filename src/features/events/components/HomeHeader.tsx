@@ -14,7 +14,9 @@ import { breakpoints, motion, sizes, spacing, typography, useThemeStyles, type T
 import { SearchField } from '../../search/components/SearchField';
 
 /** La safe area la aplica AppShell; el header no duplica sus insets. */
-export function HomeHeader({ query, onQueryChange }: { query: string; onQueryChange: (value: string) => void }) {
+export function HomeHeader({ query, onQueryChange, onSearchSubmit }: {
+  query: string; onQueryChange: (value: string) => void; onSearchSubmit?: (value: string) => void;
+}) {
   const styles = useThemeStyles(createStyles);
   const [open, setOpen] = useState(Boolean(query));
   const [renderSearch, setRenderSearch] = useState(Boolean(query));
@@ -81,7 +83,7 @@ export function HomeHeader({ query, onQueryChange }: { query: string; onQueryCha
           <Animated.View style={[styles.searchSlot, { opacity: fieldOpacity, width: fieldWidth }]}
             accessibilityElementsHidden={!open} aria-hidden={!open}
             importantForAccessibility={open ? 'auto' : 'no-hide-descendants'}>
-            <SearchField value={query} onChange={onQueryChange} onClose={close} />
+            <SearchField value={query} onChange={onQueryChange} onClose={close} onSubmit={onSearchSubmit} />
           </Animated.View>
         ) : null}
         <ThemePreferenceSelector />

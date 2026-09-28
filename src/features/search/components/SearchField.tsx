@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, TextInput } from 'react-native';
 import { radii, sizes, spacing, typography, useAppTheme, useThemeStyles, type ThemeColors } from '@/theme';
 
-export function SearchField({ value, onChange, onClose }: {
+export function SearchField({ value, onChange, onClose, onSubmit }: {
   value: string; onChange: (value: string) => void; onClose: () => void;
+  onSubmit?: (value: string) => void;
 }) {
   const { colors } = useAppTheme();
   const styles = useThemeStyles(createStyles);
@@ -13,6 +14,7 @@ export function SearchField({ value, onChange, onClose }: {
   return <TextInput ref={input} autoFocus testID="event-search" accessibilityLabel="Buscar eventos"
     placeholder="Artista, lugar, plan…" placeholderTextColor={colors.textSecondary}
     value={value} onChangeText={onChange} autoCorrect={false} returnKeyType="search"
+    onSubmitEditing={() => onSubmit?.(value.trim())}
     onKeyPress={event => { if (event.nativeEvent.key === 'Escape') onClose(); }}
     onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
     style={[styles.input, focused && styles.focused]} />;
