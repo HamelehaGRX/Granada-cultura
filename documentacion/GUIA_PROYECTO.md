@@ -8,6 +8,8 @@ La carpeta `app/` conserva intacto el prototipo web aprobado como referencia his
 
 La base principal dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, detalle completo de evento, preferencias locales de evento, splash visual, navegación responsive y placeholders gráficos reutilizables. Las funcionalidades reales de las otras pestañas pertenecen a fases de producto independientes.
 
+**Explora v1 está diseñada funcionalmente y se encuentra en la fase 0–1:** [EXPLORA.md](producto/EXPLORA.md) distingue reglas acordadas y estado real. `src/features/explore/` contiene tipos y selectores puros para bloques, colecciones, radio contextual y deduplicación; la pestaña Explorar continúa como placeholder. Faltan el radio habitual persistido y compartido con Inicio, la curación real, la interfaz responsive, los listados Ver más y cualquier proveedor de tiempos de trayecto.
+
 ## Gobernanza y Constitución
 
 La [Constitución de CULTURA](CONSTITUCION_CULTURA.md) es documentación viva y versionada que fija el propósito, los principios éticos y los límites del producto. Complementa la arquitectura, los ADR, la documentación de funcionalidades y los requisitos técnicos; no sustituye ninguno de ellos.
@@ -28,6 +30,7 @@ Cuando una propuesta entre en conflicto con un principio constitucional, el conf
 - `src/theme/`: colores, tipografía, espaciado, radios, sombras, movimiento y breakpoints centralizados.
 - `src/storage/`: claves, contrato JSON tipado, adaptador AsyncStorage y frontera de migraciones.
 - `src/features/events/` y `src/features/categories/`: modelos, adaptación, repositorios, Home, detalle de evento, interacciones locales y resolución de ilustraciones.
+- `src/features/explore/`: lógica base de Explora v1 sin interfaz ni persistencia nueva.
 - `src/types/common.ts`: coordenadas, instantes ISO y zona horaria compartidos.
 - `src/data/fixtures/`: frontera de fixtures; `raw/` contiene las copias demo propiedad de Expo.
 - `scripts/validate-data.ts`: comprobaciones de datos sin framework adicional; se ejecuta fuera de la aplicación.
@@ -39,6 +42,7 @@ Cuando una propuesta entre en conflicto con un principio constitucional, el conf
 - `documentacion/`: guías del prototipo, copias explicadas, arquitectura objetivo, decisiones y plan de migración.
 - `documentacion/CONSTITUCION_CULTURA.md`: documento rector vivo sobre propósito, ética y límites del producto.
 - `documentacion/DETALLE_EVENTO.md`: funcionamiento, reglas de seguridad, persistencia y validación del detalle Expo.
+- `documentacion/producto/EXPLORA.md`: biblia funcional de Explora, con diseño acordado y estado implementado.
 - `documentacion/arquitectura/`: descripción comprensible de la arquitectura futura.
 - `documentacion/decisiones/`: ADR de decisiones arquitectónicas aprobadas.
 - `documentacion/migracion/`: fases y criterios de la migración a Expo.

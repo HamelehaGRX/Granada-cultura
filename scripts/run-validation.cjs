@@ -10,6 +10,7 @@ const validations = Object.freeze({
   illustrations: 'validate-illustrations',
   detail: 'validate-event-detail',
   theme: 'validate-theme',
+  explore: 'validate-explore',
 });
 
 const requested = process.argv[2] ?? 'all';
