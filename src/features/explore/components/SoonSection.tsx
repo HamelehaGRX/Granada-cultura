@@ -9,8 +9,9 @@ import { soonResultState } from '../presentation';
 import { SoonCarousel } from './SoonCarousel';
 import { SoonFilterModal } from './SoonFilterModal';
 import { SoonFilterTrigger } from './SoonFilterTrigger';
+import type { ExploreCandidate } from '../types';
 
-export function SoonSection() {
+export function SoonSection({ preview }: { preview?: readonly ExploreCandidate[] }) {
   const styles = useThemeStyles(createStyles);
   const { applied, hydrated, apply } = useSoonFilters();
   const { selected, categories, loading, error, retry, now } = useSoonEvents(applied);
@@ -37,7 +38,7 @@ export function SoonSection() {
             {state === 'few' ? <Text testID="soon-few" style={styles.few}>
               {applied.window === '7days' ? 'Hay pocas propuestas esta semana.'
                 : 'Hay pocas propuestas en este periodo.'}</Text> : null}
-            <SoonCarousel candidates={selected} categories={categories} now={now}
+            <SoonCarousel candidates={preview ?? selected} categories={categories} now={now}
               onMore={() => router.push('/explorar/ocurre-pronto')} />
           </>}
           {(state === 'empty' || state === 'few') && canExpand

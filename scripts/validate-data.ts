@@ -19,8 +19,8 @@ async function main() {
   const legacy = loadLegacyEvents('2026-09-03');
   const catalog = loadLegacyCategories();
 
-  assert.equal(results.length, 16);
-  assert.equal(new Set(results.map(result => result.event.id)).size, 16);
+  assert.equal(results.length, 22);
+  assert.equal(new Set(results.map(result => result.event.id)).size, 22);
   assert.equal(categories.length, 11);
   assert.equal(categories.reduce((count, category) => count + category.subcategories.length, 0), 59);
   assert.deepEqual(categories.map(category => category.id), catalog.map(category => category.id));
@@ -63,7 +63,7 @@ async function main() {
     else assert.equal(event.location.coordinates, undefined);
     assert.deepEqual(await eventRepository.getById(event.id), event);
   }
-  assert.equal(results.filter(result => result.event.price.kind === 'free').length, 4);
+  assert.equal(results.filter(result => result.event.price.kind === 'free').length, 6);
   assert.equal(results.filter(result => result.event.status === 'soldOut').length, 1);
   assert.equal(results.filter(result => result.event.status === 'postponed').length, 1);
   assert(results.some(result => result.event.changeNotice?.kind === 'time'));
@@ -144,7 +144,7 @@ async function main() {
   assert.throws(() => validateEvent({ ...event, startsAt: '2026-02-30T20:30:00Z' }, validCategories));
   assert.throws(() => validateEvent({ ...event, endsAt: '2020-01-01T00:00:00Z' }, validCategories));
 
-  console.log('OK: 16 eventos; 11 categorías; 59 subcategorías; 4 gratis y 12 de precio fijo.');
+  console.log('OK: 22 eventos; 11 categorías; 59 subcategorías; 6 gratis y 16 de precio fijo.');
   console.log('OK: IDs, relaciones, céntimos, fechas/DST, repositorios, null, aislamiento, coordenadas y distancia derivada.');
 }
 

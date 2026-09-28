@@ -8,7 +8,7 @@ La carpeta `app/` conserva intacto el prototipo web aprobado como referencia his
 
 La base principal dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, detalle completo de evento, preferencias locales de evento, splash visual, navegación responsive y placeholders gráficos reutilizables. Las funcionalidades reales de las otras pestañas pertenecen a fases de producto independientes.
 
-**Explora v1 está en fase 2:** [EXPLORA.md](producto/EXPLORA.md) distingue reglas acordadas y estado real. La pestaña Explorar ya muestra cabecera y Ocurre pronto con filtro local persistente, carrusel limitado a siete más tarjeta Ver más y listado completo por día. Los demás bloques siguen siendo dominio sin UI; el radio de 30 km es demo y no una preferencia global. Faltan radio habitual compartido, curación real y proveedor de tiempos de trayecto.
+**Explora v1 está en fase 3:** [EXPLORA.md](producto/EXPLORA.md) distingue reglas acordadas y estado real. La pestaña Explorar muestra Ocurre pronto, Descubre de otra forma y Escápate un poco, cada uno con carrusel manual de hasta siete eventos y ruta Ver más. Descubre ofrece diversidad y renovación deliberada; Escápate guarda un máximo de distancia y muestra tiempos ficticios claramente marcados. El radio habitual de 30 km sigue siendo demo, no una preferencia global. Colecciones y También podría interesarte aún no tienen UI; faltan radio compartido, curación real y proveedor de trayectos.
 
 ## Gobernanza y Constitución
 
@@ -30,7 +30,7 @@ Cuando una propuesta entre en conflicto con un principio constitucional, el conf
 - `src/theme/`: colores, tipografía, espaciado, radios, sombras, movimiento y breakpoints centralizados.
 - `src/storage/`: claves, contrato JSON tipado, adaptador AsyncStorage y frontera de migraciones.
 - `src/features/events/` y `src/features/categories/`: modelos, adaptación, repositorios, Home, detalle de evento, interacciones locales y resolución de ilustraciones.
-- `src/features/explore/`: reglas de Explora v1 y UI de Ocurre pronto con filtros locales persistentes.
+- `src/features/explore/`: reglas de Explora v1 y UI de los tres bloques visibles; filtros locales persistentes de Ocurre pronto y distancia máxima de Escápate.
 - `src/types/common.ts`: coordenadas, instantes ISO y zona horaria compartidos.
 - `src/data/fixtures/`: frontera de fixtures; `raw/` contiene las copias demo propiedad de Expo.
 - `scripts/validate-data.ts`: comprobaciones de datos sin framework adicional; se ejecuta fuera de la aplicación.
@@ -282,7 +282,7 @@ La validación manual elimina campos extra y comprueba versión, estructura y ti
 
 No hay migraciones históricas inventadas: `migrations.ts` solo acepta el sobre v1. JSON corrupto, un sobre inválido o una versión desconocida producen defaults y se reemplazan por un sobre v1 tras hidratar. Este comportamiento permite recuperar Home, pero no conserva datos de una versión futura al volver a una aplicación antigua. Cuando exista v2, se añadirá una conversión explícita v1→v2, seguida de validación del esquema destino y pruebas. Nuevas preferencias tendrán claves y decodificadores propios, sin persistir automáticamente todo el estado.
 
-Después de hidratar, los cambios de filtros se guardan automáticamente. Se compara el snapshot serializado: escribir búsqueda, abrir paneles o renderizar de nuevo no genera escrituras. Un estado restaurado sin cambios tampoco se reescribe. La normalización sí puede producir una escritura de reparación. Limpiar filtros restaura defaults y los guarda; tras recargar se mantienen neutros y aparecen los 16 eventos. No se usa debounce ni una librería de estado global.
+Después de hidratar, los cambios de filtros se guardan automáticamente. Se compara el snapshot serializado: escribir búsqueda, abrir paneles o renderizar de nuevo no genera escrituras. Un estado restaurado sin cambios tampoco se reescribe. La normalización sí puede producir una escritura de reparación. Limpiar filtros restaura defaults y los guarda; tras recargar se mantienen neutros y aparecen los 22 eventos demo de Expo. No se usa debounce ni una librería de estado global.
 
 Si falla la lectura se continúa con defaults en memoria sin sobrescribir ciegamente el almacenamiento. Si falla una escritura, los filtros siguen funcionando y un cambio posterior permite reintentar. En desarrollo se registra solo la operación fallida, sin valor guardado, stack trace ni mensaje técnico en UI. No hay sincronización entre pestañas/dispositivos ni backend; web conserva preferencias por origen, por lo que otro puerto representa otro almacenamiento. Un cierre abrupto antes de completar una escritura puede perder el último cambio; no se promete persistencia cifrada ni confirmación de guardado en UI.
 
@@ -299,7 +299,7 @@ npx expo-doctor
 git diff --check
 ```
 
-El script de storage cubre serialización/lectura, migración base, corrupción, versión desconocida, catálogo obsoleto, fechas, rangos, defaults, limpieza, query excluida, errores simulados y escritura lenta seguida de limpieza/lectura. Usa aserciones de Node y un driver en memoria. Comprobar además en web Precio 0–25, Distancia 0–50 y Música, recargar, buscar jazz y recargar, limpiar y recargar a 16 eventos. Probar datos corruptos, versiones desconocidas y catálogo obsoleto en un origen local de validación. No introducir datos de prueba en instalaciones reales.
+El script de storage cubre serialización/lectura, migración base, corrupción, versión desconocida, catálogo obsoleto, fechas, rangos, defaults, limpieza, query excluida, errores simulados y escritura lenta seguida de limpieza/lectura. Usa aserciones de Node y un driver en memoria. Comprobar además en web Precio 0–25, Distancia 0–50 y Música, recargar, buscar jazz y recargar, limpiar y recargar a los 22 eventos demo de Expo. Probar datos corruptos, versiones desconocidas y catálogo obsoleto en un origen local de validación. No introducir datos de prueba en instalaciones reales.
 
 Los exports de comprobación se generan con `npx expo export --platform all --output-dir .tmp-paso8-export`. Los directorios `.tmp-paso8-*/` están ignorados: deben crearse solo si no existen y eliminarse tras verificar sus rutas y contenido. No se añaden rutas de pruebas al producto. Los bundles no sustituyen ejecución en dispositivos físicos Android/iOS. Ver [ADR-008](decisiones/ADR-008-persistencia-local.md).
 
@@ -347,7 +347,7 @@ Los SVG de `/app` siguen siendo únicamente recursos del prototipo. No se copian
 
 ## Modelo de datos Expo
 
-El Paso 5 incorporó los datos de demostración tipados y el Paso 6 conecta sus repositorios únicamente a Home. Desde el Paso 10B.1 el flujo es: JSON propios de Expo en `src/data/fixtures/raw/` → fixtures → mapper y repositorios → dominio → hook de Home. TypeScript admite esos imports mediante `resolveJsonModule`, heredado de Expo. Las copias iniciales conservan exactamente los 16 registros y el catálogo 11/59 del snapshot congelado, pero no existe dependencia runtime ni de build respecto a `/app`.
+El Paso 5 incorporó los datos de demostración tipados y el Paso 6 conectó sus repositorios a Home; ahora Explora consume esos mismos repositorios. El flujo es: JSON propios de Expo en `src/data/fixtures/raw/` → fixtures → mapper y repositorios → dominio → hooks. TypeScript admite esos imports mediante `resolveJsonModule`, heredado de Expo. Las copias iniciales conservaron los 16 registros del snapshot congelado; la fase 3 de Explora añade seis eventos ficticios exclusivamente a Expo, que ahora cuenta con 22. El prototipo `/app` conserva sus 16 eventos. El catálogo 11/59 no cambió y no existe dependencia runtime ni de build respecto a `/app`.
 
 ### Modelo de dominio
 
@@ -390,7 +390,7 @@ npx expo-doctor
 git diff --check
 ```
 
-Usar `.tmp-paso5-check` solo si no existe previamente y retirar después únicamente esa carpeta de comprobación, verificando que su ruta absoluta queda dentro del repositorio. El conjunto cubre 16 eventos, 11 categorías, 59 subcategorías, los 4 gratuitos y 12 de precio fijo, búsquedas por id/null, aislamiento de resultados, mapper puro, distancia fuera de Event, céntimos y entradas inválidas. También comprueba años bisiestos, cruce de año, verano/invierno, horas ambiguas/inexistentes de Madrid, claves de ilustración, fallback e independencia de `/app`. Compilar y probar en Node no sustituye la validación de UI en dispositivos Android/iOS.
+Usar `.tmp-paso5-check` solo si no existe previamente y retirar después únicamente esa carpeta de comprobación, verificando que su ruta absoluta queda dentro del repositorio. El conjunto actual cubre 22 eventos Expo, 11 categorías, 59 subcategorías, seis gratuitos y 16 de precio fijo, búsquedas por id/null, aislamiento de resultados, mapper puro, distancia fuera de Event, céntimos y entradas inválidas. También comprueba años bisiestos, cruce de año, verano/invierno, horas ambiguas/inexistentes de Madrid, claves de ilustración, fallback e independencia de `/app`. Compilar y probar en Node no sustituye la validación de UI en dispositivos Android/iOS.
 
 ## Documentación futura
 

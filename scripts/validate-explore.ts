@@ -4,9 +4,11 @@ import assert from 'node:assert/strict';
 import { FixtureEventRepository } from '../src/features/events/repositories/FixtureEventRepository';
 import type { Event, EventPrice, EventStatus } from '../src/features/events/types';
 import { COLLECTIONS, collectionPreview, rotateCollections, selectCollections } from '../src/features/explore/collections';
-import { assembleExploreEventBlocks, previewEvents, resolveExploreOrder, selectDifferent,
-  selectForYou, selectGetaway, selectSoon } from '../src/features/explore/selection';
-import { groupSoonEvents, soonCardDate, soonResultState } from '../src/features/explore/presentation';
+import { assembleExploreEventBlocks, previewEvents, renewDifferent, resolveExploreOrder, selectDifferent,
+  selectForYou, selectGetaway, selectGetawayWithExpansion, selectSoon } from '../src/features/explore/selection';
+import { groupSoonEvents, soonCardDate, soonResultState, travelLabel } from '../src/features/explore/presentation';
+import { clampGetawayMax, persistableGetawayMax, restoreGetawayMax } from '../src/features/explore/getawayFilters';
+import { exploreCandidates } from '../src/features/explore/demoTravel';
 import { DEFAULT_SOON_FILTERS, persistableSoonFilters, restoreSoonFilters,
   soonFilterSummary } from '../src/features/explore/soonFilters';
 import type { ExploreCandidate, ExploreContext, ExploreEditorial } from '../src/features/explore/types';
@@ -89,6 +91,14 @@ async function main() {
   for (const categoryId of ['musica', 'teatro', 'patrimonio']) {
     assert(diversePreview.filter(item => item.result.event.categoryId === categoryId).length <= 2);
   }
+  const mixedMusic = [make('rock-first', 1), make('jazz-next', 2, { subcategoryId: 'jazz' }),
+    make('flamenco-next', 3, { subcategoryId: 'flamenco' }),
+    make('theatre-alt', 4, { categoryId: 'teatro', subcategoryId: 'drama' })];
+  assert.equal(previewEvents(selectDifferent(mixedMusic, context)).at(-1)?.result.event.id, 'flamenco-next');
+  const renewal = renewDifferent(selectDifferent(varied, context), ids(diversePreview));
+  assert.notDeepEqual(ids(previewEvents(renewal)), ids(diversePreview));
+  assert(previewEvents(renewal).some(item => !ids(diversePreview).includes(item.result.event.id)));
+  assert.equal(renewDifferent(selectDifferent(varied, context), ids(diversePreview)).length, varied.length);
   const known: ExploreContext = { ...context, interactions: {
     'rock-0': { favorite: true, attendance: null },
     'rock-1': { favorite: false, attendance: 'going' },
@@ -111,6 +121,35 @@ async function main() {
   assert.deepEqual(ids(selectGetaway(getaway, context, 100)), ['near-late']);
   assert.deepEqual(ids(selectGetaway(getaway, context, 1000)), ['far-early', 'near-late']);
   assert.equal(selectGetaway(getaway, context)[1].travel?.durationMinutes, 68);
+  assert.equal(travelLabel(travel), '72 km · aprox. 68 min en coche · demo');
+  assert.equal(travelLabel(undefined), undefined);
+  assert.deepEqual(ids(selectGetaway(getaway, context, 300, 'today')), ['far-early']);
+  assert.deepEqual(ids(selectGetaway(getaway, context, 300, '3days')), ['far-early', 'near-late']);
+  assert.deepEqual(ids(selectGetaway([make('day29', 29 * 24, { distanceKm: 70 }),
+    make('day30', 30 * 24, { distanceKm: 70 })], context, 100, '30days')), ['day29']);
+  const temporal = [0, 2, 6, 13, 29, 30].map(day => make(`trip-${day}`, day * 24 + 1,
+    { distanceKm: 65 }));
+  for (const [window, expected] of [['today', 1], ['3days', 2], ['7days', 3],
+    ['14days', 4], ['30days', 5], ['all', 6]] as const) {
+    assert.equal(selectGetaway(temporal, context, 100, window).length, expected, window);
+  }
+  const sparse = [make('near1', 1, { distanceKm: 40 }), make('near2', 2, { distanceKm: 80 }),
+    make('beyond', 3, { distanceKm: 115 }), make('too-far', 4, { distanceKm: 130 })];
+  const expansion = selectGetawayWithExpansion(sparse, context, 100);
+  assert.equal(expansion.effectiveMaxKm, 125);
+  assert(expansion.expanded);
+  assert.deepEqual(ids(expansion.selected), ['near1', 'near2', 'beyond']);
+  assert(!selectGetawayWithExpansion(sparse, context, 300).expanded);
+  assert(!selectGetawayWithExpansion([...sparse, make('third-near', 5, { distanceKm: 70 }),
+    make('fourth-near', 6, { distanceKm: 75 })],
+    context, 100).expanded);
+  assert.equal(clampGetawayMax(15), 30);
+  assert.equal(clampGetawayMax(999), 300);
+  assert.equal(restoreGetawayMax(persistableGetawayMax(125)), 125);
+  assert.equal(restoreGetawayMax({ version: 1, data: { maxKm: 900 } }), null);
+  const enriched = exploreCandidates(fixture);
+  assert.equal(enriched.find(item => item.result.event.id === 'demo-18')?.travel?.durationMinutes, 52);
+  assert.equal(selectGetaway(enriched, context, 100).length, 3);
 
   const cheap = make('cheap', 1, { price: { kind: 'fixed', currency: 'EUR', amountCents: 800 },
     ticketing: { statuses: ['available'], totalAmountCents: 950 } });
@@ -162,6 +201,14 @@ async function main() {
   assert.deepEqual(ids(blocks[0].preview), ['rock-0', 'rock-1', 'rock-2']);
   assert.deepEqual(ids(blocks[1].preview), ['rock-3', 'rock-4', 'theatre-0']);
   assert.deepEqual(ids(blocks[1].more), ['rock-0', 'rock-3', 'rock-4', 'theatre-0']);
+  const withoutSoldOutPreview = assembleExploreEventBlocks(['getaway'], {
+    getaway: [make('available', 2, { distanceKm: 50 }),
+      make('sold-preview', 1, { distanceKm: 60, status: 'soldOut' })],
+  });
+  assert.deepEqual(ids(withoutSoldOutPreview[0].preview), ['available']);
+  assert.deepEqual(ids(withoutSoldOutPreview[0].more), ['sold-preview', 'available']);
+  const renewedWithoutSoon = renewDifferent([...varied], ['rock-0'], ['rock-1']);
+  assert.notEqual(renewedWithoutSoon[0].result.event.id, 'rock-1');
   const longBlock = assembleExploreEventBlocks(order, { soon: seventy });
   assert.equal(longBlock[0].preview.length, 7);
   assert.equal(longBlock[0].more.length, 70);

@@ -18,7 +18,7 @@ async function main() {
   const apply = (...actions: FilterAction[]) => actions.reduce(filterReducer, createFilterState());
   const run = (state: FilterState) => filterEvents(data, state, catalog, now);
   const ids = (state: FilterState) => run(state).map(item => item.event.id);
-  assert.equal(run(createFilterState()).length, 16);
+  assert.equal(run(createFilterState()).length, 22);
   assert.equal(catalog.length, 11);
   assert.equal(catalog.reduce((count, category) => count + category.subcategories.length, 0), 59);
   assert.equal(normalizeSearchText('  MÚSICA Y POESÍA '), 'musica y poesia');
@@ -30,7 +30,7 @@ async function main() {
   const musicMatches = ids(apply({ type: 'query', value: 'musica' }));
   for (const item of data.filter(item => item.event.categoryId === 'musica')) assert(musicMatches.includes(item.event.id));
   assert.deepEqual(ids(apply({ type: 'date', value: { kind: 'preset', preset: 'today' } })), ['demo-01', 'demo-02', 'demo-03', 'demo-04']);
-  assert.deepEqual(ids(apply({ type: 'date', value: { kind: 'preset', preset: 'tomorrow' } })), ['demo-05', 'demo-06']);
+  assert.deepEqual(ids(apply({ type: 'date', value: { kind: 'preset', preset: 'tomorrow' } })), ['demo-05', 'demo-06', 'demo-17']);
   for (const [preset, expected] of [
     ['today', ['2026-09-08', '2026-09-08']], ['tomorrow', ['2026-09-09', '2026-09-09']],
     ['week', ['2026-09-08', '2026-09-13']], ['weekend', ['2026-09-12', '2026-09-13']],
@@ -43,13 +43,13 @@ async function main() {
   assert.deepEqual(presetBounds('tomorrow', '2026-12-31'), ['2027-01-01', '2027-01-01']);
   assert.deepEqual(presetBounds('month', '2028-02-10'), ['2028-02-10', '2028-02-29']);
   const single = { kind: 'custom', mode: 'single', start: '2026-09-09', end: '' } as const;
-  assert.deepEqual(ids(apply({ type: 'date', value: single })), ['demo-05', 'demo-06']);
-  assert.equal(run(apply({ type: 'date', value: { ...single, mode: 'range', start: '2026-09-08', end: '2026-09-09' } })).length, 6);
+  assert.deepEqual(ids(apply({ type: 'date', value: single })), ['demo-05', 'demo-06', 'demo-17']);
+  assert.equal(run(apply({ type: 'date', value: { ...single, mode: 'range', start: '2026-09-08', end: '2026-09-09' } })).length, 7);
   for (const date of [{ ...single, start: '2026-02-30' }, { ...single, mode: 'range' as const, end: '' },
     { ...single, mode: 'range' as const, end: '2026-09-01' }]) {
     assert.equal(customDateBounds(date), null);
     const state = apply({ type: 'date', value: date });
-    assert.equal(run(state).length, 16);
+    assert.equal(run(state).length, 22);
     assert.equal(filterSummaries(state, catalog).date, '');
   }
   const midnight = { ...data[0].event, startsAt: '2026-09-08T22:30:00Z' };
@@ -57,7 +57,7 @@ async function main() {
   assert(!matchesDate(midnight, { kind: 'preset', preset: 'today' }, now));
   const dst = { ...midnight, startsAt: '2026-10-25T01:30:00Z' };
   assert(matchesDate(dst, { kind: 'custom', mode: 'single', start: '2026-10-25', end: '' }, now));
-  assert.equal(run(apply({ type: 'range', kind: 'price', edge: 'max', value: 0 })).length, 4);
+  assert.equal(run(apply({ type: 'range', kind: 'price', edge: 'max', value: 0 })).length, 6);
   for (const [min, max] of [[0, 1000], [0, 25], [5, 12], [10, 10]]) {
     const state = apply({ type: 'range', kind: 'price', edge: 'min', value: min }, { type: 'range', kind: 'price', edge: 'max', value: max });
     const expected = data.filter(({ event }) => {
@@ -91,7 +91,7 @@ async function main() {
     { type: 'range', kind: 'price', edge: 'max', value: 25 },
     { type: 'range', kind: 'distance', edge: 'max', value: 50 });
   assert.deepEqual(ids(combined), ['demo-06']);
-  assert.equal(run(filterReducer(combined, { type: 'clear' })).length, 16);
+  assert.equal(run(filterReducer(combined, { type: 'clear' })).length, 22);
   for (const kind of ['price', 'distance'] as const) {
     for (const [min, max] of [[0, 1000], [0, 0], [0, 25], [25, 100], [500, 500], [1000, 1000]]) {
       const range = apply({ type: 'range', kind, edge: 'min', value: min },

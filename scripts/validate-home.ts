@@ -11,7 +11,7 @@ async function main() {
   const categories = await new FixtureCategoryRepository().list();
   const snapshot = JSON.stringify(results);
   const sorted = sortHomeEvents(results);
-  assert.equal(sorted.length, 16);
+  assert.equal(sorted.length, 22);
   assert.equal(sorted[0].event.id, 'demo-02');
   assert.equal(JSON.stringify(results), snapshot);
   assert.notEqual(sorted, results);
@@ -42,7 +42,7 @@ async function main() {
   assert.equal(formatDemoDistance(undefined), undefined);
   assert.equal(formatDemoDistance(0), 'A 0 km · demo');
   assert.equal(formatDemoDistance(1500), 'A 1,5 km · demo');
-  console.log('OK Home: 16 eventos, orden cronológico/offsets/distancia, estabilidad, fechas Madrid, precios y etiquetas.');
+  console.log('OK Home: 22 eventos, orden cronológico/offsets/distancia, estabilidad, fechas Madrid, precios y etiquetas.');
 }
 
 main().catch((error: unknown) => { console.error(error); process.exitCode = 1; });

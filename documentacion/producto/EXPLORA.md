@@ -1,6 +1,6 @@
 # EXPLORA v1 — biblia funcional
 
-**Fase actual:** 2. Esta biblia distingue el diseño acordado de lo conectado: la pestaña Explorar muestra la cabecera y **Ocurre pronto**; los demás bloques siguen siendo contratos de dominio sin interfaz.
+**Fase actual:** 3. Esta biblia distingue el diseño acordado de lo conectado: la pestaña Explorar muestra **Ocurre pronto**, **Descubre de otra forma** y **Escápate un poco**. Colecciones y También podría interesarte siguen sin interfaz pública.
 
 ## Objetivo y diferencia con Inicio
 
@@ -22,9 +22,9 @@ El dominio permite resolver el orden recomendado, un orden propio de los tres bl
 
 ## Regla transversal: siete eventos y Ver más
 
-Todo carrusel horizontal de eventos tendrá como máximo **7 eventos + tarjeta final Ver más**. Si hay cuatro candidatos válidos, muestra cuatro y Ver más. No se rellenan huecos artificialmente. Esta regla ya está conectada visualmente para Ocurre pronto mediante `previewEvents`, EventCard reutilizada y una tarjeta de acción neutra. Los demás carruseles siguen pendientes.
+Todo carrusel horizontal de eventos tendrá como máximo **7 eventos + tarjeta final Ver más**. Si hay cuatro candidatos válidos, muestra cuatro y Ver más. No se rellenan huecos artificialmente. Los tres bloques visibles reutilizan `ExploreCarousel`, EventCard y la misma tarjeta de acción neutra.
 
-Ver más no tiene tope artificial. Si hay 70 candidatos, se conservan los 70. En Ocurre pronto, el listado completo agrupa cronológicamente los disponibles por día y sitúa los agotados después. La regla transversal de priorizar no vistos en otros bloques permanece diseñada, pero no se aplica a Ocurre pronto: aquí prima el orden fecha/hora y no hay otros bloques visibles. No se almacenan impresiones ni historial permanente.
+Ver más no tiene tope artificial. Si hay 70 candidatos, se conservan los 70. En Ocurre pronto, el listado completo agrupa cronológicamente los disponibles por día y sitúa los agotados después. La deduplicación de portada no invalida candidatos en Ver más. No se almacenan impresiones ni historial permanente.
 
 ## Radio habitual y ubicación
 
@@ -32,7 +32,7 @@ El radio habitual es contexto común de Inicio y de todos los bloques de Explora
 
 Un resultado sin distancia conocida queda fuera de los bloques dependientes del radio; no se inventa proximidad. `EventResult.distanceMeters` del repositorio actual es una distancia **ficticia desde Granada**, solo apta para demostración. En una fase posterior habrá que decidir cómo seleccionar, guardar y modificar la zona habitual, cómo calcular distancias reales y cómo compartir esa preferencia con Inicio. No se pide geolocalización en esta fase.
 
-La UI de fase 2 inyecta **30 km como radio demo fijo** en `useSoonEvents` para utilizar el contrato existente, y lo identifica junto a las distancias de ejemplo en ambas pantallas. No se presenta como una configuración personal persistida ni se mezcla con el filtro de Inicio.
+La UI inyecta **30 km como radio demo fijo** desde Granada. No es una preferencia personal persistida ni se mezcla con el filtro de Inicio. El máximo de Escápate, en cambio, sí se guarda localmente.
 
 ## Ocurre pronto
 
@@ -46,15 +46,19 @@ Con 1–3 resultados se indica discretamente que hay pocas propuestas; con cero 
 
 ## Descubre de otra forma
 
-Amplía gustos mediante disciplinas y experiencias distintas. Con señales explícitas, prioriza una disciplina diferente que tenga una conexión editorial indirecta con categorías conocidas; también ofrece otras disciplinas sin conexión. Sin señales, usa diversidad general y fecha, sin etiqueta de personalización. Una experiencia usa una clave editorial explícita o, si falta, el par categoría/subcategoría. La vista previa intenta no superar dos experiencias muy similares entre sus siete eventos cuando hay alternativas; si el catálogo es más pequeño, muestra las disponibles sin inventar contenido.
+Amplía gustos mediante disciplinas y experiencias distintas. Con señales explícitas locales (Favorito, Me interesa, Voy a ir), prioriza una disciplina diferente que tenga una conexión editorial indirecta con categorías conocidas; también ofrece otras disciplinas sin conexión. Sin señales, usa diversidad general y fecha, sin etiqueta de personalización. Una experiencia usa una clave editorial explícita o, si falta, un tipo conservador: la música de concierto cuenta como una sola experiencia aunque cambie el género; para otras categorías se usa categoría/subcategoría. La vista previa intenta no superar dos experiencias muy similares entre sus siete eventos cuando hay alternativas; si el catálogo es más pequeño, muestra las disponibles sin inventar contenido.
 
-La selección actual es determinista y no usa IA, popularidad ni métricas sociales. En el futuro «Muéstrame otras» podrá cambiar la semilla o el conjunto de candidatos entre solicitudes deliberadas; no habrá refresco automático ni reordenamiento durante la sesión.
+La selección es determinista y no usa IA, popularidad ni métricas sociales. El botón ↻ renueva solo el preview de Descubre, prioriza IDs no mostrados inmediatamente y evita antes los que Ocurre pronto ya ocupa. Conserva el resultado hasta otra pulsación o fin de la sesión; no se persiste ni se renueva automáticamente. `/explorar/descubre` muestra el listado completo sin filtros y sin límite de siete.
 
 ## Escápate un poco
 
 Incluye eventos a distancia **mayor** que el radio habitual y hasta el máximo elegido, con límite v1 absoluto de **300 km**. La distancia es condición de entrada; el orden principal es fecha/hora, no cercanía. Los agotados se relegan. Un resultado sin distancia se omite.
 
-`TravelEstimate` contiene `distanceKm`, `durationMinutes`, `mode: car`, fuente `demo` o proveedor y una etiqueta de origen opcional. Se trata de información adicional sobre el trayecto: **no se deduce un tiempo de coche de la distancia en línea recta**. En esta fase no hay proveedor de rutas, llamadas web ni tiempos reales. Los tiempos de las pruebas están identificados como demo.
+La portada muestra el chip `30–100 km` y un modal superpuesto con slider de 1 km, entrada exacta y botones ±1. El mínimo permanece fijo en el radio habitual demo. El modal trabaja con borrador: Guardar aplica y persiste el máximo; Restablecer cambia solo el borrador; ×, backdrop, Escape y Back descartan. El default es 100 km. En `/explorar/escapate` se añade únicamente ¿Cuándo?: Hoy, 3, 7, 14, 30 días o todos los próximos. La ventana temporal se mantiene en esa pantalla durante la navegación, pero aún no se persiste entre sesiones.
+
+Si hay menos de cuatro eventos disponibles, se prueba **una sola ampliación de 25 km**, limitada a 300. Solo se aplica si añade al menos un candidato y se anuncia el radio efectivo. Con menos eventos tras esa ampliación se muestran menos; no se salta silenciosamente a 300. El preview conserva el máximo 7 + Ver más; el listado completo agrupa por día, separa agotados y no tiene tope artificial.
+
+`TravelEstimate` contiene `distanceKm`, `durationMinutes`, `mode: car`, fuente `demo` o proveedor y una etiqueta de origen opcional. Se trata de información adicional sobre el trayecto: **no se deduce un tiempo de coche de la distancia en línea recta**. En esta fase no hay proveedor de rutas, llamadas web ni tiempos reales. Los cuatro trayectos ficticios de Expo aparecen en las tarjetas como `km · aprox. min en coche · demo`.
 
 ## Colecciones
 
@@ -93,22 +97,25 @@ Cancelado y terminado significan «fuera de recomendaciones actuales», no elimi
 
 ## Datos, tema y adaptación visual
 
-Los metadatos `ExploreEditorial` son opcionales y distinguen `demo` de `curated`; ausencia significa desconocido. Los fixtures Expo existentes siguen siendo ficticios. La validación focalizada construye casos sintéticos claramente demo para comprobar precio final, diversidad, distancias, trayectos y curación; **no se ha alterado el catálogo de 16 eventos** ni se atribuyen cualidades reales a artistas o espacios.
+Los metadatos `ExploreEditorial` son opcionales y distinguen `demo` de `curated`; ausencia significa desconocido. Los fixtures Expo siguen siendo ficticios. En esta fase el catálogo Expo pasó de **16 a 22 eventos**: cuatro fuera del radio de 30 km para Escápate y dos dentro para que ↻ disponga de alternativas visibles. `/app` conserva sus 16 registros originales. Las distancias y duraciones son demostrativas, no verificadas para los lugares reales nombrados; los espacios añadidos se declaran «de muestra». No se atribuyen cualidades editoriales reales a artistas o espacios.
 
-Ocurre pronto consume los tokens globales de Claro/Oscuro/Sistema, sin paleta nueva. El carrusel calcula ancho según viewport y espacio disponible: aproximadamente una tarjeta más un fragmento en móvil, dos más un fragmento en tablet y tres o cuatro más un fragmento en escritorio; mantiene scroll manual y teclado/foco de los controles. Ver más usa tarjetas de ancho completo en móvil. Los demás bloques conservan el diseño acordado, aún sin UI.
+Los tres bloques consumen los tokens globales de Claro/Oscuro/Sistema, sin paleta nueva. El carrusel calcula ancho según viewport y espacio disponible: aproximadamente una tarjeta más un fragmento en móvil, dos más un fragmento en tablet y tres o cuatro más un fragmento en escritorio; mantiene scroll manual y teclado/foco de los controles. Ver más usa tarjetas de ancho completo en móvil y columna de lectura en escritorio. En 390 CSS px se reduce discretamente el título de las dos nuevas secciones para mantener ↻ y el chip junto a su título.
 
 ## Estado de implementación
 
-| Parte | Estado real en fase 2 |
+| Parte | Estado real en fase 3 |
 | --- | --- |
-| Pestaña Explorar | Cabecera, búsqueda reutilizada, scroll vertical y Ocurre pronto visibles. |
+| Pestaña Explorar | Cabecera, búsqueda reutilizada, scroll vertical y tres bloques de eventos visibles. |
 | Tipos, radio como entrada, estimación de viaje | Implementados como contratos puros; radio no persistido, sin proveedor de rutas. |
-| Ocurre pronto, Descubre, Escápate, También podría interesarte | Selectores puros implementados y probados con datos demo. |
+| Ocurre pronto, Descubre, Escápate | Selectores puros e interfaz conectados a fixtures Expo; tres rutas Ver más. |
+| También podría interesarte | Solo selector puro; no se muestra en portada. |
 | Colecciones y rotación | Doce definiciones estables, elegibilidad y rotación puras; sin pantalla. |
-| Orden y deduplicación | Resolución y ensamblado puros; sin ajuste visual ni persistencia. |
+| Orden y deduplicación | Portada en orden recomendado; previews sin repeticiones de ID cuando hay alternativas, sin persistencia de impresiones. |
 | Carrusel y Ver más de Ocurre pronto | Máximo 7 + tarjeta final; listado completo por día, agotados al final, filtro común y retorno a Explora. |
 | Filtro de Ocurre pronto | Modal draft/applied, persistencia local de ventana y precio, cierre sin guardar, defaults 7 días/Todos. |
-| Cambio de orden, Muéstrame otras y demás carruseles | Diseño acordado; UI pendiente. |
+| Renovación ↻ de Descubre | Manual, local a ese bloque y estable durante la sesión; sin autoplay. |
+| Filtro y Ver más de Escápate | Máximo 30–300 km persistente; una ampliación anunciada de +25 km; fecha solo en Ver más, no persistida. |
+| Cambio de orden, Colecciones y También podría interesarte | Diseño acordado; UI pendiente. |
 | Integración con Inicio y radio habitual real | Pendiente. Los filtros temporales de Inicio no se mezclan con Explora. |
 | Personalización avanzada, visitas, impresiones, decaimiento | Pendiente; no se registran nuevas señales ni datos personales. |
 
@@ -118,11 +125,11 @@ Ocurre pronto consume los tokens globales de Claro/Oscuro/Sistema, sin paleta nu
 - Definición y procedencia verificable de los atributos editoriales y del precio total confirmado al pasar de fixtures a datos reales.
 - Proveedor sustituible de rutas y condiciones para mostrar duración aproximada sin hacer promesas falsas.
 - Umbral y explicación de recomendaciones personales, renovación manual, decaimiento temporal y control del usuario.
-- Diseño y pruebas de colecciones, demás bloques y orden personal en Android, iOS y web; validación native de la nueva UI de Ocurre pronto.
+- Diseño y pruebas de Colecciones, También podría interesarte y orden personal; validación native de las nuevas pantallas/modales en Android e iOS.
 - Cómo manejar sesiones futuras de eventos de larga duración sin confundir apertura continua con una actividad próxima.
 
 ## Arquitectura y validación de esta fase
 
-`src/features/explore/types.ts` define el contexto y metadatos; `selection.ts` concentra selección, orden y deduplicación; `collections.ts` conserva el catálogo estable y sus reglas. Consumen `EventResult`, `Event`, interacciones y estados existentes. No tienen imports de React ni de storage. La fase 2 añade un proveedor de filtros locales, `useSoonEvents` que conecta el repositorio demo y el radio provisional, componentes del modal/carrusel y pantallas. `soonFilters.ts` y `presentation.ts` mantienen restauración y presentación probables sin UI. `scripts/validate-explore.ts` verifica las reglas sin añadir dependencias.
+`src/features/explore/types.ts` define el contexto y metadatos; `selection.ts` concentra selección, renovación, orden y deduplicación; `collections.ts` conserva el catálogo estable y sus reglas. Consumen `EventResult`, `Event`, interacciones y estados existentes. No tienen imports de React ni de storage. `useExploreEvents` conecta el repositorio demo; `demoTravel.ts` contiene trayectos ficticios explícitos; `ExplorePreferencesProvider` guarda solo el máximo de Escápate y conserva la renovación en memoria. `getawayFilters.ts` valida la persistencia. El carrusel y la tarjeta Ver más son comunes a los tres bloques. `scripts/validate-explore.ts` verifica las reglas sin añadir dependencias.
 
-Desde la raíz: `node scripts/run-validation.cjs explore`, `npm run validate`, `npm run typecheck` y `git diff --check`. La fase 2 requiere además smoke visual web móvil/tablet/escritorio; Expo Doctor y exports quedan fuera de alcance.
+Desde la raíz: `node scripts/run-validation.cjs explore`, `npm run validate`, `npm run typecheck` y `git diff --check`. La fase 3 requiere además smoke visual web móvil/tablet/escritorio; Expo Doctor y exports quedan fuera de alcance.

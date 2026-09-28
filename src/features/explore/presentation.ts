@@ -2,7 +2,13 @@ import { dateInTimeZone, dateToEpoch } from '../events/dates';
 import { formatEventTime } from '../events/presentation';
 import type { Event } from '../events/types';
 import { isSoldOut } from './selection';
-import type { ExploreCandidate } from './types';
+import type { ExploreCandidate, TravelEstimate } from './types';
+
+export function travelLabel(travel?: TravelEstimate): string | undefined {
+  if (!travel || travel.mode !== 'car' || !Number.isFinite(travel.distanceKm)
+    || !Number.isFinite(travel.durationMinutes)) return undefined;
+  return `${travel.distanceKm} km · aprox. ${travel.durationMinutes} min en coche${travel.source === 'demo' ? ' · demo' : ''}`;
+}
 
 function dayOffset(event: Event, now: Date): number {
   const current = dateInTimeZone(now, event.location.timeZone);

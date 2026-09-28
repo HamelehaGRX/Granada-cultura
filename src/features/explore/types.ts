@@ -9,6 +9,7 @@ export type ExploreBlockId = typeof EXPLORE_BLOCK_ORDER[number];
 export type ExploreEventBlockId = Exclude<ExploreBlockId, 'collections'>;
 export type SoonWindow = 'today' | '3days' | '7days' | '14days';
 export type SoonPrice = 'all' | 'free' | 'paid';
+export type GetawayWindow = 'today' | '3days' | '7days' | '14days' | '30days' | 'all';
 
 /** La distancia se calcula fuera de Explora; nunca se solicita ubicación continua aquí. */
 export type HabitualArea = { radiusKm: number };

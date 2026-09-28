@@ -14,10 +14,11 @@ type EventCardProps = {
   onOpen: () => void;
   dateHighlight?: string;
   showSoldOut?: boolean;
+  distanceDetail?: string;
 };
 
 export function EventCard({ result, categoryLabel, illustrationKey, onOpen,
-  dateHighlight, showSoldOut = false }: EventCardProps) {
+  dateHighlight, showSoldOut = false, distanceDetail }: EventCardProps) {
   const { categoryAppearanceFor } = useAppTheme();
   const styles = useThemeStyles(createStyles);
   const { event, distanceMeters } = result;
@@ -64,8 +65,9 @@ export function EventCard({ result, categoryLabel, illustrationKey, onOpen,
           <Text style={styles.place}>{event.location.venueName} · {event.location.locality}</Text>
           {showSoldOut && (event.status === 'soldOut' || event.ticketing?.statuses.includes('soldOut'))
             ? <Text style={styles.soldOut}>Agotado</Text> : null}
+          {distanceDetail ? <Text testID={`travel-${event.id}`} style={styles.travel}>{distanceDetail}</Text> : null}
           <View style={styles.bottom}>
-            {distance ? <Text style={styles.distance}>{distance}</Text> : null}
+            {!distanceDetail && distance ? <Text style={styles.distance}>{distance}</Text> : null}
             <Text style={styles.price}>{formatEventPrice(event.price)}</Text>
           </View>
         </View>
@@ -97,6 +99,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   soldOut: { ...typography.label, color: colors.warning, marginTop: spacing.xs },
   bottom: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   distance: { ...typography.caption, color: colors.textSecondary },
+  travel: { ...typography.label, color: colors.brandPrimary, marginTop: spacing.sm },
   interested: { ...typography.heading, width: 32, color: colors.interestIndicator, textAlign: 'center', fontWeight: '800' },
   going: { ...typography.label, width: 36, color: colors.attending, textAlign: 'center', fontWeight: '700' },
   price: { ...typography.label, color: colors.brandPrimary, marginLeft: 'auto', flexShrink: 1 },

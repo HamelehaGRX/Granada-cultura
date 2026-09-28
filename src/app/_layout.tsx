@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppSplash } from '@/components/branding/AppSplash';
 import { EventInteractionProvider } from '@/features/events/interactions/EventInteractionProvider';
 import { SoonFilterProvider } from '@/features/explore/SoonFilterProvider';
+import { ExplorePreferencesProvider } from '@/features/explore/ExplorePreferencesProvider';
 import { BRAND } from '@/config/brand';
 import { AppThemeProvider, typography, useAppTheme } from '@/theme';
 
@@ -23,6 +24,7 @@ function ThemedApplication() {
   return (
     <EventInteractionProvider>
       <SoonFilterProvider>
+      <ExplorePreferencesProvider>
         <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="eventos/[eventId]" options={{ title: 'Detalle del evento' }} />
@@ -31,9 +33,12 @@ function ThemedApplication() {
           <Stack.Screen name="notificaciones/index" options={{ title: 'Notificaciones' }} />
           <Stack.Screen name="(modals)" options={{ presentation: 'modal' }} />
           <Stack.Screen name="explorar/ocurre-pronto" options={{ title: 'Ocurre pronto' }} />
+          <Stack.Screen name="explorar/descubre" options={{ title: 'Descubre de otra forma' }} />
+          <Stack.Screen name="explorar/escapate" options={{ title: 'Escápate un poco' }} />
         </Stack>
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <AppSplash />
+      </ExplorePreferencesProvider>
       </SoonFilterProvider>
     </EventInteractionProvider>
   );

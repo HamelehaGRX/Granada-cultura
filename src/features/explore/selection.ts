@@ -2,7 +2,7 @@ import { dateInTimeZone, dateToEpoch } from '../events/dates';
 import type { EventInteractionMap } from '../events/interactions/types';
 import { type ExploreBlockId, type ExploreCandidate,
   type ExploreContext, type ExploreEventBlock, type ExploreEventBlockId,
-  type SoonPrice, type SoonWindow } from './types';
+  type GetawayWindow, type SoonPrice, type SoonWindow } from './types';
 
 const DAY_MS = 86_400_000;
 const PREVIEW_LIMIT = 7;
@@ -79,7 +79,27 @@ export function preferredCategories(candidates: readonly ExploreCandidate[],
   return { preferred, strong };
 }
 
-/** Diversifica por experiencia explícita, o por par categoría/subcategoría si falta curación. */
+/** La música de concierto sigue siendo una experiencia aunque cambie el género. */
+export function experienceKey(candidate: ExploreCandidate): string {
+  const { event } = candidate.result;
+  return candidate.editorial?.experienceKey ?? (event.categoryId === 'musica'
+    ? 'concierto' : `${event.categoryId}/${event.subcategoryId}`);
+}
+
+function diversifyExperiences(group: readonly ExploreCandidate[]): ExploreCandidate[] {
+  const counts = new Map<string, number>();
+  const diverse: ExploreCandidate[] = [];
+  const overflow: ExploreCandidate[] = [];
+  for (const candidate of group) {
+    const key = experienceKey(candidate);
+    const count = counts.get(key) ?? 0;
+    if (count >= 2) overflow.push(candidate);
+    else { diverse.push(candidate); counts.set(key, count + 1); }
+  }
+  return [...diverse, ...overflow];
+}
+
+/** Diversifica por experiencia explícita o por un tipo conservador de actividad. */
 export function selectDifferent(candidates: readonly ExploreCandidate[],
   context: ExploreContext): ExploreCandidate[] {
   const { preferred } = preferredCategories(candidates, context.interactions);
@@ -95,34 +115,59 @@ export function selectDifferent(candidates: readonly ExploreCandidate[],
         || Date.parse(a.result.event.startsAt) - Date.parse(b.result.event.startsAt)
         || a.result.event.id.localeCompare(b.result.event.id);
     });
-  const diversify = (group: ExploreCandidate[]) => {
-    const counts = new Map<string, number>();
-    const diverse: ExploreCandidate[] = [];
-    const overflow: ExploreCandidate[] = [];
-    for (const candidate of group) {
-      const { event } = candidate.result;
-      const key = candidate.editorial?.experienceKey ?? `${event.categoryId}/${event.subcategoryId}`;
-      const count = counts.get(key) ?? 0;
-      if (count >= 2) overflow.push(candidate);
-      else { diverse.push(candidate); counts.set(key, count + 1); }
-    }
-    return [...diverse, ...overflow];
-  };
   return [
-    ...diversify(ranked.filter(candidate => !isSoldOut(candidate))),
-    ...diversify(ranked.filter(isSoldOut)),
+    ...diversifyExperiences(ranked.filter(candidate => !isSoldOut(candidate))),
+    ...diversifyExperiences(ranked.filter(isSoldOut)),
   ];
+}
+
+/** Renovación deliberada y estable: prefiere eventos no vistos en el preview anterior. */
+export function renewDifferent(candidates: readonly ExploreCandidate[], previousIds: readonly string[],
+  previewExcludedIds: readonly string[] = []): ExploreCandidate[] {
+  const previous = new Set(previousIds);
+  const excluded = new Set(previewExcludedIds);
+  const visible = candidates.filter(item => !excluded.has(item.result.event.id));
+  const hidden = candidates.filter(item => excluded.has(item.result.event.id));
+  const reordered = [...visible.filter(item => !isSoldOut(item) && !previous.has(item.result.event.id)),
+    ...visible.filter(item => !isSoldOut(item) && previous.has(item.result.event.id)),
+    ...hidden.filter(item => !isSoldOut(item)),
+    ...visible.filter(item => isSoldOut(item) && !previous.has(item.result.event.id)),
+    ...visible.filter(item => isSoldOut(item) && previous.has(item.result.event.id)),
+    ...hidden.filter(item => isSoldOut(item))];
+  return [...diversifyExperiences(reordered.filter(item => !isSoldOut(item))),
+    ...reordered.filter(isSoldOut)];
 }
 
 /** Distancia recta de EventResult para elegibilidad; TravelEstimate solo informa del trayecto. */
 export function selectGetaway(candidates: readonly ExploreCandidate[], context: ExploreContext,
-  maxKm = 300): ExploreCandidate[] {
+  maxKm = 300, window: GetawayWindow = 'all'): ExploreCandidate[] {
   const ceiling = Math.min(300, Math.max(0, maxKm));
   return sortByAvailabilityAndDate(candidates.filter(candidate => {
     const distance = validDistance(candidate);
-    return isUpcoming(candidate, context.now) && distance !== null
-      && distance > context.habitualArea.radiusKm && distance <= ceiling;
+    if (!isUpcoming(candidate, context.now) || distance === null
+      || distance <= context.habitualArea.radiusKm || distance > ceiling) return false;
+    if (window === 'all') return true;
+    const today = dateInTimeZone(context.now, candidate.result.event.location.timeZone);
+    const startDay = dateInTimeZone(new Date(candidate.result.event.startsAt),
+      candidate.result.event.location.timeZone);
+    const days = (dateToEpoch(startDay) - dateToEpoch(today)) / DAY_MS;
+    const limit = window === '30days' ? 30 : SOON_DAYS[window];
+    return days >= 0 && days < limit;
   }));
+}
+
+export function selectGetawayWithExpansion(candidates: readonly ExploreCandidate[], context: ExploreContext,
+  maxKm: number, window: GetawayWindow = 'all') {
+  const selected = selectGetaway(candidates, context, maxKm, window);
+  const bounded = Math.min(300, Math.max(context.habitualArea.radiusKm, maxKm));
+  if (selected.filter(item => !isSoldOut(item)).length >= 4 || bounded >= 300) {
+    return { selected, effectiveMaxKm: bounded, expanded: false };
+  }
+  const effectiveMaxKm = Math.min(300, bounded + 25);
+  const expanded = selectGetaway(candidates, context, effectiveMaxKm, window);
+  return expanded.length > selected.length
+    ? { selected: expanded, effectiveMaxKm, expanded: true }
+    : { selected, effectiveMaxKm: bounded, expanded: false };
 }
 
 /** Solo señales explícitas actuales. Visitas e impresiones no se recogen en esta fase. */
@@ -170,7 +215,9 @@ export function assembleExploreEventBlocks(order: readonly ExploreBlockId[],
     }
     const all = [...unique.values()];
     const unseen = all.filter(candidate => !used.has(candidate.result.event.id));
-    const preview = previewEvents(unseen);
+    const available = unseen.filter(candidate => !isSoldOut(candidate));
+    const pool = available.length ? available : unseen;
+    const preview = previewEvents(id === 'different' ? diversifyExperiences(pool) : pool);
     if (preview.length === 0) continue;
     preview.forEach(candidate => used.add(candidate.result.event.id));
     blocks.push({ id, preview, more: [

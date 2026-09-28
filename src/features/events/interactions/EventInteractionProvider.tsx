@@ -82,3 +82,9 @@ export function useEventInteraction(eventId: string) {
     toggleGoing: () => context.toggleGoing(eventId),
   };
 }
+
+export function useEventInteractions(): EventInteractionMap {
+  const context = useContext(EventInteractionContext);
+  if (!context) throw new Error('useEventInteractions requiere EventInteractionProvider');
+  return context.interactions;
+}
