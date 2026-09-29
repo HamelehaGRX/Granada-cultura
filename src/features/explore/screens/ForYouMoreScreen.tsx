@@ -12,8 +12,9 @@ import { useExplorePreferences } from '../ExplorePreferencesProvider';
 import { useSoonFilters } from '../SoonFilterProvider';
 import { DEMO_HABITUAL_RADIUS_KM } from '../getawayFilters';
 import { useExploreEvents } from '../hooks/useExploreEvents';
+import { useStableExploreSelection } from '../hooks/useStableExploreSelection';
 import { assembleExploreEventBlocks, previewEvents, renewDifferent, selectDifferent,
-  selectForYou, selectGetawayWithExpansion, selectSoon } from '../selection';
+  selectForYou, selectGetawayWithExpansion, selectSoon, retainValidExploreSessionIds } from '../selection';
 import type { ExploreCandidate } from '../types';
 
 export function ForYouMoreScreen() {
@@ -23,11 +24,12 @@ export function ForYouMoreScreen() {
     : width >= breakpoints.tablet ? spacing.xl : spacing.lg;
   const { interactions, hydrated: interactionsHydrated } = useEventInteractionsState();
   const { applied: soonFilters, hydrated: soonHydrated } = useSoonFilters();
-  const { maxKm, hydrated: getawayHydrated, differentPreviousIds } = useExplorePreferences();
+  const { maxKm, hydrated: getawayHydrated, differentPreviousIds,
+    forYouSessionIds } = useExplorePreferences();
   const { candidates, categories, loading, error, retry, now } = useExploreEvents();
   const context = useMemo(() => ({ now, habitualArea: { radiusKm: DEMO_HABITUAL_RADIUS_KM },
     interactions }), [now, interactions]);
-  const selected = useMemo(() => {
+  const liveSelected = useMemo(() => {
     const soon = selectSoon(candidates, context, soonFilters.window, soonFilters.price);
     const different = selectDifferent(candidates, context);
     const orderedDifferent = differentPreviousIds.length
@@ -39,7 +41,12 @@ export function ForYouMoreScreen() {
       { soon, different: orderedDifferent, getaway, forYou })
       .find(block => block.id === 'forYou')?.more ?? [];
   }, [candidates, context, soonFilters, differentPreviousIds, maxKm]);
-  const ready = !loading && interactionsHydrated && soonHydrated && getawayHydrated;
+  const dataReady = !loading && !error && interactionsHydrated && soonHydrated && getawayHydrated;
+  const initialSelected = forYouSessionIds
+    ? retainValidExploreSessionIds(forYouSessionIds.more, candidates, context) : liveSelected;
+  const selected = useStableExploreSelection(initialSelected, candidates, context, dataReady);
+  const ready = dataReady && (selected !== null || initialSelected.length === 0);
+  const visibleSelection = selected ?? [];
   const goBack = () => router.canGoBack() ? router.back() : router.replace('/explorar');
   const renderEvent = ({ item }: { item: ExploreCandidate }) => <View style={styles.card}>
     <EventCard result={item.result} categoryLabel={eventCategoryLabel(item.result.event, categories)}
@@ -49,7 +56,7 @@ export function ForYouMoreScreen() {
   </View>;
 
   return <AppShell testID="for-you-more-screen">
-    <FlatList data={ready && !error ? selected : []} keyExtractor={item => item.result.event.id}
+    <FlatList data={ready ? visibleSelection : []} keyExtractor={item => item.result.event.id}
       renderItem={renderEvent} initialNumToRender={8} windowSize={5}
       keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content,
         { paddingHorizontal: padding }]}
@@ -62,14 +69,14 @@ export function ForYouMoreScreen() {
           También podría interesarte</Text>
         <Text style={styles.subtitle}>Un poco más cerca de lo tuyo.</Text>
         <Text style={styles.demoNote}>Selección local · radio habitual demo de 30 km desde Granada.</Text>
-        {!ready ? <ActivityIndicator accessibilityLabel="Cargando propuestas" />
-          : error ? <Pressable accessibilityRole="button" accessibilityLabel="Reintentar cargar propuestas"
+        {error ? <Pressable accessibilityRole="button" accessibilityLabel="Reintentar cargar propuestas"
             onPress={retry} style={styles.action}>
             <Text style={styles.message}>No hemos podido cargar propuestas. Reintentar</Text>
           </Pressable>
-            : selected.length === 0 ? <Text style={styles.message}>No hay propuestas disponibles para esta selección.</Text>
+          : !ready ? <ActivityIndicator accessibilityLabel="Cargando propuestas" />
+            : visibleSelection.length === 0 ? <Text style={styles.message}>No hay propuestas disponibles para esta selección.</Text>
               : <Text accessibilityLiveRegion="polite" style={styles.count}>
-                {selected.length} {selected.length === 1 ? 'evento' : 'eventos'}</Text>}
+                {visibleSelection.length} {visibleSelection.length === 1 ? 'evento' : 'eventos'}</Text>}
       </View>} />
   </AppShell>;
 }

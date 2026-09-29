@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { AppShell } from '@/components/layout/AppShell';
@@ -15,18 +15,20 @@ import { GetawayFilterModal } from '../components/GetawayFilterModal';
 import { SoonSection } from '../components/SoonSection';
 import { DEMO_HABITUAL_RADIUS_KM } from '../getawayFilters';
 import { useExploreEvents } from '../hooks/useExploreEvents';
+import { useStableExploreSelection } from '../hooks/useStableExploreSelection';
 import { assembleExploreEventBlocks, renewDifferent, selectDifferent,
-  selectForYou, selectGetawayWithExpansion, selectSoon, previewEvents } from '../selection';
+  selectForYou, selectGetawayWithExpansion, selectSoon, previewEvents,
+  retainValidExploreSessionIds } from '../selection';
 
 export function ExploreScreen() {
   const styles = useThemeStyles(createStyles);
   const { width } = useWindowDimensions();
   const padding = width >= breakpoints.desktop ? spacing.xxl
     : width >= breakpoints.tablet ? spacing.xl : spacing.lg;
-  const { rememberScroll, savedScroll, applied: soonFilters } = useSoonFilters();
+  const { rememberScroll, savedScroll, applied: soonFilters, hydrated: soonHydrated } = useSoonFilters();
   const { maxKm, hydrated: getawayHydrated, applyMaxKm, differentPreviousIds, collectionSessionSeed,
     collectionRotationReady,
-    renewDifferentFrom } = useExplorePreferences();
+    renewDifferentFrom, forYouSessionIds, rememberForYouSession } = useExplorePreferences();
   const { interactions, hydrated: interactionsHydrated } = useEventInteractionsState();
   const { candidates, categories, loading, error, retry, now } = useExploreEvents();
   const [getawayOpen, setGetawayOpen] = useState(false);
@@ -39,6 +41,9 @@ export function ExploreScreen() {
     ? renewDifferent(different, differentPreviousIds,
       previewEvents(soon).map(item => item.result.event.id)) : different,
   [different, differentPreviousIds, soon]);
+  const stableDifferent = useStableExploreSelection(orderedDifferent, candidates, context,
+    !loading && !error && interactionsHydrated && soonHydrated,
+    differentPreviousIds.join('\u0000'));
   const getaway = useMemo(() => selectGetawayWithExpansion(candidates, context, maxKm),
     [candidates, context, maxKm]);
   const availableCollections = useMemo(() => selectCollections(candidates, context), [candidates, context]);
@@ -46,12 +51,24 @@ export function ExploreScreen() {
     [availableCollections, collectionSessionSeed]);
   const forYou = useMemo(() => selectForYou(candidates, context), [candidates, context]);
   const blocks = useMemo(() => assembleExploreEventBlocks(['soon', 'different', 'getaway',
-    'collections', 'forYou'], { soon, different: orderedDifferent, getaway: getaway.selected, forYou }),
-  [soon, orderedDifferent, getaway, forYou]);
+    'collections', 'forYou'], { soon, different: stableDifferent ?? [], getaway: getaway.selected, forYou }),
+  [soon, stableDifferent, getaway, forYou]);
   const soonPreview = blocks.find(block => block.id === 'soon')?.preview;
   const differentPreview = blocks.find(block => block.id === 'different')?.preview ?? [];
   const getawayPreview = blocks.find(block => block.id === 'getaway')?.preview ?? [];
-  const forYouPreview = blocks.find(block => block.id === 'forYou')?.preview ?? [];
+  const liveForYouBlock = blocks.find(block => block.id === 'forYou');
+  const liveForYouPreview = forYouSessionIds
+    ? retainValidExploreSessionIds(forYouSessionIds.preview, candidates, context)
+    : liveForYouBlock?.preview ?? [];
+  const forYouPreview = useStableExploreSelection(liveForYouPreview, candidates, context,
+    !loading && !error && soonHydrated && getawayHydrated && collectionRotationReady
+      && interactionsHydrated && stableDifferent !== null);
+  useEffect(() => {
+    if (!forYouSessionIds && forYouPreview?.length && liveForYouBlock) {
+      rememberForYouSession(forYouPreview.map(item => item.result.event.id),
+        liveForYouBlock.more.map(item => item.result.event.id));
+    }
+  }, [forYouSessionIds, forYouPreview, liveForYouBlock, rememberForYouSession]);
   const scrollRef = useRef<ScrollView>(null);
   const restored = useRef(false);
   const [query, setQuery] = useState('');
@@ -86,7 +103,8 @@ export function ExploreScreen() {
           </View>
           <Text style={styles.sectionSubtitle}>Mira la cultura desde otro lado.</Text>
           <Text style={styles.demoNote}>Explorando tu radio habitual · 30 km demo desde Granada</Text>
-          {loading ? <ActivityIndicator accessibilityLabel="Cargando Descubre" />
+          {loading || stableDifferent === null && orderedDifferent.length > 0
+            ? <ActivityIndicator accessibilityLabel="Cargando Descubre" />
             : error ? <Pressable accessibilityRole="button" onPress={retry}><Text style={styles.message}>
               No hemos podido cargar propuestas. Reintentar</Text></Pressable>
               : differentPreview.length ? <ExploreCarousel kind="different" title="Descubre de otra forma"
@@ -134,7 +152,7 @@ export function ExploreScreen() {
             <Text style={styles.allCollectionsText}>Ver todas →</Text>
           </Pressable>
         </View> : null}
-        {!loading && !error && collectionRotationReady && interactionsHydrated && forYouPreview.length > 0 ? <View
+        {!loading && !error && collectionRotationReady && interactionsHydrated && forYouPreview?.length ? <View
           testID="for-you-section" style={styles.section}>
           <Text accessibilityRole="header" aria-level={2} style={styles.sectionTitle}>
             TAMBIÉN PODRÍA INTERESARTE</Text>

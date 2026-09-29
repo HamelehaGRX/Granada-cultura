@@ -5,8 +5,10 @@ import { FixtureEventRepository } from '../src/features/events/repositories/Fixt
 import { eventInteractionReducer } from '../src/features/events/interactions/state';
 import type { Event, EventPrice, EventStatus } from '../src/features/events/types';
 import { COLLECTIONS, collectionPreview, rotateCollections, selectCollections } from '../src/features/explore/collections';
-import { assembleExploreEventBlocks, previewEvents, renewDifferent, resolveExploreOrder, selectDifferent,
-  selectForYou, selectGetaway, selectGetawayWithExpansion, selectSoon } from '../src/features/explore/selection';
+import { assembleExploreEventBlocks, nextExploreSelectionSnapshot, previewEvents, renewDifferent,
+  resolveExploreOrder, selectDifferent,
+  retainValidExploreSessionIds, retainValidForYouSessionIds, selectForYou, selectGetaway, selectGetawayWithExpansion,
+  selectSoon } from '../src/features/explore/selection';
 import { groupSoonEvents, soonCardDate, soonResultState, travelLabel } from '../src/features/explore/presentation';
 import { clampGetawayMax, persistableGetawayMax, restoreGetawayMax } from '../src/features/explore/getawayFilters';
 import { exploreCandidates } from '../src/features/explore/demoTravel';
@@ -111,6 +113,26 @@ async function main() {
   const indirect = make('indirect', 6, { categoryId: 'danza', subcategoryId: 'contemporanea',
     editorial: { provenance: 'demo', relatedCategoryIds: ['musica'] } });
   assert.equal(selectDifferent([...varied, indirect], known)[0].result.event.id, 'indirect');
+  const differentSnapshot = ids(selectDifferent(varied, context));
+  const differentPreviewSnapshot = differentSnapshot.slice(0, 7);
+  let discoveryInteractions = context.interactions;
+  for (const action of [
+    { type: 'toggleFavorite', eventId: differentPreviewSnapshot[1] },
+    { type: 'toggleAttendance', eventId: differentPreviewSnapshot[1], attendance: 'interested' },
+    { type: 'toggleAttendance', eventId: differentPreviewSnapshot[1], attendance: 'going' },
+    { type: 'toggleAttendance', eventId: differentPreviewSnapshot[1], attendance: 'going' },
+    { type: 'toggleFavorite', eventId: differentPreviewSnapshot[1] },
+  ] as const) {
+    discoveryInteractions = eventInteractionReducer(discoveryInteractions, action);
+    const changedContext = { ...context, interactions: discoveryInteractions };
+    assert.deepEqual(ids(retainValidExploreSessionIds(differentSnapshot, varied, changedContext)),
+      differentSnapshot);
+    assert.deepEqual(ids(previewEvents(retainValidExploreSessionIds(differentPreviewSnapshot,
+      varied, changedContext))), differentPreviewSnapshot);
+  }
+  assert.notDeepEqual(ids(previewEvents(renewDifferent(selectDifferent(varied,
+    { ...context, interactions: discoveryInteractions }), differentPreviewSnapshot))),
+  differentPreviewSnapshot);
   const soldOutDifferent = make('sold-other', 1, { status: 'soldOut',
     categoryId: 'cine', subcategoryId: 'documentales' });
   assert.equal(selectDifferent([...varied.slice(0, 8), soldOutDifferent], context).at(-1)?.result.event.id,
@@ -242,7 +264,8 @@ async function main() {
   } }), []);
   const forYou = selectForYou(varied, known);
   assert(forYou.length > 0 && forYou.every(item => item.result.event.categoryId === 'musica'));
-  assert(!forYou.some(item => item.result.event.id === 'rock-0' || item.result.event.id === 'rock-1'));
+  assert(forYou.some(item => item.result.event.id === 'rock-0'));
+  assert(forYou.some(item => item.result.event.id === 'rock-1'));
   assert.equal(selectForYou([...varied, make('sold-music', 0.5, { status: 'soldOut' })], known)
     .at(-1)?.result.event.id, 'sold-music');
   assert.deepEqual(selectForYou([make('unrelated', 2)], known), []);
@@ -260,8 +283,59 @@ async function main() {
     make('cancelled-match', 2, { status: 'cancelled' }),
     make('ended-match', -2), make('distant-match', 2, { distanceKm: 31 }),
     make('sold-match', 1, { status: 'soldOut' })];
+  const noSignalSelection = selectForYou(affinityCandidates, context);
+  assert.equal(nextExploreSelectionSnapshot(null, noSignalSelection, 'view'), null);
+  const firstSignalContext: ExploreContext = { ...context, interactions: {
+    'going-signal': { favorite: false, attendance: 'going' },
+  } };
+  assert.equal(nextExploreSelectionSnapshot(null,
+    selectForYou(affinityCandidates, firstSignalContext), 'view'), null);
+  const activated = nextExploreSelectionSnapshot(null,
+    selectForYou(affinityCandidates, affinityContext), 'view');
+  assert(activated?.ids.length);
   assert.deepEqual(ids(selectForYou(affinityCandidates, affinityContext)),
-    ['strong-match', 'editorial-match', 'weak-exact', 'sold-match']);
+    ['going-signal', 'strong-match', 'editorial-match', 'favorite-signal', 'weak-exact', 'sold-match']);
+  const initialForYou = assembleExploreEventBlocks(['forYou'], {
+    forYou: selectForYou(affinityCandidates, affinityContext),
+  })[0];
+  const stablePreviewIds = ids(initialForYou.preview);
+  const stableFullIds = ids(initialForYou.more);
+  assert(stablePreviewIds.includes('favorite-signal'));
+  assert(stablePreviewIds.includes('strong-match'));
+  let changedInteractions = affinityContext.interactions;
+  for (const action of [
+    { type: 'toggleFavorite', eventId: 'strong-match' },
+    { type: 'toggleAttendance', eventId: 'strong-match', attendance: 'interested' },
+    { type: 'toggleAttendance', eventId: 'strong-match', attendance: 'going' },
+    { type: 'toggleAttendance', eventId: 'strong-match', attendance: 'going' },
+    { type: 'toggleFavorite', eventId: 'strong-match' },
+  ] as const) {
+    changedInteractions = eventInteractionReducer(changedInteractions, action);
+    const changedContext = { ...affinityContext, interactions: changedInteractions };
+    assert(selectForYou(affinityCandidates, changedContext).some(item => item.result.event.id === 'strong-match'));
+    assert.deepEqual(ids(retainValidForYouSessionIds(stablePreviewIds, affinityCandidates, changedContext)),
+      stablePreviewIds);
+    assert.deepEqual(ids(retainValidForYouSessionIds(stableFullIds, affinityCandidates, changedContext)),
+      stableFullIds);
+  }
+  assert.deepEqual(changedInteractions['strong-match'], undefined);
+  const belowThreshold = eventInteractionReducer(affinityContext.interactions,
+    { type: 'toggleFavorite', eventId: 'favorite-signal' });
+  const belowThresholdContext = { ...affinityContext, interactions: belowThreshold };
+  assert.deepEqual(selectForYou(affinityCandidates, belowThresholdContext), []);
+  assert.equal(nextExploreSelectionSnapshot(activated,
+    selectForYou(affinityCandidates, belowThresholdContext), 'view'), activated);
+  assert.equal(nextExploreSelectionSnapshot(activated,
+    selectForYou(affinityCandidates, belowThresholdContext), 'new-view'), null);
+  assert.deepEqual(ids(retainValidForYouSessionIds(stablePreviewIds,
+    affinityCandidates, belowThresholdContext)), stablePreviewIds);
+  assert.deepEqual(ids(retainValidForYouSessionIds(stableFullIds,
+    affinityCandidates, belowThresholdContext)), stableFullIds);
+  const cancelledSessionCandidate = { ...strongMatch, result: { ...strongMatch.result,
+    event: { ...strongMatch.result.event, status: 'cancelled' as const } } };
+  assert(!ids(retainValidForYouSessionIds(stablePreviewIds,
+    affinityCandidates.map(item => item === strongMatch ? cancelledSessionCandidate : item),
+    affinityContext)).includes('strong-match'));
   const similar = Array.from({ length: 8 }, (_, index) => make(`similar-${index}`, index + 2));
   const alternatives = [make('theatre-alt-1', 2, { categoryId: 'teatro', subcategoryId: 'drama',
     editorial: { provenance: 'demo', relatedCategoryIds: ['musica'] } }),
@@ -287,7 +361,7 @@ async function main() {
   }).find(block => block.id === 'forYou')!;
   assert(!deduplicated.preview.some(item => item.result.event.id === 'strong-match'
     || item.result.event.id === 'editorial-match'));
-  assert.equal(deduplicated.more.length, 4);
+  assert.equal(deduplicated.more.length, 6);
   const fallback = assembleExploreEventBlocks(['soon', 'forYou'], {
     soon: [strongMatch], forYou: [strongMatch, make('sold-fallback', 1, { status: 'soldOut' })],
   }).find(block => block.id === 'forYou')!;
@@ -296,7 +370,7 @@ async function main() {
     ...Array.from({ length: 70 }, (_, index) => make(`affinity-${index}`, index + 2))], affinityContext);
   const largeAffinityBlock = assembleExploreEventBlocks(['forYou'], { forYou: seventyAffinity })[0];
   assert.equal(largeAffinityBlock.preview.length, 7);
-  assert.equal(largeAffinityBlock.more.length, 70);
+  assert.equal(largeAffinityBlock.more.length, 72);
   const toggled = eventInteractionReducer({}, { type: 'toggleFavorite', eventId: 'demo' });
   assert.deepEqual(toggled.demo, { favorite: true, attendance: null });
   assert.deepEqual(eventInteractionReducer(toggled,
@@ -329,7 +403,7 @@ async function main() {
   assert.equal(longBlock[0].more.length, 70);
   assert.equal(longBlock[0].more[0].result.event.id, 'list-7');
   assert.equal(JSON.stringify(fixture), original);
-  console.log('OK Explora: ventanas/precio/estados, 7 + Ver más, diversidad, escapadas y radio, 12 colecciones, señales, orden y deduplicación.');
+  console.log('OK Explora: ventanas/precio/estados, 7 + Ver más, diversidad, escapadas y radio, 12 colecciones, señales, estabilidad de sesión, orden y deduplicación.');
 }
 
 main().catch((error: unknown) => { console.error(error); process.exitCode = 1; });

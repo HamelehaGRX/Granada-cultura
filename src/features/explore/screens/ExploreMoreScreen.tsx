@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWi
 
 import { AppShell } from '@/components/layout/AppShell';
 import { EventCard } from '@/features/events/components/EventCard';
-import { useEventInteractions } from '@/features/events/interactions/EventInteractionProvider';
+import { useEventInteractionsState } from '@/features/events/interactions/EventInteractionProvider';
 import { eventCategoryLabel } from '@/features/events/presentation';
 import { breakpoints, radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import { useExplorePreferences } from '../ExplorePreferencesProvider';
@@ -12,6 +12,7 @@ import { useSoonFilters } from '../SoonFilterProvider';
 import { GetawayFilterModal } from '../components/GetawayFilterModal';
 import { DEMO_HABITUAL_RADIUS_KM } from '../getawayFilters';
 import { useExploreEvents } from '../hooks/useExploreEvents';
+import { useStableExploreSelection } from '../hooks/useStableExploreSelection';
 import { groupSoonEvents, travelLabel } from '../presentation';
 import { previewEvents, renewDifferent, selectDifferent, selectGetawayWithExpansion,
   selectSoon } from '../selection';
@@ -23,8 +24,8 @@ export function ExploreMoreScreen({ kind }: { kind: 'different' | 'getaway' }) {
   const padding = width >= breakpoints.desktop ? spacing.xxl
     : width >= breakpoints.tablet ? spacing.xl : spacing.lg;
   const { maxKm, hydrated, applyMaxKm, differentPreviousIds } = useExplorePreferences();
-  const { applied: soonFilters } = useSoonFilters();
-  const interactions = useEventInteractions();
+  const { applied: soonFilters, hydrated: soonHydrated } = useSoonFilters();
+  const { interactions, hydrated: interactionsHydrated } = useEventInteractionsState();
   const { candidates, categories, loading, error, retry, now } = useExploreEvents();
   const [window, setWindow] = useState<GetawayWindow>('all');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -38,7 +39,10 @@ export function ExploreMoreScreen({ kind }: { kind: 'different' | 'getaway' }) {
   }, [candidates, context, differentPreviousIds, soonFilters]);
   const getaway = useMemo(() => selectGetawayWithExpansion(candidates, context, maxKm, window),
     [candidates, context, maxKm, window]);
-  const selected = kind === 'different' ? different : getaway.selected;
+  const stableDifferent = useStableExploreSelection(different, candidates, context,
+    !loading && !error && hydrated && soonHydrated && interactionsHydrated,
+    differentPreviousIds.join('\u0000'));
+  const selected = kind === 'different' ? stableDifferent ?? [] : getaway.selected;
   const grouped = kind === 'getaway' ? groupSoonEvents(selected, now) : null;
   const title = kind === 'different' ? 'Descubre de otra forma' : 'Escápate un poco';
   const goBack = () => router.canGoBack() ? router.back() : router.replace('/explorar');
@@ -71,7 +75,8 @@ export function ExploreMoreScreen({ kind }: { kind: 'different' | 'getaway' }) {
           : 'Distancias y tiempos de coche ficticios desde Granada.'}</Text>
         {kind === 'getaway' && getaway.expanded ? <Text testID="getaway-more-expanded" style={styles.notice}>
           Radio ampliado a {getaway.effectiveMaxKm} km por falta de propuestas cercanas.</Text> : null}
-        {loading || !hydrated ? <ActivityIndicator accessibilityLabel="Cargando eventos" />
+        {loading || !hydrated || kind === 'different' && stableDifferent === null && different.length > 0
+          ? <ActivityIndicator accessibilityLabel="Cargando eventos" />
           : error ? <Pressable accessibilityRole="button" onPress={retry}>
             <Text style={styles.message}>No hemos podido cargar propuestas. Reintentar</Text></Pressable>
             : selected.length === 0 ? <Text style={styles.message}>No hay propuestas para estos criterios.</Text>

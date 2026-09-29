@@ -181,8 +181,7 @@ export function selectForYou(candidates: readonly ExploreCandidate[],
   });
   const ranked = candidates.flatMap(candidate => {
     const event = candidate.result.event;
-    const interaction = context.interactions[event.id];
-    if (!eligibleInHabitualArea(candidate, context) || interaction?.favorite || interaction?.attendance) return [];
+    if (!eligibleInHabitualArea(candidate, context)) return [];
     const matches = signals.flatMap(signal => {
       const source = signal.candidate.result.event;
       const relation = source.categoryId === event.categoryId
@@ -203,6 +202,28 @@ export function selectForYou(candidates: readonly ExploreCandidate[],
     || validDistance(a.candidate)! - validDistance(b.candidate)!
     || a.candidate.result.event.id.localeCompare(b.candidate.result.event.id))
     .map(item => item.candidate);
+}
+
+/** Mantiene la selección visible de esta vista; solo la validez real del evento puede retirarlo. */
+export function retainValidExploreSessionIds(ids: readonly string[],
+  candidates: readonly ExploreCandidate[], context: ExploreContext): ExploreCandidate[] {
+  const byId = new Map(candidates.map(candidate => [candidate.result.event.id, candidate]));
+  return ids.flatMap(id => {
+    const candidate = byId.get(id);
+    return candidate && eligibleInHabitualArea(candidate, context) ? [candidate] : [];
+  });
+}
+
+export const retainValidForYouSessionIds = retainValidExploreSessionIds;
+
+export type ExploreSelectionSnapshot = { key: string; ids: readonly string[] };
+
+/** Una selección vacía aún no está activa; una vez activada no se recalcula por interacciones. */
+export function nextExploreSelectionSnapshot(current: ExploreSelectionSnapshot | null,
+  selection: readonly ExploreCandidate[], key: string): ExploreSelectionSnapshot | null {
+  if (current?.key === key) return current;
+  const ids = selection.map(item => item.result.event.id);
+  return ids.length ? { key, ids } : null;
 }
 
 export function previewEvents(candidates: readonly ExploreCandidate[]): ExploreCandidate[] {

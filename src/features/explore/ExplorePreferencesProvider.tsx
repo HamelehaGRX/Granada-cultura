@@ -15,6 +15,8 @@ type ExplorePreferences = {
   renewDifferentFrom: (ids: readonly string[]) => void;
   collectionSessionSeed: number;
   collectionRotationReady: boolean;
+  forYouSessionIds: { preview: readonly string[]; more: readonly string[] } | null;
+  rememberForYouSession: (preview: readonly string[], more: readonly string[]) => void;
 };
 
 const Context = createContext<ExplorePreferences | null>(null);
@@ -25,6 +27,7 @@ export function ExplorePreferencesProvider({ children }: PropsWithChildren) {
   const [differentPreviousIds, setDifferentPreviousIds] = useState<readonly string[]>([]);
   const [collectionSessionSeed, setCollectionSessionSeed] = useState(0);
   const [collectionRotationReady, setCollectionRotationReady] = useState(false);
+  const [forYouSessionIds, setForYouSessionIds] = useState<ExplorePreferences['forYouSessionIds']>(null);
   const lastSnapshot = useRef<string | null>(null);
   useEffect(() => {
     let active = true;
@@ -61,9 +64,14 @@ export function ExplorePreferencesProvider({ children }: PropsWithChildren) {
   }, [maxKm, hydrated]);
   const applyMaxKm = useCallback((value: number) => setMaxKm(clampGetawayMax(value)), []);
   const renewDifferentFrom = useCallback((ids: readonly string[]) => setDifferentPreviousIds([...ids]), []);
+  const rememberForYouSession = useCallback((preview: readonly string[], more: readonly string[]) => {
+    if (preview.length) setForYouSessionIds(current => current ?? { preview: [...preview], more: [...more] });
+  }, []);
   const context = useMemo(() => ({ maxKm, hydrated, applyMaxKm, differentPreviousIds,
-    renewDifferentFrom, collectionSessionSeed, collectionRotationReady }), [maxKm, hydrated, applyMaxKm,
-    differentPreviousIds, renewDifferentFrom, collectionSessionSeed, collectionRotationReady]);
+    renewDifferentFrom, collectionSessionSeed, collectionRotationReady, forYouSessionIds,
+    rememberForYouSession }), [maxKm, hydrated, applyMaxKm, differentPreviousIds,
+    renewDifferentFrom, collectionSessionSeed, collectionRotationReady, forYouSessionIds,
+    rememberForYouSession]);
   return <Context.Provider value={context}>{children}</Context.Provider>;
 }
 
