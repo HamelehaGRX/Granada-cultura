@@ -1,6 +1,6 @@
 # EXPLORA v1 — biblia funcional
 
-**Fase actual:** 4. Esta biblia distingue el diseño acordado de lo conectado: la pestaña Explorar muestra **Ocurre pronto**, **Descubre de otra forma**, **Escápate un poco** y **Colecciones**. También podría interesarte sigue sin interfaz pública.
+**Fase actual:** 5. Esta biblia distingue el diseño acordado de lo conectado: la pestaña Explorar muestra **Ocurre pronto**, **Descubre de otra forma**, **Escápate un poco**, **Colecciones** y, solo con contexto suficiente, **También podría interesarte**.
 
 ## Objetivo y diferencia con Inicio
 
@@ -22,7 +22,7 @@ El dominio permite resolver el orden recomendado, un orden propio de los tres bl
 
 ## Regla transversal: siete eventos y Ver más
 
-Todo carrusel horizontal de eventos tendrá como máximo **7 eventos + tarjeta final Ver más**. Si hay cuatro candidatos válidos, muestra cuatro y Ver más. No se rellenan huecos artificialmente. Los tres bloques iniciales y cada colección disponible reutilizan `ExploreCarousel`, EventCard y la misma tarjeta de acción neutra. Las tarjetas de acceso a colecciones de la portada no son EventCards ni carruseles.
+Todo carrusel horizontal de eventos tendrá como máximo **7 eventos + tarjeta final Ver más**. Si hay cuatro candidatos válidos, muestra cuatro y Ver más. No se rellenan huecos artificialmente. Los cuatro bloques de eventos y cada colección disponible reutilizan `ExploreCarousel`, EventCard y la misma tarjeta de acción neutra. Las tarjetas de acceso a colecciones de la portada no son EventCards ni carruseles.
 
 Ver más no tiene tope artificial. Si hay 70 candidatos, se conservan los 70. En Ocurre pronto, el listado completo agrupa cronológicamente los disponibles por día y sitúa los agotados después. La deduplicación de portada no invalida candidatos en Ver más. No se almacenan impresiones ni historial permanente.
 
@@ -91,13 +91,19 @@ Quedan fuera de v1: Fuera del circuito habitual, Espacios inesperados, Para ir s
 
 ## También podría interesarte
 
-Es la pequeña parte afín de Explora. Sin señales suficientes no aparece. La implementación inicial solo usa **interacciones explícitas locales**: Voy a ir, Favorito y Me interesa. De forma provisional exige interacciones con al menos dos eventos distintos; no es un peso numérico definitivo ni una decisión cerrada de producto. La afinidad por Voy a ir precede a Favorito/Me interesa, siempre después de separar los agotados. Se sugieren otros eventos de las categorías indicadas, no los mismos ya marcados.
+Es la pequeña parte afín de Explora y aparece **al final**, después de Colecciones. Sin señales suficientes se omite por completo, sin hueco ni fallback de popularidad. La implementación inicial solo consume las **interacciones explícitas locales ya existentes**: Voy a ir, Favorito y Me interesa, guardadas por `EventInteractionProvider`. Exige provisionalmente acciones activas sobre al menos **dos eventos distintos**; es una condición de prototipo, no un umbral definitivo de producto. No guarda visitas, impresiones, clics ni un perfil adicional.
 
-En el futuro, visitas repetidas, apertura de detalle e impresiones simples podrán aportar señales de menor peso. Se debe definir un decaimiento temporal de intereses sin conservar un historial invasivo ni introducir una fórmula compleja prematura. La persona debe poder entender y controlar por qué se muestra cada propuesta.
+`selectForYou` busca otros eventos futuros dentro del radio habitual demo de 30 km. Excluye los ya marcados, cancelados, terminados y los que no tienen distancia. Compara categoría, subcategoría, tipo conservador de experiencia y conexiones editoriales explícitas cuando existen; una coincidencia de categoría no exige que los siete resultados sean clones exactos. La puntuación es una tupla pequeña y determinista: primero señal **Voy a ir** frente a Favorito/Me interesa; después fuerza de relación y número de señales concordantes; después fecha y distancia como desempates. Los disponibles preceden a agotados. No usa popularidad, patrocinio, ML ni datos temporales inventados. No hay decaimiento temporal: las interacciones actuales no conservan un timestamp fiable para ello.
+
+El preview reutiliza EventCard y el carrusel manual, con un máximo de siete eventos más la tarjeta final Ver más. Intenta limitar a dos propuestas de la misma experiencia cuando hay alternativas; si las alternativas se agotan, puede completar con similares. En la portada prioriza eventos aún no usados por Ocurre pronto, Descubre o Escápate; si todos los disponibles ya aparecieron, permite repetirlos antes que ocupar el preview con agotados. Colecciones no consume IDs ni altera esta selección. El listado `/explorar/para-ti` conserva todos los candidatos afines, sin límite de siete ni filtros; adelanta como máximo siete disponibles todavía no mostrados y después retoma el orden de afinidad, sin desplazar indefinidamente los ya vistos.
+
+La cabecera provisional dice «Un poco más cerca de lo tuyo.» y no afirma una compatibilidad porcentual ni presenta una explicación individual todavía. Claro/Oscuro/Sistema, la tarjeta Ver más y el ancho de lectura usan los componentes y tokens existentes; en móvil se ve una tarjeta y parte de la siguiente, en tablet aproximadamente dos y en escritorio tres o cuatro. El bloque se monta tras hidratar las interacciones y el cursor de Colecciones. Cambios posteriores de Favorito, Me interesa o Voy a ir recalculan la selección localmente; al estar al final no reordenan los cuatro bloques anteriores. Al volver de detalle o Ver más se conserva el scroll de Explora cuando la navegación mantiene la pantalla.
+
+En el futuro se estudiarán control y explicaciones de recomendaciones, umbral de suficiencia, señales opcionales de menor peso y decaimiento temporal respetuoso con la privacidad. Nada de eso se simula ahora ni se almacena por adelantado.
 
 ## Repeticiones y estados
 
-Los bloques de **eventos** de la portada procuran no repetir un ID ya usado por un bloque anterior del orden activo. El primero recibe la primera aparición. El ensamblado limita cada preview a siete y mantiene el listado completo; allí los no mostrados preceden a los repetidos. La deduplicación vive en el cálculo de esa pantalla/sesión: no se persiste «ya vio este evento». Las colecciones se calculan por separado y no consumen esos IDs.
+Los bloques de **eventos** de la portada procuran no repetir un ID ya usado por un bloque anterior del orden activo. El primero recibe la primera aparición. El ensamblado limita cada preview a siete y mantiene el listado completo. En los tres bloques iniciales, los no mostrados preceden a los repetidos en Ver más; en También podría interesarte se adelantan hasta siete disponibles no mostrados y luego continúa la afinidad. La deduplicación vive en el cálculo de esa pantalla/sesión: no se persiste «ya vio este evento». Las colecciones se calculan por separado y no consumen esos IDs.
 
 Cancelado y terminado significan «fuera de recomendaciones actuales», no eliminación del evento histórico. Agotado conserva acceso en listado completo, pero pierde prioridad frente a disponible. Aplazado o modificado usa la fecha y estado **actuales**. No se crea un sistema paralelo de estados.
 
@@ -109,12 +115,12 @@ Los bloques consumen los tokens globales de Claro/Oscuro/Sistema. Colecciones a�
 
 ## Estado de implementación
 
-| Parte | Estado real en fase 4 |
+| Parte | Estado real en fase 5 |
 | --- | --- |
-| Pestaña Explorar | Cabecera, búsqueda reutilizada, scroll vertical y tres bloques de eventos visibles. |
+| Pestaña Explorar | Cabecera, búsqueda reutilizada, scroll vertical y cuatro bloques de eventos, el último condicionado a señales explícitas. |
 | Tipos, radio como entrada, estimación de viaje | Implementados como contratos puros; radio no persistido, sin proveedor de rutas. |
 | Ocurre pronto, Descubre, Escápate | Selectores puros e interfaz conectados a fixtures Expo; tres rutas Ver más. |
-| También podría interesarte | Solo selector puro; no se muestra en portada. |
+| También podría interesarte | Selector puro de afinidad básica, preview diverso y condicionado; ruta `/explorar/para-ti` con lista completa. |
 | Colecciones y rotación | Doce definiciones, elegibilidad y rotación por sesión; hasta cuatro accesos de portada entre las disponibles. |
 | Todas las colecciones | Ruta propia, orden estable, bloques vacíos omitidos, carruseles 7 + Ver más. |
 | Detalle de colección | Ruta parametrizada, listado completo virtualizado y EventCard con identidad de categoría. |
@@ -123,9 +129,9 @@ Los bloques consumen los tokens globales de Claro/Oscuro/Sistema. Colecciones a�
 | Filtro de Ocurre pronto | Modal draft/applied, persistencia local de ventana y precio, cierre sin guardar, defaults 7 días/Todos. |
 | Renovación ↻ de Descubre | Manual, local a ese bloque y estable durante la sesión; sin autoplay. |
 | Filtro y Ver más de Escápate | Máximo 30–300 km persistente; una ampliación anunciada de +25 km; fecha solo en Ver más, no persistida. |
-| Cambio de orden y También podría interesarte | Diseño acordado; UI pendiente. |
+| Cambio de orden | Contrato de dominio acordado; UI de Perfil y preferencia de orden pendientes. |
 | Integración con Inicio y radio habitual real | Pendiente. Los filtros temporales de Inicio no se mezclan con Explora. |
-| Personalización avanzada, visitas, impresiones, decaimiento | Pendiente; no se registran nuevas señales ni datos personales. |
+| Personalización avanzada, visitas, impresiones, decaimiento | Pendiente; solo se leen tres estados explícitos ya guardados, sin datos nuevos. |
 
 ## Decisiones aún pendientes
 
@@ -133,11 +139,11 @@ Los bloques consumen los tokens globales de Claro/Oscuro/Sistema. Colecciones a�
 - Definición y procedencia verificable de los atributos editoriales y del precio total confirmado al pasar de fixtures a datos reales.
 - Proveedor sustituible de rutas y condiciones para mostrar duración aproximada sin hacer promesas falsas.
 - Umbral y explicación de recomendaciones personales, renovación manual, decaimiento temporal y control del usuario.
-- Curación real de Colecciones, También podría interesarte y orden personal; validación native de las nuevas pantallas/modales en Android e iOS.
+- Curación real de Colecciones y También podría interesarte, umbral y explicaciones finales, orden personal; validación native de las nuevas pantallas/modales en Android e iOS.
 - Cómo manejar sesiones futuras de eventos de larga duración sin confundir apertura continua con una actividad próxima.
 
 ## Arquitectura y validación de esta fase
 
-`src/features/explore/types.ts` define el contexto y metadatos; `selection.ts` concentra selección, renovación, orden y deduplicación; `collections.ts` conserva el catálogo estable y sus reglas. Consumen `EventResult`, `Event`, interacciones y estados existentes. No tienen imports de React ni de storage. `useExploreEvents` conecta el repositorio demo; `demoTravel.ts` y `demoEditorial.ts` enriquecen los resultados con datos ficticios explícitos. `ExplorePreferencesProvider` guarda el máximo de Escápate y un cursor de rotación sin historial, y conserva la renovación de Descubre en memoria. `getawayFilters.ts` y `collectionRotation.ts` validan la persistencia. `useExploreCollections` conecta las dos pantallas nuevas sin acoplar la selección a un fixture. El carrusel y la tarjeta Ver más son comunes a los bloques de eventos; la apariencia de Colecciones vive en `src/theme/collectionAppearances.ts`, separada de Categorías. `scripts/validate-explore.ts` verifica las reglas sin añadir dependencias.
+`src/features/explore/types.ts` define el contexto y metadatos; `selection.ts` concentra selección, renovación, afinidad, orden y deduplicación; `collections.ts` conserva el catálogo estable y sus reglas. Consumen `EventResult`, `Event`, interacciones y estados existentes. No tienen imports de React ni de storage. `useExploreEvents` conecta el repositorio demo; `demoTravel.ts` y `demoEditorial.ts` enriquecen los resultados con datos ficticios explícitos. `ExplorePreferencesProvider` guarda el máximo de Escápate y un cursor de rotación sin historial, y conserva la renovación de Descubre en memoria. `getawayFilters.ts` y `collectionRotation.ts` validan la persistencia. `useExploreCollections` conecta las pantallas de Colecciones sin acoplar la selección a un fixture. `ForYouMoreScreen` recompone mediante los selectores puros los previews anteriores y la lista afín; no registra impresiones. El carrusel y la tarjeta Ver más son comunes a los bloques de eventos; la apariencia de Colecciones vive en `src/theme/collectionAppearances.ts`, separada de Categorías. `scripts/validate-explore.ts` verifica las reglas sin añadir dependencias.
 
-Desde la raíz: `node scripts/run-validation.cjs explore`, `npm run validate`, `npm run typecheck` y `git diff --check`. La fase 4 requiere además smoke visual web móvil/tablet/escritorio; Expo Doctor y exports quedan fuera de alcance.
+Desde la raíz: `node scripts/run-validation.cjs explore`, `npm run validate`, `npm run typecheck` y `git diff --check`. La fase 5 requiere además smoke visual web móvil/tablet/escritorio con usuario nuevo y usuario con señales; Expo Doctor y exports quedan fuera de alcance.

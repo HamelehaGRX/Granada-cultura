@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWi
 
 import { AppShell } from '@/components/layout/AppShell';
 import { HomeHeader } from '@/features/events/components/HomeHeader';
-import { useEventInteractions } from '@/features/events/interactions/EventInteractionProvider';
+import { useEventInteractionsState } from '@/features/events/interactions/EventInteractionProvider';
 import { breakpoints, radii, sizes, spacing, typography, useThemeStyles, type ThemeColors } from '@/theme';
 import { useExplorePreferences } from '../ExplorePreferencesProvider';
 import { useSoonFilters } from '../SoonFilterProvider';
@@ -16,7 +16,7 @@ import { SoonSection } from '../components/SoonSection';
 import { DEMO_HABITUAL_RADIUS_KM } from '../getawayFilters';
 import { useExploreEvents } from '../hooks/useExploreEvents';
 import { assembleExploreEventBlocks, renewDifferent, selectDifferent,
-  selectGetawayWithExpansion, selectSoon, previewEvents } from '../selection';
+  selectForYou, selectGetawayWithExpansion, selectSoon, previewEvents } from '../selection';
 
 export function ExploreScreen() {
   const styles = useThemeStyles(createStyles);
@@ -27,7 +27,7 @@ export function ExploreScreen() {
   const { maxKm, hydrated: getawayHydrated, applyMaxKm, differentPreviousIds, collectionSessionSeed,
     collectionRotationReady,
     renewDifferentFrom } = useExplorePreferences();
-  const interactions = useEventInteractions();
+  const { interactions, hydrated: interactionsHydrated } = useEventInteractionsState();
   const { candidates, categories, loading, error, retry, now } = useExploreEvents();
   const [getawayOpen, setGetawayOpen] = useState(false);
   const context = useMemo(() => ({ now, habitualArea: { radiusKm: DEMO_HABITUAL_RADIUS_KM },
@@ -44,12 +44,14 @@ export function ExploreScreen() {
   const availableCollections = useMemo(() => selectCollections(candidates, context), [candidates, context]);
   const featuredCollections = useMemo(() => rotateCollections(availableCollections, collectionSessionSeed),
     [availableCollections, collectionSessionSeed]);
-  const blocks = useMemo(() => assembleExploreEventBlocks(['soon', 'different', 'getaway'],
-    { soon, different: orderedDifferent, getaway: getaway.selected }),
-  [soon, orderedDifferent, getaway]);
+  const forYou = useMemo(() => selectForYou(candidates, context), [candidates, context]);
+  const blocks = useMemo(() => assembleExploreEventBlocks(['soon', 'different', 'getaway',
+    'collections', 'forYou'], { soon, different: orderedDifferent, getaway: getaway.selected, forYou }),
+  [soon, orderedDifferent, getaway, forYou]);
   const soonPreview = blocks.find(block => block.id === 'soon')?.preview;
   const differentPreview = blocks.find(block => block.id === 'different')?.preview ?? [];
   const getawayPreview = blocks.find(block => block.id === 'getaway')?.preview ?? [];
+  const forYouPreview = blocks.find(block => block.id === 'forYou')?.preview ?? [];
   const scrollRef = useRef<ScrollView>(null);
   const restored = useRef(false);
   const [query, setQuery] = useState('');
@@ -131,6 +133,15 @@ export function ExploreScreen() {
             style={({ pressed }) => [styles.allCollectionsLink, pressed && styles.pressed]}>
             <Text style={styles.allCollectionsText}>Ver todas →</Text>
           </Pressable>
+        </View> : null}
+        {!loading && !error && collectionRotationReady && interactionsHydrated && forYouPreview.length > 0 ? <View
+          testID="for-you-section" style={styles.section}>
+          <Text accessibilityRole="header" aria-level={2} style={styles.sectionTitle}>
+            TAMBIÉN PODRÍA INTERESARTE</Text>
+          <Text style={styles.sectionSubtitle}>Un poco más cerca de lo tuyo.</Text>
+          <Text style={styles.demoNote}>Selección local · radio habitual demo de 30 km desde Granada.</Text>
+          <ExploreCarousel kind="forYou" title="También podría interesarte" candidates={forYouPreview}
+            categories={categories} now={now} onMore={() => router.push('/explorar/para-ti')} />
         </View> : null}
       </View>
     </ScrollView>

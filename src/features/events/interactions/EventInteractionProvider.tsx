@@ -88,3 +88,9 @@ export function useEventInteractions(): EventInteractionMap {
   if (!context) throw new Error('useEventInteractions requiere EventInteractionProvider');
   return context.interactions;
 }
+
+export function useEventInteractionsState() {
+  const context = useContext(EventInteractionContext);
+  if (!context) throw new Error('useEventInteractionsState requiere EventInteractionProvider');
+  return { hydrated: context.hydrated, interactions: context.interactions };
+}

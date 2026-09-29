@@ -12,7 +12,7 @@ import type { ExploreCandidate } from '../types';
 
 export function ExploreCarousel({ candidates, categories, now, onMore, kind, title, carouselId }: {
   candidates: readonly ExploreCandidate[]; categories: Category[]; now: Date; onMore: () => void;
-  kind: 'soon' | 'different' | 'getaway' | 'collection'; title: string; carouselId?: string;
+  kind: 'soon' | 'different' | 'getaway' | 'collection' | 'forYou'; title: string; carouselId?: string;
 }) {
   const styles = useThemeStyles(createStyles);
   const { width, fontScale } = useWindowDimensions();

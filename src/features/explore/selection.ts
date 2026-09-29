@@ -174,14 +174,35 @@ export function selectGetawayWithExpansion(candidates: readonly ExploreCandidate
 export function selectForYou(candidates: readonly ExploreCandidate[],
   context: ExploreContext): ExploreCandidate[] {
   if (!hasSufficientExplicitSignals(context.interactions)) return [];
-  const { preferred, strong } = preferredCategories(candidates, context.interactions);
-  return candidates.filter(candidate => eligibleInHabitualArea(candidate, context)
-    && preferred.has(candidate.result.event.categoryId)
-    && !context.interactions[candidate.result.event.id]).sort((a, b) =>
-    Number(isSoldOut(a)) - Number(isSoldOut(b))
-    || Number(strong.has(b.result.event.categoryId)) - Number(strong.has(a.result.event.categoryId))
-    || Date.parse(a.result.event.startsAt) - Date.parse(b.result.event.startsAt)
-    || a.result.event.id.localeCompare(b.result.event.id));
+  const signals = candidates.flatMap(candidate => {
+    const interaction = context.interactions[candidate.result.event.id];
+    return interaction?.favorite || interaction?.attendance
+      ? [{ candidate, priority: interaction.attendance === 'going' ? 2 : 1 }] : [];
+  });
+  const ranked = candidates.flatMap(candidate => {
+    const event = candidate.result.event;
+    const interaction = context.interactions[event.id];
+    if (!eligibleInHabitualArea(candidate, context) || interaction?.favorite || interaction?.attendance) return [];
+    const matches = signals.flatMap(signal => {
+      const source = signal.candidate.result.event;
+      const relation = source.categoryId === event.categoryId
+        && source.subcategoryId === event.subcategoryId ? 3
+        : experienceKey(signal.candidate) === experienceKey(candidate) ? 2
+          : source.categoryId === event.categoryId
+            || candidate.editorial?.relatedCategoryIds?.includes(source.categoryId)
+            || signal.candidate.editorial?.relatedCategoryIds?.includes(event.categoryId) ? 1 : 0;
+      return relation ? [{ priority: signal.priority, relation }] : [];
+    });
+    if (!matches.length) return [];
+    return [{ candidate, priority: Math.max(...matches.map(match => match.priority)),
+      relation: Math.max(...matches.map(match => match.relation)), support: matches.length }];
+  });
+  return ranked.sort((a, b) => Number(isSoldOut(a.candidate)) - Number(isSoldOut(b.candidate))
+    || b.priority - a.priority || b.relation - a.relation || b.support - a.support
+    || Date.parse(a.candidate.result.event.startsAt) - Date.parse(b.candidate.result.event.startsAt)
+    || validDistance(a.candidate)! - validDistance(b.candidate)!
+    || a.candidate.result.event.id.localeCompare(b.candidate.result.event.id))
+    .map(item => item.candidate);
 }
 
 export function previewEvents(candidates: readonly ExploreCandidate[]): ExploreCandidate[] {
@@ -216,14 +237,20 @@ export function assembleExploreEventBlocks(order: readonly ExploreBlockId[],
     const all = [...unique.values()];
     const unseen = all.filter(candidate => !used.has(candidate.result.event.id));
     const available = unseen.filter(candidate => !isSoldOut(candidate));
-    const pool = available.length ? available : unseen;
-    const preview = previewEvents(id === 'different' ? diversifyExperiences(pool) : pool);
+    const previouslyShownAvailable = id === 'forYou' && !available.length
+      ? all.filter(candidate => !isSoldOut(candidate)) : [];
+    const pool = previouslyShownAvailable.length ? previouslyShownAvailable
+      : available.length ? available : unseen;
+    const preview = previewEvents(id === 'different' || id === 'forYou'
+      ? diversifyExperiences(pool) : pool);
     if (preview.length === 0) continue;
     preview.forEach(candidate => used.add(candidate.result.event.id));
-    blocks.push({ id, preview, more: [
-      ...all.filter(candidate => !used.has(candidate.result.event.id)),
-      ...all.filter(candidate => used.has(candidate.result.event.id)),
-    ] });
+    const unseenForMore = all.filter(candidate => !used.has(candidate.result.event.id));
+    const promoted = id === 'forYou' ? previewEvents(unseenForMore.filter(candidate => !isSoldOut(candidate)))
+      : unseenForMore;
+    const promotedIds = new Set(promoted.map(candidate => candidate.result.event.id));
+    blocks.push({ id, preview, more: [...promoted,
+      ...all.filter(candidate => !promotedIds.has(candidate.result.event.id))] });
   }
   return blocks;
 }

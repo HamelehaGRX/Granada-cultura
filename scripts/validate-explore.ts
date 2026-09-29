@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 
 import { FixtureEventRepository } from '../src/features/events/repositories/FixtureEventRepository';
+import { eventInteractionReducer } from '../src/features/events/interactions/state';
 import type { Event, EventPrice, EventStatus } from '../src/features/events/types';
 import { COLLECTIONS, collectionPreview, rotateCollections, selectCollections } from '../src/features/explore/collections';
 import { assembleExploreEventBlocks, previewEvents, renewDifferent, resolveExploreOrder, selectDifferent,
@@ -244,6 +245,63 @@ async function main() {
   assert(!forYou.some(item => item.result.event.id === 'rock-0' || item.result.event.id === 'rock-1'));
   assert.equal(selectForYou([...varied, make('sold-music', 0.5, { status: 'soldOut' })], known)
     .at(-1)?.result.event.id, 'sold-music');
+  assert.deepEqual(selectForYou([make('unrelated', 2)], known), []);
+  const goingSignal = make('going-signal', 1);
+  const favoriteSignal = make('favorite-signal', 1, { categoryId: 'literatura', subcategoryId: 'poesia' });
+  const strongMatch = make('strong-match', 3, { subcategoryId: 'jazz' });
+  const weakExact = make('weak-exact', 2, { categoryId: 'literatura', subcategoryId: 'poesia' });
+  const editorialMatch = make('editorial-match', 4, { categoryId: 'danza',
+    editorial: { provenance: 'demo', relatedCategoryIds: ['musica'] } });
+  const affinityContext: ExploreContext = { ...context, interactions: {
+    'going-signal': { favorite: false, attendance: 'going' },
+    'favorite-signal': { favorite: true, attendance: null },
+  } };
+  const affinityCandidates = [goingSignal, favoriteSignal, strongMatch, weakExact, editorialMatch,
+    make('cancelled-match', 2, { status: 'cancelled' }),
+    make('ended-match', -2), make('distant-match', 2, { distanceKm: 31 }),
+    make('sold-match', 1, { status: 'soldOut' })];
+  assert.deepEqual(ids(selectForYou(affinityCandidates, affinityContext)),
+    ['strong-match', 'editorial-match', 'weak-exact', 'sold-match']);
+  const similar = Array.from({ length: 8 }, (_, index) => make(`similar-${index}`, index + 2));
+  const alternatives = [make('theatre-alt-1', 2, { categoryId: 'teatro', subcategoryId: 'drama',
+    editorial: { provenance: 'demo', relatedCategoryIds: ['musica'] } }),
+    make('theatre-alt-2', 3, { categoryId: 'teatro', subcategoryId: 'drama',
+      editorial: { provenance: 'demo', relatedCategoryIds: ['musica'] } }),
+    make('dance-alt', 4, { categoryId: 'danza',
+      editorial: { provenance: 'demo', relatedCategoryIds: ['musica'] } }),
+    make('cinema-alt', 5, { categoryId: 'cine',
+      editorial: { provenance: 'demo', relatedCategoryIds: ['musica'] } }),
+    make('heritage-alt', 6, { categoryId: 'patrimonio',
+      editorial: { provenance: 'demo', relatedCategoryIds: ['musica'] } })];
+  const diverseAffinity = selectForYou([goingSignal, favoriteSignal, ...similar, ...alternatives], affinityContext);
+  const affinityBlock = assembleExploreEventBlocks(['collections', 'forYou'], { forYou: diverseAffinity })[0];
+  assert.equal(affinityBlock.id, 'forYou');
+  assert.equal(affinityBlock.preview.length, 7);
+  assert(affinityBlock.preview.filter(item => item.result.event.categoryId === 'musica').length <= 2);
+  assert.equal(affinityBlock.more.length, diverseAffinity.length);
+  assert.deepEqual(ids(assembleExploreEventBlocks(['forYou'], { forYou: diverseAffinity })[0].preview),
+    ids(affinityBlock.preview));
+  const deduplicated = assembleExploreEventBlocks(['soon', 'different', 'getaway', 'collections', 'forYou'], {
+    soon: [strongMatch], different: [editorialMatch], getaway: [],
+    forYou: selectForYou(affinityCandidates, affinityContext),
+  }).find(block => block.id === 'forYou')!;
+  assert(!deduplicated.preview.some(item => item.result.event.id === 'strong-match'
+    || item.result.event.id === 'editorial-match'));
+  assert.equal(deduplicated.more.length, 4);
+  const fallback = assembleExploreEventBlocks(['soon', 'forYou'], {
+    soon: [strongMatch], forYou: [strongMatch, make('sold-fallback', 1, { status: 'soldOut' })],
+  }).find(block => block.id === 'forYou')!;
+  assert.deepEqual(ids(fallback.preview), ['strong-match']);
+  const seventyAffinity = selectForYou([goingSignal, favoriteSignal,
+    ...Array.from({ length: 70 }, (_, index) => make(`affinity-${index}`, index + 2))], affinityContext);
+  const largeAffinityBlock = assembleExploreEventBlocks(['forYou'], { forYou: seventyAffinity })[0];
+  assert.equal(largeAffinityBlock.preview.length, 7);
+  assert.equal(largeAffinityBlock.more.length, 70);
+  const toggled = eventInteractionReducer({}, { type: 'toggleFavorite', eventId: 'demo' });
+  assert.deepEqual(toggled.demo, { favorite: true, attendance: null });
+  assert.deepEqual(eventInteractionReducer(toggled,
+    { type: 'toggleAttendance', eventId: 'demo', attendance: 'going' }).demo,
+  { favorite: true, attendance: 'going' });
 
   const order = resolveExploreOrder();
   assert.deepEqual(order, ['soon', 'different', 'getaway', 'collections', 'forYou']);

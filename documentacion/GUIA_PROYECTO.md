@@ -8,7 +8,7 @@ La carpeta `app/` conserva intacto el prototipo web aprobado como referencia his
 
 La base principal dispone de dominio tipado, repositorios demo, Home con tarjetas, búsqueda y filtros persistentes, detalle completo de evento, preferencias locales de evento, splash visual, navegación responsive y placeholders gráficos reutilizables. Las funcionalidades reales de las otras pestañas pertenecen a fases de producto independientes.
 
-**Explora v1 está en fase 4:** [EXPLORA.md](producto/EXPLORA.md) distingue reglas acordadas y estado real. La pestaña Explorar muestra Ocurre pronto, Descubre de otra forma, Escápate un poco y hasta cuatro accesos rotativos a Colecciones. La ruta «Todas las colecciones» mantiene el orden estable de las doce definiciones y omite las que aún no tienen contenido; cada bloque ofrece hasta siete eventos y una tarjeta final Ver más que abre su listado completo. La identidad visual de Colecciones es independiente del color de categoría de cada EventCard. Las etiquetas editoriales son demo y el radio habitual de 30 km sigue siendo provisional. También podría interesarte aún no tiene UI; faltan radio compartido, curación real y proveedor de trayectos.
+**Explora v1 está en fase 5:** [EXPLORA.md](producto/EXPLORA.md) distingue reglas acordadas y estado real. La pestaña Explorar muestra Ocurre pronto, Descubre de otra forma, Escápate un poco y hasta cuatro accesos rotativos a Colecciones. «También podría interesarte» cierra la portada solo cuando existen al menos dos interacciones explícitas distintas; reutiliza Favorito, Me interesa y Voy a ir, aplica afinidad local y diversidad, y abre un listado completo en `/explorar/para-ti`. No registra nuevas señales ni finge recomendaciones para usuarios nuevos. Las doce colecciones conservan sus rutas, reglas, rotación e identidad visual propia. Las etiquetas editoriales son demo; el umbral de afinidad y el radio habitual de 30 km son provisionales. Faltan radio compartido, curación real y proveedor de trayectos.
 
 ## Gobernanza y Constitución
 
@@ -30,7 +30,7 @@ Cuando una propuesta entre en conflicto con un principio constitucional, el conf
 - `src/theme/`: colores, tipografía, espaciado, radios, sombras, movimiento y breakpoints centralizados.
 - `src/storage/`: claves, contrato JSON tipado, adaptador AsyncStorage y frontera de migraciones.
 - `src/features/events/` y `src/features/categories/`: modelos, adaptación, repositorios, Home, detalle de evento, interacciones locales y resolución de ilustraciones.
-- `src/features/explore/`: reglas y UI de los cuatro bloques visibles, Colecciones y sus rutas; filtros locales persistentes de Ocurre pronto y distancia máxima de Escápate.
+- `src/features/explore/`: reglas y UI de los cinco bloques de portada —uno condicionado a señales—, Colecciones y rutas Ver más; filtros locales persistentes de Ocurre pronto y distancia máxima de Escápate.
 - `src/types/common.ts`: coordenadas, instantes ISO y zona horaria compartidos.
 - `src/data/fixtures/`: frontera de fixtures; `raw/` contiene las copias demo propiedad de Expo.
 - `scripts/validate-data.ts`: comprobaciones de datos sin framework adicional; se ejecuta fuera de la aplicación.
